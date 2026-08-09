@@ -22,6 +22,17 @@ const Candle = ({ x, o, c, h, l }) => {
   );
 };
 
+// --- UTILITY: CLEAN MARKDOWN SYMBOLS FOR PLAIN TEXT UI ---
+const stripMarkdown = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/#{1,6}\s?/g, '') // Removes header hashes (###)
+    .replace(/\*\*/g, '')      // Removes bold asterisks (**)
+    .replace(/\*/g, '')        // Removes bullet/italic asterisks (*)
+    .replace(/---/g, '')       // Removes horizontal rules (---)
+    .replace(/- /g, '• ');     // Converts markdown dashes to clean bullets
+};
+
 // --- GLOBAL COURSE DATA ARCHITECTURE ---
 const episodeTitles = [
   "Episode 1: The Magnet (Liquidity)", "Episode 2: The Stomp (Market Structure Shift)", "Episode 3: The Hole (Fair Value Gap)", 
@@ -274,6 +285,22 @@ export default function App() {
   const [completedModules, setCompletedModules] = useState({});
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
+  // Lesson image upload states
+  const [lessonImage, setLessonImage] = useState(null);
+  const [lessonImageName, setLessonImageName] = useState('');
+
+  const handleLessonImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => { 
+        setLessonImage(reader.result.split(',')[1]); 
+        setLessonImageName(file.name); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   useEffect(() => {
     try {
       const auth = getAuth();
@@ -361,7 +388,7 @@ export default function App() {
   };
   const stopSpeech = () => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); setIsSpeaking(false); } };
 
-  // SECURE API ROUTING (No frontend API keys)
+  // SECURE API ROUTING WITH PLAIN TEXT CLEANING
   const callGemini = async (promptText) => {
     setLoadingAi(true); setAiResponse('Connecting to AI Server...');
     try {
@@ -382,7 +409,7 @@ export default function App() {
       if (!res.ok) throw new Error(data.error || `Server Status ${res.status}`);
       if (data.error) throw new Error(data.error);
       
-      setAiResponse(data.text);
+      setAiResponse(stripMarkdown(data.text));
     } catch (err) { 
       setAiResponse(`Connection Failed: ${err.message}`); 
     } finally { 
@@ -391,14 +418,14 @@ export default function App() {
   };
 
   const callLessonGemini = async (lessonTitle) => {
-    if (!lessonAiPrompt.trim()) return;
+    if (!lessonAiPrompt.trim() && !lessonImage) return;
     setLoadingLessonAi(true); setLessonAiResponse('Connecting to AI Server...');
     try {
-      const contextPrompt = `You are a patient teacher. Student is studying: "${lessonTitle}". Explain simply, like they are 12: ${lessonAiPrompt}`;
+      const contextPrompt = `You are a patient teacher. Student is studying: "${lessonTitle}". Explain simply, like they are 12, using clear plain text paragraphs and bullet points without heavy markdown syntax: ${lessonAiPrompt || "Please review this chart for this lesson."}`;
       const res = await fetch('/api/gemini', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ promptText: contextPrompt })
+        body: JSON.stringify({ promptText: contextPrompt, imageBase64: lessonImage || null })
       });
       
       let data;
@@ -412,7 +439,7 @@ export default function App() {
       if (!res.ok) throw new Error(data.error || `Server Status ${res.status}`);
       if (data.error) throw new Error(data.error);
 
-      setLessonAiResponse(data.text);
+      setLessonAiResponse(stripMarkdown(data.text));
     } catch (err) { 
       setLessonAiResponse(`Connection Failed: ${err.message}`); 
     } finally { 
@@ -530,11 +557,11 @@ export default function App() {
               })}
             </div>
 
-            {/* Col 3: Contextual AI */}
+            {/* Col 3: Contextual AI with Direct Screenshot Attachment */}
             <div className="w-full lg:w-1/4 flex flex-col space-y-6 sticky top-24">
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
                 <h3 className="text-lg font-bold text-indigo-300 flex items-center mb-2"><Bot className="mr-2" size={20}/> Ask The Teacher</h3>
-                <p className="text-xs text-slate-400 mb-4">Confused by this lesson? Ask me to explain it differently.</p>
+                <p className="text-xs text-slate-400 mb-4">Confused by this lesson? Ask a question or attach a chart screenshot.</p>
                 <div className="space-y-4">
                   <textarea 
                     rows={4} 
@@ -546,13 +573,26 @@ export default function App() {
                         callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title);
                       }
                     }}
-                    placeholder="e.g. 'Explain the Magnet analogy again?'" 
+                    placeholder="Ask a question or press Enter..." 
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500" 
                   />
-                  <button onClick={() => callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title)} disabled={loadingLessonAi || !lessonAiPrompt.trim()} className="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 flex justify-center items-center gap-2">
+
+                  {/* Screenshot Attachment Bar */}
+                  <div className="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 text-xs">
+                    <label className="flex items-center space-x-2 cursor-pointer text-slate-400 hover:text-indigo-400 transition">
+                      <Upload size={14} />
+                      <span className="truncate max-w-[150px]">{lessonImageName ? lessonImageName : 'Attach Chart Screenshot'}</span>
+                      <input type="file" accept="image/*" onChange={handleLessonImageUpload} className="hidden" />
+                    </label>
+                    {lessonImage && (
+                      <button onClick={() => { setLessonImage(null); setLessonImageName(''); }} className="text-red-400 hover:text-red-300 font-bold">Remove</button>
+                    )}
+                  </div>
+
+                  <button onClick={() => callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title)} disabled={loadingLessonAi || (!lessonAiPrompt.trim() && !lessonImage)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 flex justify-center items-center gap-2 shadow-md">
                     <MessageSquare size={16}/> {loadingLessonAi ? 'Thinking...' : 'Ask Question'}
                   </button>
-                  {lessonAiResponse && <div className="p-4 bg-slate-950 border border-indigo-500/30 rounded-lg text-sm text-slate-200 whitespace-pre-wrap">{lessonAiResponse}</div>}
+                  {lessonAiResponse && <div className="p-4 bg-slate-950 border border-indigo-500/30 rounded-lg text-sm text-slate-200 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">{lessonAiResponse}</div>}
                 </div>
               </div>
             </div>
