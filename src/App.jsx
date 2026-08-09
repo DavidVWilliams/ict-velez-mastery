@@ -35,9 +35,9 @@ const stripMarkdown = (text) => {
 
 // --- GLOBAL COURSE DATA ARCHITECTURE ---
 const episodeTitles = [
-  "Episode 1: The Magnet (Liquidity)", "Episode 2: The Stomp (Market Structure Shift)", "Episode 3: The Hole (Fair Value Gap)", 
-  "Episode 4: The Safety Filter (Oliver Velez 200 SMA)", "Episode 5: The Time Clock (Killzones & AMD)", "Episode 6: Buying on Sale (Discount & OTE)", 
-  "Episode 7: Protecting Your Money (Risk)", "Episode 8: Institutional Sponsorship", "Episode 9: Power of 3 Deep Dive", 
+  "Episode 1: Liquidity & Order Pairing", "Episode 2: Institutional Displacement (MSS)", "Episode 3: Price Inefficiencies (FVG)", 
+  "Episode 4: The Velez Macro Baseline (200 SMA)", "Episode 5: Time Cycles (AMD & Killzones)", "Episode 6: Wholesale vs. Retail (Premium/Discount)", 
+  "Episode 7: Capital Preservation & Risk", "Episode 8: Institutional Sponsorship", "Episode 9: Power of 3 Deep Dive", 
   "Episode 10: New York AM Killzone", "Episode 11: PM Session Killzone", "Episode 12: Advanced Price Action Theory", 
   "Episode 13: Data Ranges & IPDA", "Episode 14: Macro Timeframes", "Episode 15: Interest Rate Yields", 
   "Episode 16: Intermarket Analysis", "Episode 17: Top Down Analysis", "Episode 18: Trading The Weekly Profile", 
@@ -57,19 +57,22 @@ const courseData = episodeTitles.map((title, index) => {
   
   if (epNum === 1) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
-    rawText: "Episode 1. Imagine playing a video game collecting coins. In the stock market, big banks are players, coins are Liquidity. The algorithm acts like a giant magnet, pulling price down to trigger stop losses.",
+    rawText: "Liquidity acts as the ultimate fuel for institutional algorithms. Large banks cannot simply press a button to buy massive block orders without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers. Where do they find them? Right below established support levels, where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these stop-loss clusters to absorb that liquidity, pairing their massive buy orders with the triggered retail sell orders.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Imagine playing a video game collecting coins. In the market, banks are players, coins are <strong>Liquidity</strong> (other people's money).</p>
+        <p>Liquidity acts as the ultimate fuel for the Interbank Price Delivery Algorithm (IPDA). To understand market movement, you must first understand how large institutions execute block orders.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Where are the coins?</h4>
-          <p>Regular people put "Stop Loss" orders below the lowest point on the chart. The algorithm acts like a giant magnet, pulling price down to trigger those stops, scooping the money, and shooting back up.</p>
+          <h4 className="text-xl font-bold text-white mb-2">The Counter-Party Requirement</h4>
+          <p>Large banks cannot simply buy massive quantities of an asset without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers.</p>
+          <p className="mt-3">Where do they find them? Right below established support levels (old lows), where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these clusters to absorb that liquidity, pairing their massive institutional buy orders with the triggered retail sell orders.</p>
         </div>
+
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: LIQUIDITY SWEEP</div>
+          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: SELL-SIDE LIQUIDITY SWEEP</div>
           <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
             <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
-            <text x="50" y="220" fill="#ef4444" fontSize="14" fontWeight="bold">The Floor (Sell-Side Liquidity)</text>
+            <text x="50" y="220" fill="#ef4444" fontSize="14" fontWeight="bold">Retail Support (Resting Sell-Stops)</text>
             <Candle x={100} o={100} c={150} h={80} l={160} />
             <Candle x={140} o={150} c={180} h={140} l={190} />
             <Candle x={180} o={180} c={140} h={130} l={190} />
@@ -78,7 +81,7 @@ const courseData = episodeTitles.map((title, index) => {
             <Candle x={420} o={170} c={250} h={160} l={260} />
             <Candle x={460} o={250} c={150} h={140} l={260} />
             <circle cx="420" cy="260" r="15" fill="none" stroke="#eab308" strokeWidth="3" />
-            <text x="440" y="265" fill="#eab308" fontSize="14" fontWeight="bold">The Sweep!</text>
+            <text x="440" y="265" fill="#eab308" fontSize="14" fontWeight="bold">Liquidity Purge / Stop Run</text>
           </svg>
         </div>
       </div>
@@ -87,26 +90,28 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 2) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s",
-    rawText: "Episode 2. We look for a giant footprint called a Market Structure Shift. Imagine someone stomping hard, breaking the floorboards. That stomp is displacement.",
+    rawText: "How do we confirm the algorithm has finished sweeping liquidity and is initiating a true reversal? We look for institutional displacement, categorized as a Market Structure Shift. This is characterized by highly energetic, large-range candles that decisively break through the nearest opposing swing high or swing low. It is the visible footprint of institutional money entering the market with urgency.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>How do we know the algorithm is done sweeping?</p>
+        <p>A liquidity sweep alone is not a valid trade signal. The market can easily sweep a level and continue trending in that direction. We need confirmation of an institutional reversal.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">We wait for the Stomp.</h4>
-          <p>Imagine someone jumping up and <strong>stomping</strong> down as hard as they can. That violent stomp is <strong>Displacement</strong>. When giant candles break the last hill, it's a <strong>Market Structure Shift (MSS)</strong>.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Institutional Displacement</h4>
+          <p>We look for a <strong>Market Structure Shift (MSS)</strong>. This occurs when price violently reverses away from the swept liquidity pool, printing large-bodied, highly energetic candles that decisively break the nearest opposing swing high (or low). This energetic break is called <strong>Displacement</strong>, and it represents the heavy, undeniable footprint of smart money stepping in.</p>
         </div>
+
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE STOMP (MSS)</div>
+          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: DISPLACEMENT & MARKET STRUCTURE SHIFT</div>
           <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
             <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
             <line x1="50" y1="120" x2="550" y2="120" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" />
-            <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">The Last Hill (MSS Line)</text>
+            <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">Recent Swing High (MSS Trigger)</text>
             <Candle x={180} o={160} c={120} h={110} l={170} />
             <Candle x={300} o={220} c={280} h={210} l={290} /> 
             <Candle x={340} o={280} c={180} h={170} l={290} /> 
             <Candle x={380} o={180} c={80} h={70} l={190} /> 
             <rect x="360" y="60" width="80" height="140" fill="none" stroke="#10b981" strokeWidth="3" rx="10" />
-            <text x="450" y="120" fill="#10b981" fontSize="16" fontWeight="bold">THE STOMP (MSS)</text>
+            <text x="450" y="120" fill="#10b981" fontSize="16" fontWeight="bold">Displacement Wave (MSS)</text>
           </svg>
         </div>
       </div>
@@ -115,27 +120,33 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 3) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1400s",
-    rawText: "Episode 3. When the algorithm stomps really hard, it leaves a hole in the ground. We call this hole a Fair Value Gap. It happens when one candle is so fast that the candle before it and after it don't touch.",
+    rawText: "When institutional displacement occurs, the speed of the price action frequently leaves behind a pricing inefficiency known as a Fair Value Gap. This is a three-candle sequence where the wicks of the first and third candles fail to overlap, creating a vacuum of unfulfilled orders. The algorithm seeks equilibrium, meaning price will naturally gravitate back to this inefficiency to properly offer both buy and sell liquidity at those price levels.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>When the algorithm stomps that hard, it leaves a hole.</p>
+        <p>When heavy displacement occurs, the resulting price action is often so rapid that it causes a breakdown in the normal bid-ask delivery process.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The 3-Car Highway Rule</h4>
-          <p>Imagine 3 cars. Car 1 and Car 3 drive normally. Car 2 is a rocket ship that blasts forward, leaving a massive empty gap between Car 1 and Car 3. That gap is the <strong>Fair Value Gap (FVG)</strong>.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Identifying the Inefficiency</h4>
+          <p>This rapid repricing leaves behind a <strong>Fair Value Gap (FVG)</strong>. Mechanically, it is a three-candle sequence where the wicks of Candle 1 and Candle 3 fail to overlap. This leaves an explicit gap—a vacuum of unfulfilled orders.</p>
+          <p className="mt-3">The market algorithm fundamentally seeks equilibrium. Therefore, price will naturally gravitate back toward this gap to efficiently offer both buy and sell liquidity at those previously skipped price levels. The FVG becomes our high-probability entry zone.</p>
         </div>
+
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE HOLE (FVG)</div>
+          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE FAIR VALUE GAP (FVG)</div>
           <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
             <Candle x={150} o={250} c={200} h={180} l={260} />
-            <text x="135" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Car 1</text>
+            <text x="135" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 1</text>
             <line x1="150" y1="180" x2="350" y2="180" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+            
             <Candle x={250} o={200} c={60} h={50} l={210} />
-            <text x="235" y="280" fill="#10b981" fontSize="14" fontWeight="bold">Car 2</text>
+            <text x="235" y="280" fill="#10b981" fontSize="14" fontWeight="bold">Candle 2</text>
+
             <Candle x={350} o={60} c={40} h={30} l={100} />
-            <text x="335" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Car 3</text>
+            <text x="335" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 3</text>
             <line x1="350" y1="100" x2="450" y2="100" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+
             <rect x="150" y="100" width="200" height="80" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
-            <text x="160" y="145" fill="#a5b4fc" fontSize="16" fontWeight="bold">THE EMPTY GAP (FVG)</text>
+            <text x="160" y="145" fill="#a5b4fc" fontSize="16" fontWeight="bold">Price Inefficiency (FVG)</text>
           </svg>
         </div>
       </div>
@@ -144,27 +155,34 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 4) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
-    rawText: "We use the Oliver Velez 200 Simple Moving Average. Think of the 200 SMA as a giant river. If the river flows up, swim up.",
+    rawText: "To enhance the execution safety of the ICT model, we bridge it with Oliver Velez methodology by applying a 200 Simple Moving Average (SMA). The 200 SMA acts as a definitive macro trend baseline. We never initiate positions contrary to the slope of this average. Furthermore, execution requires an ignition candle—a solid continuation bar forming off the SMA within the bounds of our Fair Value Gap.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>We <strong>never</strong> jump into a gap blindly. We need a safety filter.</p>
+        <p>Locating an inefficiency is only half the battle. We must implement rigid filters to prevent executing into adverse momentum.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-eab308/50">
-          <h4 className="text-xl font-bold text-white mb-2">The River Current (200 SMA)</h4>
-          <p>We use the <strong>Simple Moving Average (SMA)</strong> set to 200. Never EMA. If the river flows UP, swim UP. Wait for an <strong>Ignition Candle</strong> inside the gap to prove safety.</p>
+          <h4 className="text-xl font-bold text-white mb-2">The Velez Macro Baseline</h4>
+          <p>We integrate the <strong>200 Simple Moving Average (SMA)</strong> as our primary trend filter. Note the strict reliance on Simple, not Exponential, moving averages. </p>
+          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
+            <li>If the 200 SMA slope is ascending, we only authorize long executions.</li>
+            <li>If the 200 SMA slope is declining, we only authorize short executions.</li>
+          </ul>
+          <p className="mt-3">Upon price retracing into our designated FVG, we mandate the formation of a <strong>Velez Ignition Candle</strong> (a definitive continuation bar) pushing away from the SMA as final entry confirmation.</p>
         </div>
+
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE VELEZ 200 SMA FILTER</div>
+          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE 200 SMA & IGNITION CONFIRMATION</div>
           <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
             <path d="M 50 250 Q 300 200 550 50" fill="none" stroke="#eab308" strokeWidth="4" />
-            <text x="50" y="270" fill="#fde047" fontSize="14" fontWeight="bold">200 SMA River (Flowing UP!)</text>
+            <text x="50" y="270" fill="#fde047" fontSize="14" fontWeight="bold">200 SMA (Ascending Baseline)</text>
             <rect x="230" y="100" width="100" height="60" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
-            <text x="340" y="130" fill="#a5b4fc" fontSize="14" fontWeight="bold">The Gap (FVG)</text>
+            <text x="340" y="130" fill="#a5b4fc" fontSize="14" fontWeight="bold">FVG Zone</text>
             <Candle x={100} o={40} c={70} h={30} l={80} />
             <Candle x={150} o={70} c={110} h={60} l={120} />
             <Candle x={200} o={110} c={150} h={100} l={160} />
             <Candle x={250} o={150} c={130} h={120} l={160} /> 
             <Candle x={300} o={130} c={60} h={50} l={140} /> 
-            <text x="320" y="70" fill="#10b981" fontSize="14" fontWeight="bold">Green Ignition Candle!</text>
+            <text x="320" y="70" fill="#10b981" fontSize="14" fontWeight="bold">Ignition Confirmation</text>
           </svg>
         </div>
       </div>
@@ -173,15 +191,16 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 5) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=kmVXVJE08eQ&t=600s",
-    rawText: "The big banks don't play the game all day long. They have a strict schedule. We call this AMD: Accumulation, Manipulation, Distribution.",
+    rawText: "Institutional volume is strictly bound to time. The foundational framework for daily algorithmic delivery is Accumulation, Manipulation, and Distribution (AMD). During illiquid hours, algorithms accumulate positions within a consolidation range. Approaching high-volume opens, they manipulate price counter to the true daily bias to capture stop liquidity. Following this sweep, they aggressively distribute positions toward the true target during predefined Killzones.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>The big banks have a strict schedule called <strong>AMD</strong>.</p>
+        <p>Order flow is irrelevant if executed outside of proper timing parameters. Algorithmic volatility adheres to predictable daily cycles known as the <strong>Power of 3 (AMD)</strong>.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">A.M.D.</h4>
-          <p><strong>A - Accumulation (Night time):</strong> They do nothing. Price goes sideways.</p>
-          <p><strong>M - Manipulation (Early Morning):</strong> They drop the price to trick regular people into selling, and to sweep the coins.</p>
-          <p><strong>D - Distribution (New York Morning):</strong> They buy up everything and shoot the price up. (08:30 AM to 11:00 AM EST).</p>
+          <h4 className="text-xl font-bold text-white mb-2">Accumulation, Manipulation, Distribution</h4>
+          <p><strong>Accumulation:</strong> Occurs during low-volume overnight sessions. Price consolidates tightly as algorithms passively establish baseline positioning.</p>
+          <p><strong>Manipulation:</strong> The false move. Typically occurring near the London Open or initial NY sequence, price breaks aggressively opposite to the true daily bias to trigger breakout traders and purge resting stops.</p>
+          <p><strong>Distribution:</strong> The true directional expansion. Having secured necessary liquidity, price displaces rapidly toward primary targets. This expansion defines our targeted execution window, specifically the <strong>New York AM Killzone (08:30 – 11:00 EST)</strong>.</p>
         </div>
       </div>
     )
@@ -189,17 +208,44 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 6) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=wXwG_uM4Q3k&t=300s",
-    rawText: "Imagine you want to buy a pair of shoes. Do you buy them when they are super expensive (Premium) or when they go on sale (Discount)?",
+    rawText: "Institutions operate entirely on wholesale pricing models; they fundamentally refuse to accumulate inventory at premium valuations. Using standard Fibonacci retracement parameters mapped across the displacement range, we bisect price into Premium and Discount territories. Executions are strictly limited to the Discount matrix for long positions, with the Optimal Trade Entry (OTE) calibrated between the 62% and 79% retracement levels.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Imagine you want to buy expensive shoes. Do you buy them at full price (Premium), or do you wait for a big sale (Discount)?</p>
+        <p>Retail participants frequently buy assets after an extended uptrend, purchasing at retail or "Premium" prices. Institutions operate on a strictly wholesale basis.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Never pay retail price.</h4>
-          <p>You draw a tool (Fibonacci) from the bottom of the Stomp to the top. Cut it exactly in half.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Discount & Premium Arrays</h4>
+          <p>By mapping a Fibonacci tool from the origin of the displacement swing to its extreme, we can calculate equitable pricing zones. We mathematically bisect this range:</p>
           <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
-            <li>The top half is <strong>Premium</strong>. NEVER buy here.</li>
-            <li>The bottom half is <strong>Discount</strong>. ONLY buy here.</li>
+            <li><strong>Premium:</strong> The upper 50%. Institutional selling zone. Never initiate longs here.</li>
+            <li><strong>Discount:</strong> The lower 50%. Institutional accumulation zone.</li>
           </ul>
+        </div>
+
+        <p>Precision execution requires targeting the <strong>Optimal Trade Entry (OTE)</strong>, which resides specifically between the <strong>62% and 79%</strong> retracement levels deep within the Discount matrix.</p>
+
+        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
+          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: OPTIMAL TRADE ENTRY MATRIX</div>
+          <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
+            <rect x="150" y="200" width="300" height="40" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="1" />
+            <line x1="100" y1="200" x2="500" y2="200" stroke="#60a5fa" strokeWidth="1" />
+            <text x="100" y="195" fill="#60a5fa" fontSize="10">62% Retracement</text>
+            <line x1="100" y1="220" x2="500" y2="220" stroke="#3b82f6" strokeWidth="2" />
+            <text x="100" y="215" fill="#3b82f6" fontSize="10" fontWeight="bold">70.5% (OTE Sweet Spot)</text>
+            <line x1="100" y1="240" x2="500" y2="240" stroke="#60a5fa" strokeWidth="1" />
+            <text x="100" y="235" fill="#60a5fa" fontSize="10">79% Retracement</text>
+
+            <Candle x={180} o={280} c={180} h={170} l={290} />
+            <Candle x={210} o={180} c={80} h={70} l={190} />
+            <Candle x={240} o={80} c={30} h={20} l={90} />
+            
+            <Candle x={270} o={30} c={100} h={20} l={110} />
+            <Candle x={300} o={100} c={170} h={90} l={180} />
+            <Candle x={330} o={170} c={220} h={160} l={230} /> 
+            <Candle x={360} o={220} c={140} h={130} l={230} /> 
+            
+            <text x={375} y={225} fill="#bfdbfe" fontSize="14" fontWeight="bold">Execution Zone</text>
+          </svg>
         </div>
       </div>
     )
@@ -207,13 +253,18 @@ const courseData = episodeTitles.map((title, index) => {
 
   if (epNum === 7) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=CnTXwAuDi9Y&t=120s",
-    rawText: "None of this matters if you lose all your money on one bad trade. You must act like a casino, not a gambler. A casino knows they will lose some hands, but the math guarantees they win in the end. Never risk more than 1% of your account.",
+    rawText: "The technical framework is irrelevant without stringent capital preservation protocols. Variance guarantees that flawless setups will routinely result in losses. Professional execution requires divorcing emotion from individual outcomes through strict mathematical limitations. Exposure is universally capped at a maximum of 1% total account equity per configuration, with invalidation stops rigidly placed beneath the structural origin of the displacement wave.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>None of this matters if you lose all your money on one bad trade.</p>
+        <p>The highest probability setup guarantees nothing on a trade-by-trade basis. Survival and profitability in algorithmic trading hinge entirely on rigid capital preservation.</p>
+        
         <div className="bg-slate-800 p-6 rounded-xl border border-red-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Act like the Casino, not the Gambler.</h4>
-          <p>A casino knows they will lose some hands, but the math guarantees they win in the end because they control the risk. <strong>NEVER</strong> risk more than 1% of your account on a single trade.</p>
+          <h4 className="text-xl font-bold text-white mb-2">The Absolute Limit of Exposure</h4>
+          <p>Professional operators function on statistical edges across a broad sample size, anticipating failure in a percentage of executions. Consequently, maximum risk exposure per trade is aggressively restricted.</p>
+          <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
+            <li><strong>The 1% Rule:</strong> Under no circumstances does equity exposure exceed 1% of the total account balance per setup.</li>
+            <li><strong>Hard Invalidation:</strong> Protective stops are mechanically placed beyond the structural extreme of the displacement wave. If price violates this level, the foundational premise of the setup is invalidated, and the nominal loss is accepted without hesitation.</li>
+          </ul>
         </div>
       </div>
     )
@@ -441,7 +492,8 @@ export default function App() {
     if (!lessonAiPrompt.trim() && !lessonImage) return;
     setLoadingLessonAi(true); setLessonAiResponse('Connecting to AI Server...');
     try {
-      const contextPrompt = `You are a patient teacher. Student is studying: "${lessonTitle}". Explain simply, like they are 12, using clear plain text paragraphs and bullet points without heavy markdown syntax: ${lessonAiPrompt || "Please review this chart for this lesson."}`;
+      // Updated to request professional, structured, jargon-free explanations.
+      const contextPrompt = `You are a professional trading mentor. The student is studying: "${lessonTitle}". Explain this comprehensively and thoroughly, step-by-step. Use highly readable, easy-to-understand language with practical examples, but strictly avoid childish analogies. Format with clear plain text paragraphs and bullet points without heavy markdown syntax: ${lessonAiPrompt || "Please review this chart for this lesson."}`;
       const res = await fetch('/api/gemini', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
@@ -665,8 +717,12 @@ export default function App() {
                     <span className="text-slate-300">3. Visible hole (3-Candle FVG)?</span>
                   </label>
                   <label className="flex items-center space-x-4 p-4 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500">
+                    <input type="checkbox" checked={checklist.nyKillzone} onChange={(e) => setChecklist({...checklist, nyKillzone: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded bg-slate-900 border-slate-700"/>
+                    <span className="text-slate-300">4. Confirm time is between 08:30 - 11:00 EST.</span>
+                  </label>
+                  <label className="flex items-center space-x-4 p-4 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500">
                     <input type="checkbox" checked={checklist.sma200Check} onChange={(e) => setChecklist({...checklist, sma200Check: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded bg-slate-900 border-slate-700"/>
-                    <span className="text-slate-300">4. 200 SMA river flowing in our direction?</span>
+                    <span className="text-slate-300">5. Safety Check: Is the 200 SMA river flowing in our direction?</span>
                   </label>
                 </div>
               </div>
