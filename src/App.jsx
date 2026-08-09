@@ -64,7 +64,7 @@ export default function App() {
     { q: "What defines a valid Market Structure Shift (MSS)?", options: ["A slow grind past an old high", "Violent displacement breaking a swing point", "A doji candle formation", "Moving above the 200 SMA"], a: 1 },
     { q: "What is the rule for the Velez 200 SMA filter?", options: ["Always fight the trend", "Only take longs if price is below it", "Never fight the 200 SMA slope", "Ignore moving averages completely"], a: 2 },
     { q: "What acts as the 'Fuel' for algorithmic expansion?", options: ["RSI Divergence", "Buy-Side and Sell-Side Liquidity (Stop Losses)", "MACD Crossovers", "Volume Spikes"], a: 1 },
-    { q: "A Fair Value Gap (FVG) is a gap between which candles?", list: ["Candles 1 and 2", "Candles 2 and 3", "Candles 1 and 3", "Candles 1 and 4"], a: 2 }
+    { q: "A Fair Value Gap (FVG) is a gap between which candles?", options: ["Candles 1 and 2", "Candles 2 and 3", "Candles 1 and 3", "Candles 1 and 4"], a: 2 }
   ];
 
   // Active Lesson State for Tab 1
@@ -232,12 +232,10 @@ export default function App() {
   };
 
   const resetQuiz = () => {
-    setQuizStarted(false);
-    setCurrentQuestion(0);
-    setScore(0);
-    setShowResults(false);
+    setQuizStarted(false); setCurrentQuestion(0); setScore(0); setShowResults(false);
   };
 
+  // --- COMPREHENSIVE TEXTBOOK DATA ---
   const courseData = [
     {
       id: "c1",
@@ -270,6 +268,12 @@ export default function App() {
 
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Step 3: The Fair Value Gap (FVG)</h4>
           <p>Displacement leaves a signature: The FVG. This is a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.</p>
+
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 3 (14:00) for MSS/FVG Examples <ExternalLink className="ml-1" size={14}/>
+            </a>
+          </div>
         </div>
       )
     },
@@ -293,7 +297,13 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Executing the NY AM Killzone (08:30-11:00 EST)</h4>
           <p>You do not trade the Asia range. You wait for the NY AM Killzone. You watch the Manipulation phase occur (the sweep of liquidity). Once the manipulation phase finishes, you look for the MSS and enter on the FVG to participate in the Distribution phase.</p>
           
-          <p><em>Velez Bridge:</em> During the Manipulation phase (the Judas Swing down), the Velez 200 SMA on the 15-minute chart will likely still be sloping UP. The Judas Swing is a retracement *against* the 200 SMA. You wait for price to bounce off or near the 200 SMA, print a Green/Red Ignition candle, and execute your trade.</p>
+          <p><em>Velez Bridge:</em> During the Manipulation phase (the Judas Swing down), the Velez 200 SMA on the 15-minute chart will likely still be sloping UP. The Judas Swing is a retracement *against* the 200 SMA. You wait for price to bounce off or near the 200 SMA, print a Green Ignition candle, and execute your long.</p>
+          
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1800s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 14 (30:00) for Time Macros <ExternalLink className="ml-1" size={14}/>
+            </a>
+          </div>
         </div>
       )
     },
@@ -320,6 +330,12 @@ export default function App() {
               <li>When price retraces back up into that Breaker Block (especially if it aligns with an FVG), you execute your short entry.</li>
             </ol>
           </div>
+
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2700s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 16 for Breaker Block Examples <ExternalLink className="ml-1" size={14}/>
+            </a>
+          </div>
         </div>
       )
     },
@@ -341,6 +357,12 @@ export default function App() {
 
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Optimal Trade Entry (OTE)</h4>
           <p>Within the Premium or Discount zones, the algorithm prefers to re-price specifically to the 62% to 79% retracement levels. If an FVG aligns with the 70.5% retracement level (the sweet spot of OTE), it is an A+ algorithmic setup.</p>
+
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=kmVXVJE08eQ" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 21 for Tape Reading Concepts <ExternalLink className="ml-1" size={14}/>
+            </a>
+          </div>
         </div>
       )
     },
@@ -363,6 +385,12 @@ export default function App() {
             </ul>
           </div>
           <p>If your macro bias is Bullish, and it is Tuesday morning, you are anticipating price to drop (Manipulation) to form the Low of the Week. This drop into a Daily Discount Array is where you hunt for your NY AM Killzone long setups.</p>
+          
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=wXwG_uM4Q3k" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 25 for Weekly Profiles <ExternalLink className="ml-1" size={14}/>
+            </a>
+          </div>
         </div>
       )
     },
@@ -387,6 +415,12 @@ export default function App() {
               <li><strong>Minimum 1:2 Risk-to-Reward.</strong> You take partial profits at 1:1 or 1:2 to pay the trader, and leave a runner to hit the ultimate Draw on Liquidity.</li>
               <li><strong>Stop Loss Placement:</strong> Must be placed behind the candle that created the MSS, or above the Liquidity Sweep high. Do not tighten the stop prematurely.</li>
             </ul>
+          </div>
+
+          <div className="pt-4 border-t border-slate-800 mt-6">
+            <a href="https://www.youtube.com/watch?v=CnTXwAuDi9Y" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold">
+              <PlayCircle className="mr-2" size={18}/> Watch Episode 31 for IPDA Logic <ExternalLink className="ml-1" size={14}/>
+            </a>
           </div>
         </div>
       )
@@ -644,11 +678,7 @@ export default function App() {
                   </div>
                   <h3 className="text-xl font-bold text-white">{quizQuestions[currentQuestion].q}</h3>
                   <div className="space-y-3">
-                    {quizQuestions[currentQuestion].options ? quizQuestions[currentQuestion].options.map((opt, idx) => (
-                      <button key={idx} onClick={() => handleQuizAnswer(idx)} className="w-full text-left p-4 bg-slate-950 hover:bg-indigo-900/40 border border-slate-800 hover:border-indigo-500 rounded-lg text-sm text-slate-300 transition">
-                        {opt}
-                      </button>
-                    )) : quizQuestions[currentQuestion].list.map((opt, idx) => (
+                    {quizQuestions[currentQuestion].options.map((opt, idx) => (
                       <button key={idx} onClick={() => handleQuizAnswer(idx)} className="w-full text-left p-4 bg-slate-950 hover:bg-indigo-900/40 border border-slate-800 hover:border-indigo-500 rounded-lg text-sm text-slate-300 transition">
                         {opt}
                       </button>
@@ -666,6 +696,7 @@ export default function App() {
             <h2 className="text-2xl font-bold flex items-center gap-2"><FileText className="text-indigo-400"/> AI Trade Auditor & Chart Analyzer</h2>
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
               <p className="text-slate-400 text-sm">Upload a screenshot of your chart during the NY Killzone. Describe your BSL/SSL, MSS, and FVG logic for instant AI analysis:</p>
+              
               <div className="flex items-center gap-4">
                 <label className="flex items-center space-x-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 px-4 py-2.5 rounded-lg cursor-pointer text-xs font-medium text-slate-300 transition">
                   <Upload className="w-4 h-4 text-indigo-400" />
@@ -673,6 +704,7 @@ export default function App() {
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 </label>
               </div>
+
               <textarea rows={4} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="e.g. Swept Asia BSL at 09:30 EST, clear MSS, entered in 15m FVG below the 200 SMA..." className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"/>
               <button onClick={() => callGemini("Audit this ICT 2022 setup based on AMD, MSS, FVG, and Velez 200 SMA logic: " + aiPrompt)} disabled={loadingAi} className="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                 <Sparkles className="w-4 h-4"/> {loadingAi ? 'Analyzing...' : 'Run AI Trade Audit'}
