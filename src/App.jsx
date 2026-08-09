@@ -6,7 +6,7 @@ import {
   getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp 
 } from 'firebase/firestore';
 import { 
-  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, MessageSquare
+  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, MessageSquare, StopCircle
 } from 'lucide-react';
 
 export default function App() {
@@ -26,6 +26,9 @@ export default function App() {
   const [lessonAiPrompt, setLessonAiPrompt] = useState('');
   const [lessonAiResponse, setLessonAiResponse] = useState('');
   const [loadingLessonAi, setLoadingLessonAi] = useState(false);
+
+  // Text-to-Speech State
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [auditImage, setAuditImage] = useState(null);
   const [auditImageName, setAuditImageName] = useState('');
@@ -73,14 +76,23 @@ export default function App() {
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
   const progress = Math.round((Object.values(completedModules).filter(Boolean).length / 6) * 100);
 
+  // Initialize Speech Synthesis & Auth
   useEffect(() => {
+    // Pre-load voices for better TTS quality
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
+
     try {
       const auth = getAuth();
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
         if (currentUser) fetchUserJournals(currentUser.uid);
       });
-      return () => unsubscribe();
+      return () => {
+        unsubscribe();
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel(); // Stop audio if component unmounts
+      };
     } catch (e) {
       console.warn("Auth not initialized:", e);
     }
@@ -214,14 +226,41 @@ export default function App() {
     }
   };
 
+  // Text-to-Speech Functions (Upgraded Quality & Stop Function)
   const speakText = (textToRead) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+      setIsSpeaking(true);
+
       const utterance = new SpeechSynthesisUtterance(textToRead);
-      utterance.rate = 1.0;
+      
+      // Attempt to find a high-quality natural voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Google US English') || 
+        v.name.includes('Samantha') || 
+        v.name.includes('Natural') || 
+        v.lang === 'en-US'
+      );
+      
+      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      utterance.rate = 0.95; // Slightly slower for better instructional comprehension
+      utterance.pitch = 1.0;
+
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
       window.speechSynthesis.speak(utterance);
     } else {
       alert("Text-to-speech is not supported in your browser.");
+    }
+  };
+
+  const stopSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
     }
   };
 
@@ -241,7 +280,7 @@ export default function App() {
       id: "c1",
       title: "Part 1: The Core Elements (Episodes 1-5)",
       episodes: "Eps 1-5",
-      rawText: "Part 1: The Core Elements. Episodes 1 through 5 lay the absolute groundwork. ICT explicitly states you must stop looking at patterns and start looking for the Draw on Liquidity. Algorithms move price from an area of consolidation to an area of resting liquidity, or stop losses. Step 1: Identifying the Draw on Liquidity. Before doing anything, you must determine where price is likely to reach. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old relative equal highs, daily highs, or weekly highs. They also seek out Sell-Side Liquidity, which are resting sell stops below old relative equal lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. The Mechanical Rules for a valid MSS are: Price runs above an old high to sweep liquidity. Price immediately aggressively reverses downward. Price must break the nearest short-term swing low. Crucial: The break must happen with energetic, large-bodied candles. Step 3: The Fair Value Gap. Displacement leaves a signature: The FVG. This is a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
+      rawText: "Part 1: The Core Elements. Episodes 1 through 5 lay the absolute groundwork. ICT explicitly states you must stop looking at patterns and start looking for the Draw on Liquidity. Algorithms move price from an area of consolidation to an area of resting liquidity, or stop losses. Step 1: Identifying the Draw on Liquidity. Before doing anything, you must determine where price is likely to reach. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old relative equal highs, daily highs, or weekly highs. They also seek out Sell-Side Liquidity, which are resting sell stops below old relative equal lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. The Mechanical Rules for a valid Market Structure Shift are: Price runs above an old high to sweep liquidity. Price immediately aggressively reverses downward. Price must break the nearest short-term swing low. Crucial: The break must happen with energetic, large-bodied candles. Step 3: The Fair Value Gap. Displacement leaves a signature: The Fair Value Gap. This is a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 1-5 lay the absolute groundwork. ICT explicitly states you must stop looking at patterns and start looking for the <em>Draw on Liquidity</em>. Algorithms move price from an area of consolidation to an area of resting liquidity (stop losses).</p>
@@ -281,7 +320,7 @@ export default function App() {
       id: "c2",
       title: "Part 2: The Daily Profile & AMD (Episodes 6-12)",
       episodes: "Eps 6-12",
-      rawText: "Part 2: The Daily Profile and AMD. Episodes 6 through 12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. This section introduces the Power of 3 (AMD) and the New York AM Killzone. The Power of 3: AMD stands for Accumulation, Manipulation, Distribution. For a bullish day, the algorithm executes the following sequence: 1. Accumulation. The Asia Session from 20:00 to 00:00 EST. Price consolidates in a tight range. Smart money is quietly accumulating long positions. This creates the Asia High and Asia Low. 2. Manipulation. The London or NY Open. Price drops below the Asia Low, moving in the opposite direction of the true daily bias. This engineers Sell-Side Liquidity. This is the Judas Swing. 3. Distribution. The NY AM Session. Price aggressively reverses upward, distributing long positions into the Buy-Side Liquidity resting above the Asia or London highs. Executing the NY AM Killzone from 08:30 to 11:00 EST: You do not trade the Asia range. You wait for the NY AM Killzone. You watch the Manipulation phase occur. Once the manipulation phase finishes, you look for the MSS and enter on the FVG to participate in the Distribution phase.",
+      rawText: "Part 2: The Daily Profile and AMD. Episodes 6 through 12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. This section introduces the Power of 3 (AMD) and the New York AM Killzone. The Power of 3: AMD stands for Accumulation, Manipulation, Distribution. For a bullish day, the algorithm executes the following sequence: 1. Accumulation. The Asia Session from 20:00 to 00:00 EST. Price consolidates in a tight range. Smart money is quietly accumulating long positions. This creates the Asia High and Asia Low. 2. Manipulation. The London or NY Open. Price drops below the Asia Low, moving in the opposite direction of the true daily bias. This engineers Sell-Side Liquidity. This is the Judas Swing. 3. Distribution. The NY AM Session. Price aggressively reverses upward, distributing long positions into the Buy-Side Liquidity resting above the Asia or London highs. Executing the NY AM Killzone from 08:30 to 11:00 EST: You do not trade the Asia range. You wait for the NY AM Killzone. You watch the Manipulation phase occur. Once the manipulation phase finishes, you look for the Market Structure Shift and enter on the Fair Value Gap to participate in the Distribution phase. Velez Bridge: During the Judas Swing down, the Velez 200 SMA on the 15-minute chart will likely still be sloping UP. You wait for price to bounce off or near the 200 SMA, print a Green Ignition candle, and execute your long.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 6-12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. This section introduces the <strong>Power of 3 (AMD)</strong> and the New York AM Killzone.</p>
@@ -343,7 +382,7 @@ export default function App() {
       id: "c4",
       title: "Part 4: Premium/Discount & Tape Reading (Episodes 18-24)",
       episodes: "Eps 18-24",
-      rawText: "Part 4: Premium and Discount and Tape Reading. Episodes 18 through 24 introduce the necessity of framing the dealing range. You cannot blindly enter every FVG you see. You must know if you are buying at a Discount or selling at a Premium. The Dealing Range and Equilibrium: Once a swing high and swing low are established, you draw a Fibonacci retracement tool from the low to the high. The 50 percent mark is Equilibrium. Premium: The area above the 50 percent line. You ONLY look for shorts in a Premium. Discount: The area below the 50 percent line. You ONLY look for longs in a Discount. Optimal Trade Entry: Within the Premium or Discount zones, the algorithm prefers to re-price specifically to the 62 percent to 79 percent retracement levels. If an FVG aligns with the 70.5 percent retracement level, it is an A+ algorithmic setup. Tape Reading the PM Session: ICT emphasizes watching how candles deliver. If price is grinding slowly through a discount array with overlapping wicks, it is accumulating.",
+      rawText: "Part 4: Premium and Discount and Tape Reading. Episodes 18 through 24 introduce the necessity of framing the dealing range. You cannot blindly enter every Fair Value Gap you see. You must know if you are buying at a Discount or selling at a Premium. The Dealing Range and Equilibrium: Once a swing high and swing low are established, you draw a Fibonacci retracement tool from the low to the high. The 50 percent mark is Equilibrium. Premium: The area above the 50 percent line. You ONLY look for shorts in a Premium. Discount: The area below the 50 percent line. You ONLY look for longs in a Discount. Optimal Trade Entry: Within the Premium or Discount zones, the algorithm prefers to re-price specifically to the 62 percent to 79 percent retracement levels. If an FVG aligns with the 70.5 percent retracement level, it is an A+ algorithmic setup. Tape Reading the PM Session: ICT emphasizes watching how candles deliver. If price is grinding slowly through a discount array with overlapping wicks, it is accumulating.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 18-24 introduce the necessity of framing the dealing range. You cannot blindly enter every FVG you see. You must know if you are buying at a Discount or selling at a Premium.</p>
@@ -496,9 +535,15 @@ export default function App() {
                     <div className="flex justify-between items-start border-b border-slate-800 pb-6 mb-6">
                       <h2 className="text-3xl font-extrabold text-white">{lesson.title}</h2>
                       <div className="flex gap-2">
-                        <button onClick={() => speakText(lesson.rawText)} className="flex items-center space-x-2 bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-lg text-xs font-bold transition">
-                          <Volume2 size={16} /> <span>Read Aloud</span>
-                        </button>
+                        {!isSpeaking ? (
+                          <button onClick={() => speakText(lesson.rawText)} className="flex items-center space-x-2 bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-lg text-xs font-bold transition">
+                            <Volume2 size={16} /> <span>Read Aloud</span>
+                          </button>
+                        ) : (
+                          <button onClick={stopSpeech} className="flex items-center space-x-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 px-4 py-2 rounded-lg text-xs font-bold transition">
+                            <StopCircle size={16} /> <span>Stop Audio</span>
+                          </button>
+                        )}
                         <button onClick={() => toggleModuleCompletion(lesson.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition ${completedModules[lesson.id] ? 'bg-emerald-600' : 'bg-slate-800 hover:bg-slate-700'}`}>
                           {completedModules[lesson.id] ? '✓ Done' : 'Mark Done'}
                         </button>
