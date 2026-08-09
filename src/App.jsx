@@ -6,7 +6,7 @@ import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
 import { auth } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-
+// refresh
 export default function App() {
   const { 
     activeTab, setActiveTab, activeLessonId, setActiveLessonId, 
