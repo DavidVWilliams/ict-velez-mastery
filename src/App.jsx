@@ -12,15 +12,13 @@ import {
 // Custom Candlestick SVG Component
 const Candle = ({ x, o, c, h, l }) => {
   const isGreen = c <= o; // SVG Y-axis is inverted (0 is top)
-  const color = isGreen ? '#10b981' : '#ef4444'; // Emerald for up, Red for down
+  const color = isGreen ? '#10b981' : '#ef4444';
   const bodyY = Math.min(o, c);
-  const bodyH = Math.max(Math.abs(c - o), 2); // Minimum 2px for doji
+  const bodyH = Math.max(Math.abs(c - o), 2);
   
   return (
     <g>
-      {/* Wick */}
       <line x1={x} y1={h} x2={x} y2={l} stroke={color} strokeWidth="1.5" />
-      {/* Body */}
       <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={color} stroke={color} />
     </g>
   );
@@ -84,9 +82,9 @@ export default function App() {
 
   // Active Lesson State for Tab 1
   const [activeLessonId, setActiveLessonId] = useState("c1");
-  const [completedModules, setCompletedModules] = useState({ c1: false, c2: false, c3: false, c4: false, c5: false, c6: false });
+  const [completedModules, setCompletedModules] = useState({ c1: false, c2: false, c3: false, c4: false, c5: false, c6: false, c7: false });
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
-  const progress = Math.round((Object.values(completedModules).filter(Boolean).length / 6) * 100);
+  const progress = Math.round((Object.values(completedModules).filter(Boolean).length / 7) * 100);
 
   useEffect(() => {
     try {
@@ -124,17 +122,29 @@ export default function App() {
     } catch (err) { alert("Error saving entry: " + err.message); } finally { setSavingJournal(false); }
   };
 
+  // Fixed TradingView Embed Widget: Timezone set to NY (EST) and symbol set to supported SPXUSD CFD
   useEffect(() => {
     if (activeTab === 3) {
+      const container = document.getElementById('tradingview-widget-container');
+      if (container) container.innerHTML = ''; // Clear previous instances
+      
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
       script.type = 'text/javascript';
       script.async = true;
       script.innerHTML = JSON.stringify({
-        "autosize": true, "symbol": "CME_MINI:ES1!", "interval": "15", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "en", "allow_symbol_change": true, "calendar": false, "support_host": "https://www.tradingview.com"
+        "autosize": true,
+        "symbol": "FOREXCOM:SPXUSD",
+        "interval": "15",
+        "timezone": "America/New_York",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "allow_symbol_change": true,
+        "calendar": false,
+        "support_host": "https://www.tradingview.com"
       });
-      const container = document.getElementById('tradingview-widget-container');
-      if (container && !container.hasChildNodes()) container.appendChild(script);
+      if (container) container.appendChild(script);
     }
   }, [activeTab]);
 
@@ -166,10 +176,9 @@ export default function App() {
     } catch (err) { console.error(err); }
   };
 
-  // Text-to-Speech (Reverted to original clean implementation)
   const speakText = (textToRead) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
+      window.speechSynthesis.cancel();
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(textToRead);
       utterance.onend = () => setIsSpeaking(false);
@@ -239,13 +248,13 @@ export default function App() {
     setQuizStarted(false); setCurrentQuestion(0); setScore(0); setShowResults(false);
   };
 
-  // --- COMPREHENSIVE TEXTBOOK WITH CANDLESTICK SVGS ---
+  // --- COMPREHENSIVE TEXTBOOK DATA ---
   const courseData = [
     {
       id: "c1",
       title: "Part 1: The Core Elements (Episodes 1-5)",
       episodes: "Eps 1-5",
-      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. Price runs above an old high to sweep liquidity, aggressively reverses downward, and breaks the nearest short-term swing low with energetic candles. Step 3: The Fair Value Gap. Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The algorithm will re-price back into this gap. This is your entry point.",
+      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. Step 3: The Fair Value Gap. Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 1-5 lay the groundwork. Algorithms move price from an area of consolidation to an area of resting liquidity (stop losses). Once liquidity is taken, the algorithm reverses, leaving a <strong>Market Structure Shift (MSS)</strong> and a <strong>Fair Value Gap (FVG)</strong>.</p>
@@ -253,29 +262,25 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 1: Liquidity Pools (BSL & SSL)</h4>
           <p>Retail traders see support and resistance. Algorithms see stop-loss orders. You must identify where the largest clusters of stops reside (equal highs and lows).</p>
           
-          {/* CANDLESTICK SVG 1: BSL / SSL */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 1: BSL / SSL (RELATIVE EQUAL HIGHS/LOWS)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
-              {/* BSL Line */}
               <line x1="50" y1="60" x2="550" y2="60" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
               <text x="50" y="50" fill="#10b981" fontSize="12" fontWeight="bold">Buy-Side Liquidity (BSL) - Resting Buy Stops</text>
               
-              {/* SSL Line */}
               <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
               <text x="50" y="215" fill="#ef4444" fontSize="12" fontWeight="bold">Sell-Side Liquidity (SSL) - Resting Sell Stops</text>
 
-              {/* Candles */}
               <Candle x={100} o={150} c={120} h={100} l={160} />
               <Candle x={130} o={120} c={90} h={70} l={130} />
-              <Candle x={160} o={90} c={70} h={60} l={100} /> {/* Hits BSL */}
+              <Candle x={160} o={90} c={70} h={60} l={100} />
               <Candle x={190} o={70} c={110} h={65} l={120} />
               <Candle x={220} o={110} c={150} h={100} l={160} />
               <Candle x={250} o={150} c={180} h={140} l={190} />
-              <Candle x={280} o={180} c={195} h={170} l={200} /> {/* Hits SSL */}
+              <Candle x={280} o={180} c={195} h={170} l={200} />
               <Candle x={310} o={195} c={160} h={150} l={200} />
               <Candle x={340} o={160} c={110} h={100} l={170} />
-              <Candle x={370} o={110} c={80} h={60} l={120} /> {/* Hits BSL Again (Equal Highs) */}
+              <Candle x={370} o={110} c={80} h={60} l={120} />
               <Candle x={400} o={80} c={130} h={70} l={140} />
             </svg>
           </div>
@@ -283,7 +288,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 2: The Market Structure Shift (MSS)</h4>
           <p>A sweep of liquidity is not enough. You must wait for the algorithm to show its hand through violent <strong>displacement</strong> breaking a recent swing low.</p>
 
-          {/* CANDLESTICK SVG 2: MSS & Displacement */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 2: MARKET STRUCTURE SHIFT (MSS)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
@@ -295,13 +299,12 @@ export default function App() {
 
               <Candle x={100} o={160} c={130} h={120} l={170} />
               <Candle x={130} o={130} c={100} h={90} l={140} />
-              <Candle x={160} o={100} c={150} h={90} l={160} /> {/* The Swing Low */}
+              <Candle x={160} o={100} c={150} h={90} l={160} />
               <Candle x={190} o={150} c={110} h={100} l={160} />
-              <Candle x={220} o={110} c={60} h={50} l={120} /> {/* Sweeps High */}
+              <Candle x={220} o={110} c={60} h={50} l={120} />
               
-              {/* Displacement Candles */}
               <Candle x={250} o={60} c={120} h={55} l={130} />
-              <Candle x={280} o={120} c={190} h={110} l={200} /> {/* Breaks MSS */}
+              <Candle x={280} o={120} c={190} h={110} l={200} />
               <Candle x={310} o={190} c={230} h={180} l={240} />
               
               <text x="320" y="210" fill="#fca5a5" fontSize="12" fontWeight="bold">Violent Red Displacement</text>
@@ -311,24 +314,21 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 3: The Fair Value Gap (FVG)</h4>
           <p>Displacement leaves an inefficiency. A 3-candle sequence where the high of Candle 1 and the low of Candle 3 do not overlap.</p>
 
-          {/* CANDLESTICK SVG 3: FVG */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 3: THE FAIR VALUE GAP (BEARISH)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
-              {/* FVG Box */}
               <rect x="230" y="110" width="140" height="40" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
               <text x="380" y="135" fill="#a5b4fc" fontSize="12" fontWeight="bold">THE GAP (Inefficiency)</text>
 
-              {/* Candles */}
-              <Candle x={250} o={40} c={90} h={30} l={110} /> {/* C1 */}
+              <Candle x={250} o={40} c={90} h={30} l={110} />
               <text x="240" y="25" fill="#94a3b8" fontSize="11">C1</text>
               <line x1="250" y1="110" x2="380" y2="110" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2"/>
               <text x="180" y="115" fill="#cbd5e1" fontSize="10">C1 Low</text>
 
-              <Candle x={300} o={95} c={180} h={90} l={190} /> {/* C2 (Displacement) */}
+              <Candle x={300} o={95} c={180} h={90} l={190} />
               <text x="290" y="25" fill="#94a3b8" fontSize="11">C2</text>
 
-              <Candle x={350} o={182} c={220} h={150} l={230} /> {/* C3 */}
+              <Candle x={350} o={182} c={220} h={150} l={230} />
               <text x="340" y="25" fill="#94a3b8" fontSize="11">C3</text>
               <line x1="350" y1="150" x2="380" y2="150" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2"/>
               <text x="180" y="155" fill="#cbd5e1" fontSize="10">C3 High</text>
@@ -355,7 +355,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 4: AMD (Accumulation, Manipulation, Distribution)</h4>
           <p>The algorithm groups price delivery into three distinct daily phases.</p>
           
-          {/* CANDLESTICK SVG 4: AMD Profile */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 4: THE POWER OF 3 (AMD)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
@@ -370,19 +369,16 @@ export default function App() {
 
               <line x1="50" y1="120" x2="550" y2="120" stroke="#f8fafc" strokeWidth="1" strokeDasharray="3,3" />
               
-              {/* Asia (Accum) */}
               <Candle x={70} o={120} c={110} h={100} l={130} />
               <Candle x={100} o={110} c={130} h={105} l={140} />
               <Candle x={130} o={130} c={115} h={100} l={140} />
               <Candle x={160} o={115} c={125} h={110} l={130} />
               
-              {/* London/NY Open (Manip) */}
               <Candle x={210} o={125} c={160} h={120} l={170} />
               <Candle x={240} o={160} c={190} h={150} l={200} />
               <Candle x={270} o={190} c={220} h={180} l={230} />
               <text x="220" y="240" fill="#ef4444" fontSize="11" fontWeight="bold">Judas Swing</text>
               
-              {/* NY AM (Dist) */}
               <Candle x={360} o={220} c={150} h={140} l={230} />
               <Candle x={390} o={150} c={90} h={80} l={160} />
               <Candle x={420} o={90} c={50} h={40} l={100} />
@@ -392,7 +388,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 5: The NY AM Killzone Window</h4>
           <p>You do not trade 24/7. You stalk the setup specifically between 08:30 and 11:00 EST.</p>
 
-          {/* CANDLESTICK SVG 5: Killzone */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 5: THE NY AM KILLZONE</div>
             <svg viewBox="0 0 600 150" className="w-full max-w-2xl h-auto font-sans">
@@ -402,13 +397,12 @@ export default function App() {
               <text x="250" y="140" fill="#a5b4fc" fontSize="12" fontWeight="bold">08:30 EST</text>
               <text x="400" y="140" fill="#a5b4fc" fontSize="12" fontWeight="bold">11:00 EST</text>
               
-              {/* Candles entering and expanding in Killzone */}
               <Candle x={100} o={80} c={90} h={70} l={100} />
               <Candle x={150} o={90} c={85} h={70} l={100} />
               <Candle x={200} o={85} c={110} h={80} l={120} />
               
-              <Candle x={270} o={110} c={130} h={100} l={140} /> {/* Sweep */}
-              <Candle x={310} o={130} c={60} h={50} l={140} /> {/* MSS inside Killzone */}
+              <Candle x={270} o={110} c={130} h={100} l={140} />
+              <Candle x={310} o={130} c={60} h={50} l={140} />
               <Candle x={350} o={60} c={30} h={20} l={70} /> 
             </svg>
           </div>
@@ -427,34 +421,28 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 6: The Institutional Order Block (OB)</h4>
           <p>The last down-candle before a violent up-move is a Bullish Order Block. Algorithms return here to mitigate.</p>
 
-          {/* CANDLESTICK SVG 6: Order Block */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 6: BULLISH ORDER BLOCK (OB)</div>
             <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
-              {/* OB Zone */}
               <rect x="185" y="120" width="200" height="50" fill="#10b981" fillOpacity="0.2" stroke="#10b981" strokeDasharray="3,3" />
               <text x="400" y="150" fill="#34d399" fontSize="12" fontWeight="bold">Mitigation Return (Entry)</text>
 
-              {/* Candles */}
               <Candle x={100} o={80} c={110} h={70} l={120} />
               <Candle x={150} o={110} c={130} h={100} l={140} />
-              <Candle x={200} o={130} c={170} h={120} l={180} /> {/* The OB (Last down candle) */}
+              <Candle x={200} o={130} c={170} h={120} l={180} />
               
-              <Candle x={250} o={170} c={90} h={80} l={180} /> {/* Displacement Up */}
+              <Candle x={250} o={170} c={90} h={80} l={180} />
               <Candle x={300} o={90} c={40} h={30} l={100} />
               
-              <Candle x={350} o={40} c={120} h={30} l={130} /> {/* Return */}
-              <Candle x={400} o={120} c={150} h={110} l={160} /> {/* Hits OB */}
-              <Candle x={450} o={150} c={80} h={70} l={160} /> {/* Bounce */}
-              
-              <text x="180" y="195" fill="#cbd5e1" fontSize="11">Last Down Candle = Bullish OB</text>
+              <Candle x={350} o={40} c={120} h={30} l={130} />
+              <Candle x={400} o={120} c={150} h={110} l={160} />
+              <Candle x={450} o={150} c={80} h={70} l={160} />
             </svg>
           </div>
 
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 7: The Breaker Block</h4>
           <p>A Breaker is simply an Order Block that failed. When price smashes through a support block, that block becomes heavy algorithmic resistance.</p>
 
-          {/* CANDLESTICK SVG 7: Breaker Block */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 7: THE BEARISH BREAKER BLOCK</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
@@ -464,26 +452,19 @@ export default function App() {
               <rect x="50" y="160" width="500" height="30" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
               <text x="50" y="155" fill="#a5b4fc" fontSize="12" fontWeight="bold">Failed Bullish OB = Bearish Breaker</text>
 
-              {/* High */}
               <Candle x={100} o={140} c={100} h={90} l={150} />
-              
-              {/* Drop to OB */}
               <Candle x={150} o={100} c={160} h={90} l={170} />
-              <Candle x={200} o={160} c={190} h={150} l={200} /> {/* The Bullish OB */}
+              <Candle x={200} o={160} c={190} h={150} l={200} />
               
-              {/* Higher High (Sweep) */}
               <Candle x={250} o={190} c={120} h={110} l={200} />
-              <Candle x={300} o={120} c={60} h={50} l={130} /> {/* Sweeps BSL */}
+              <Candle x={300} o={120} c={60} h={50} l={130} />
               
-              {/* Violent Break */}
               <Candle x={350} o={60} c={140} h={50} l={150} />
-              <Candle x={400} o={140} c={220} h={130} l={230} /> {/* Smashes OB */}
+              <Candle x={400} o={140} c={220} h={130} l={230} />
               
-              {/* Return to Breaker */}
-              <Candle x={450} o={220} c={170} h={160} l={230} /> {/* Hits Breaker */}
+              <Candle x={450} o={220} c={170} h={160} l={230} />
               <text x="460" y="175" fill="#a5b4fc" fontSize="12" fontWeight="bold">Entry</text>
 
-              {/* Drop */}
               <Candle x={500} o={170} c={240} h={160} l={250} />
             </svg>
           </div>
@@ -502,7 +483,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 8: Premium vs. Discount</h4>
           <p>Algorithms buy in discount and sell in premium. Measure the dealing range and split it at 50%.</p>
 
-          {/* CANDLESTICK SVG 8: Dealing Range */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 8: DEALING RANGE</div>
             <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
@@ -515,22 +495,19 @@ export default function App() {
               <text x="460" y="60" fill="#ef4444" fontSize="14" fontWeight="bold">PREMIUM (SELL)</text>
               <text x="460" y="150" fill="#10b981" fontSize="14" fontWeight="bold">DISCOUNT (BUY)</text>
 
-              {/* Candles making the range */}
               <Candle x={200} o={180} c={140} h={130} l={190} />
               <Candle x={230} o={140} c={90} h={80} l={150} />
-              <Candle x={260} o={90} c={40} h={30} l={100} /> {/* High */}
+              <Candle x={260} o={90} c={40} h={30} l={100} />
               
-              {/* Retracement */}
               <Candle x={290} o={40} c={70} h={30} l={80} />
               <Candle x={320} o={70} c={110} h={60} l={120} />
-              <Candle x={350} o={110} c={140} h={100} l={150} /> {/* Enters Discount */}
+              <Candle x={350} o={110} c={140} h={100} l={150} />
             </svg>
           </div>
 
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 9: Optimal Trade Entry (OTE)</h4>
           <p>The algorithmic "sweet spot" is the 62% to 79% Fibonacci retracement of a displacement leg.</p>
 
-          {/* CANDLESTICK SVG 9: OTE */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 9: OPTIMAL TRADE ENTRY (OTE)</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
@@ -547,17 +524,16 @@ export default function App() {
               <line x1="100" y1="240" x2="500" y2="240" stroke="#60a5fa" strokeWidth="1" />
               <text x="100" y="235" fill="#60a5fa" fontSize="10">79%</text>
 
-              {/* Candles */}
               <Candle x={180} o={280} c={180} h={170} l={290} />
               <Candle x={210} o={180} c={80} h={70} l={190} />
-              <Candle x={240} o={80} c={30} h={20} l={90} /> {/* High */}
+              <Candle x={240} o={80} c={30} h={20} l={90} />
               
               <Candle x={270} o={30} c={100} h={20} l={110} />
               <Candle x={300} o={100} c={170} h={90} l={180} />
-              <Candle x={330} o={170} c={220} h={160} l={230} /> {/* Hits OTE */}
-              <Candle x={360} o={220} c={140} h={130} l={230} /> {/* Bounces */}
+              <Candle x={330} o={170} c={220} h={160} l={230} />
+              <Candle x={360} o={220} c={140} h={130} l={230} />
               
-              <text x="375" y="225" fill="#bfdbfe" fontSize="12" fontWeight="bold">Buy inside FVG + OTE</text>
+              <text x={375} y={225} fill="#bfdbfe" fontSize="12" fontWeight="bold">Buy inside FVG + OTE</text>
             </svg>
           </div>
         </div>
@@ -575,7 +551,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 10: The Bullish Weekly Profile</h4>
           <p>Statistically, the High or Low of the week forms on Tuesday or Wednesday. This is macro AMD.</p>
 
-          {/* CANDLESTICK SVG 10: Weekly Profile */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 10: THE WEEKLY PROFILE (DAILY CANDLES)</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
@@ -594,17 +569,11 @@ export default function App() {
               <rect x="450" y="20" width="100" height="260" fill="#1e293b" fillOpacity="0.3" />
               <text x="500" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">FRI</text>
 
-              {/* 5 Daily Candles */}
-              {/* Mon */}
               <Candle x={100} o={140} c={160} h={130} l={170} />
-              {/* Tue */}
               <Candle x={200} o={160} c={240} h={150} l={260} />
-              <text x="215" y="250" fill="#34d399" fontSize="11" fontWeight="bold">Low of the Week</text>
-              {/* Wed */}
+              <text x="215" y="250" fill="#34d399" fontSize="11" fontWeight="bold">Low of Week</text>
               <Candle x={300} o={240} c={120} h={110} l={250} />
-              {/* Thu */}
               <Candle x={400} o={120} c={60} h={50} l={130} />
-              {/* Fri */}
               <Candle x={500} o={60} c={70} h={40} l={90} />
             </svg>
           </div>
@@ -623,7 +592,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 11: IPDA Data Ranges</h4>
           <p>The algorithm references past data in chunks: 20, 40, and 60 days. This gives you your macro Draw on Liquidity.</p>
 
-          {/* SVG 11: IPDA */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 11: IPDA LOOKBACK CYCLES</div>
             <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
@@ -644,15 +612,6 @@ export default function App() {
               <text x="170" y="40" fill="#34d399" fontSize="11" fontWeight="bold">40-Day Unmitigated FVG</text>
             </svg>
           </div>
-
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Professional Risk Management</h4>
-          <div className="bg-slate-950 p-4 border border-slate-800 rounded-lg space-y-2">
-            <ul className="list-disc pl-5 space-y-2">
-              <li><strong>Never risk more than 1% to 2% of equity per setup.</strong> Ideally 0.5% when learning.</li>
-              <li><strong>Minimum 1:2 Risk-to-Reward.</strong> You take partial profits at 1:1 or 1:2, and leave a runner to hit the ultimate Draw on Liquidity.</li>
-              <li><strong>Stop Loss Placement:</strong> Must be placed behind the candle that created the MSS. Do not tighten the stop prematurely.</li>
-            </ul>
-          </div>
         </div>
       )
     },
@@ -672,21 +631,17 @@ export default function App() {
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 12: VELEZ 200 SMA HYBRID ENTRY</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-              {/* FVG Box */}
               <rect x="230" y="110" width="100" height="40" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
               <text x="340" y="135" fill="#a5b4fc" fontSize="12" fontWeight="bold">ICT Bearish FVG</text>
 
-              {/* 200 SMA Line */}
               <path d="M 50 50 Q 200 60 550 160" fill="none" stroke="#eab308" strokeWidth="3" />
               <text x="50" y="40" fill="#eab308" fontSize="12" fontWeight="bold">Velez 200 SMA (Sloping Down)</text>
 
-              {/* Candles */}
               <Candle x={100} o={250} c={190} h={180} l={260} />
               <Candle x={140} o={190} c={140} h={130} l={200} />
-              <Candle x={180} o={140} c={100} h={90} l={150} /> {/* Pushes toward FVG/SMA */}
+              <Candle x={180} o={140} c={100} h={90} l={150} />
               <Candle x={220} o={100} c={120} h={90} l={130} /> 
               
-              {/* The Velez Ignition Candle inside FVG */}
               <Candle x={260} o={120} c={190} h={115} l={200} />
               
               <text x="280" y="180" fill="#ef4444" fontSize="12" fontWeight="bold">Velez Red Ignition Candle</text>
