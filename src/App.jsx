@@ -122,11 +122,10 @@ export default function App() {
     } catch (err) { alert("Error saving entry: " + err.message); } finally { setSavingJournal(false); }
   };
 
-  // Fixed TradingView Embed Widget: Timezone set to NY (EST) and symbol set to supported SPXUSD CFD
   useEffect(() => {
     if (activeTab === 3) {
       const container = document.getElementById('tradingview-widget-container');
-      if (container) container.innerHTML = ''; // Clear previous instances
+      if (container) container.innerHTML = ''; 
       
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
@@ -248,13 +247,13 @@ export default function App() {
     setQuizStarted(false); setCurrentQuestion(0); setScore(0); setShowResults(false);
   };
 
-  // --- COMPREHENSIVE TEXTBOOK DATA ---
+  // --- COMPREHENSIVE TEXTBOOK WITH CANDLESTICK SVGS ---
   const courseData = [
     {
       id: "c1",
       title: "Part 1: The Core Elements (Episodes 1-5)",
       episodes: "Eps 1-5",
-      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. Step 3: The Fair Value Gap. Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
+      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. Price runs above an old high to sweep liquidity, aggressively reverses downward, and breaks the nearest short-term swing low with energetic candles. Step 3: The Fair Value Gap. Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 1-5 lay the groundwork. Algorithms move price from an area of consolidation to an area of resting liquidity (stop losses). Once liquidity is taken, the algorithm reverses, leaving a <strong>Market Structure Shift (MSS)</strong> and a <strong>Fair Value Gap (FVG)</strong>.</p>
@@ -333,12 +332,6 @@ export default function App() {
               <line x1="350" y1="150" x2="380" y2="150" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2"/>
               <text x="180" y="155" fill="#cbd5e1" fontSize="10">C3 High</text>
             </svg>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 3 (14:00): MSS & FVG <ExternalLink className="ml-2" size={14}/>
-            </a>
           </div>
         </div>
       )
@@ -627,7 +620,6 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 12: Velez 200 SMA + Ignition Filter</h4>
           <p>Do not enter the FVG blindly. Ensure the 200 SMA slope agrees, and wait for an ignition candle.</p>
 
-          {/* CANDLESTICK SVG 12: Velez Bridge */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 12: VELEZ 200 SMA HYBRID ENTRY</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
@@ -793,10 +785,29 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: TRADINGVIEW */}
+        {/* TAB 3: TRADINGVIEW INSTRUCTIONS & CHART */}
         {activeTab === 3 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Practice Trade Simulator & Live Chart</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart2 className="text-indigo-400"/> Practice Trade Simulator</h2>
+            
+            {/* Instructional Panel */}
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 flex items-start gap-4">
+              <Info className="text-indigo-400 shrink-0 mt-1" size={24} />
+              <div className="space-y-3 text-sm text-slate-300">
+                <h3 className="text-lg font-bold text-white">How to use this Practice Chart</h3>
+                <p>Because this chart is embedded on a third-party site, TradingView restricts logging into personal accounts, syncing saved layouts, or loading paid CME futures data (like <code className="bg-slate-800 px-1 rounded text-pink-300">ES1!</code> or <code className="bg-slate-800 px-1 rounded text-pink-300">NQ1!</code>). Instead, this chart defaults to <code className="bg-slate-800 px-1 rounded text-emerald-400">SPXUSD</code> (S&P 500 CFD), which accurately mirrors futures price action and provides free, unrestricted real-time data.</p>
+                
+                <h4 className="font-bold text-indigo-300 pt-2">Step-by-Step Setup:</h4>
+                <ol className="list-decimal pl-5 space-y-1">
+                  <li><strong>Timezone:</strong> Confirm the chart timezone (bottom right corner) is set to <strong>New York (EST/EDT)</strong>. This is critical for tracking Killzones.</li>
+                  <li><strong>Indicators:</strong> Click the <em>Indicators</em> button at the top, search for <em>Moving Average Simple</em>, and set its length to <strong>200</strong> to track Oliver Velez momentum bias.</li>
+                  <li><strong>Draw Liquidity:</strong> Use the horizontal line tool to mark the highest and lowest points of the Asia Session (20:00 - 00:00 EST) and London Session (02:00 - 05:00 EST).</li>
+                  <li><strong>Execute:</strong> Wait for the 08:30 AM NY Killzone. Watch for price to sweep your lines, confirm the MSS, spot the FVG, and log your setups in the NY Playbook (Tab 4).</li>
+                </ol>
+              </div>
+            </div>
+
+            {/* The Chart */}
             <div className="w-full h-[600px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden relative">
               <div id="tradingview-widget-container" className="w-full h-full"></div>
             </div>
