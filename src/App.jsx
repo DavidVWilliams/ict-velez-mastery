@@ -9,6 +9,7 @@ import {
   PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, StopCircle, MessageSquare
 } from 'lucide-react';
 
+// --- SVG CHART COMPONENT LIBRARY ---
 const Candle = ({ x, o, c, h, l }) => {
   const isGreen = c <= o; 
   const color = isGreen ? '#10b981' : '#ef4444';
@@ -21,6 +22,139 @@ const Candle = ({ x, o, c, h, l }) => {
     </g>
   );
 };
+
+const LiquiditySweepVisual = () => (
+  <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: SELL-SIDE LIQUIDITY SWEEP</text>
+    <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
+    <text x="50" y="220" fill="#ef4444" fontSize="14" fontWeight="bold">Retail Support (Resting Sell-Stops / SSL)</text>
+    <Candle x={100} o={100} c={150} h={80} l={160} />
+    <Candle x={140} o={150} c={180} h={140} l={190} />
+    <Candle x={180} o={180} c={140} h={130} l={190} />
+    <Candle x={300} o={160} c={190} h={150} l={200} />
+    <Candle x={380} o={120} c={170} h={100} l={180} />
+    <Candle x={420} o={170} c={250} h={160} l={260} />
+    <Candle x={460} o={250} c={150} h={140} l={260} />
+    <circle cx="420" cy="260" r="15" fill="none" stroke="#eab308" strokeWidth="3" />
+    <text x="440" y="265" fill="#eab308" fontSize="14" fontWeight="bold">Liquidity Purge / Stop Run</text>
+  </svg>
+);
+
+const MSSVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: MARKET STRUCTURE SHIFT (MSS)</text>
+    <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
+    <line x1="50" y1="120" x2="550" y2="120" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" />
+    <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">Intermediate-Term High (MSS Trigger)</text>
+    <Candle x={180} o={160} c={120} h={110} l={170} />
+    <Candle x={300} o={220} c={280} h={210} l={290} /> 
+    <Candle x={340} o={280} c={180} h={170} l={290} /> 
+    <Candle x={380} o={180} c={80} h={70} l={190} /> 
+    <rect x="360" y="60" width="80" height="140" fill="none" stroke="#10b981" strokeWidth="3" rx="10" />
+    <text x="450" y="120" fill="#10b981" fontSize="16" fontWeight="bold">Displacement Wave</text>
+  </svg>
+);
+
+const FVGVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: FAIR VALUE GAP (FVG)</text>
+    <Candle x={150} o={250} c={200} h={180} l={260} />
+    <text x="135" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 1</text>
+    <line x1="150" y1="180" x2="350" y2="180" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+    <Candle x={250} o={200} c={60} h={50} l={210} />
+    <text x="235" y="280" fill="#10b981" fontSize="14" fontWeight="bold">Candle 2</text>
+    <Candle x={350} o={60} c={40} h={30} l={100} />
+    <text x="335" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 3</text>
+    <line x1="350" y1="100" x2="450" y2="100" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+    <rect x="150" y="100" width="200" height="80" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
+    <text x="160" y="145" fill="#a5b4fc" fontSize="16" fontWeight="bold">Price Inefficiency (FVG)</text>
+  </svg>
+);
+
+const SMAVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: 200 SMA MACRO BASELINE</text>
+    <path d="M 50 250 Q 300 200 550 50" fill="none" stroke="#eab308" strokeWidth="4" />
+    <text x="50" y="270" fill="#fde047" fontSize="14" fontWeight="bold">200 SMA (Ascending Baseline)</text>
+    <rect x="230" y="100" width="100" height="60" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
+    <text x="340" y="130" fill="#a5b4fc" fontSize="14" fontWeight="bold">FVG Zone</text>
+    <Candle x={100} o={40} c={70} h={30} l={80} />
+    <Candle x={150} o={70} c={110} h={60} l={120} />
+    <Candle x={200} o={110} c={150} h={100} l={160} />
+    <Candle x={250} o={150} c={130} h={120} l={160} /> 
+    <Candle x={300} o={130} c={60} h={50} l={140} /> 
+    <text x="320" y="70" fill="#10b981" fontSize="14" fontWeight="bold">Ignition Confirmation</text>
+  </svg>
+);
+
+const PO3Visual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: POWER OF 3 (AMD)</text>
+    <line x1="50" y1="180" x2="550" y2="180" stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+    <text x="50" y="170" fill="#94a3b8" fontSize="12" fontWeight="bold">Midnight Open Price</text>
+    {/* Accumulation */}
+    <rect x="80" y="160" width="120" height="40" fill="#334155" fillOpacity="0.5" stroke="#475569" strokeWidth="2" />
+    <text x="90" y="220" fill="#94a3b8" fontSize="12">Accumulation</text>
+    {/* Manipulation */}
+    <path d="M 200 180 Q 250 80 300 180" fill="none" stroke="#ef4444" strokeWidth="3" />
+    <text x="230" y="70" fill="#ef4444" fontSize="12" fontWeight="bold">Judas Swing (Manipulation)</text>
+    {/* Distribution */}
+    <path d="M 300 180 Q 400 300 500 280" fill="none" stroke="#10b981" strokeWidth="3" />
+    <text x="380" y="320" fill="#10b981" fontSize="12" fontWeight="bold">Distribution (Expansion)</text>
+  </svg>
+);
+
+const MatrixVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: DISCOUNT MATRIX & OTE</text>
+    <rect x="150" y="200" width="300" height="40" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="1" />
+    <line x1="100" y1="150" x2="500" y2="150" stroke="#f87171" strokeWidth="2" strokeDasharray="5,5"/>
+    <text x="100" y="145" fill="#f87171" fontSize="10">50% Equilibrium (Do not buy above)</text>
+    <line x1="100" y1="200" x2="500" y2="200" stroke="#60a5fa" strokeWidth="1" />
+    <text x="100" y="195" fill="#60a5fa" fontSize="10">62% Retracement</text>
+    <line x1="100" y1="220" x2="500" y2="220" stroke="#3b82f6" strokeWidth="2" />
+    <text x="100" y="215" fill="#3b82f6" fontSize="10" fontWeight="bold">70.5% (OTE Sweet Spot)</text>
+    <line x1="100" y1="240" x2="500" y2="240" stroke="#60a5fa" strokeWidth="1" />
+    <text x="100" y="235" fill="#60a5fa" fontSize="10">79% Retracement</text>
+    <Candle x={180} o={280} c={180} h={170} l={290} />
+    <Candle x={210} o={180} c={80} h={70} l={190} />
+    <Candle x={240} o={80} c={30} h={20} l={90} />
+    <Candle x={270} o={30} c={100} h={20} l={110} />
+    <Candle x={300} o={100} c={170} h={90} l={180} />
+    <Candle x={330} o={170} c={220} h={160} l={230} /> 
+    <Candle x={360} o={220} c={140} h={130} l={230} /> 
+    <text x={375} y={225} fill="#bfdbfe" fontSize="14" fontWeight="bold">Optimal Trade Entry</text>
+  </svg>
+);
+
+const BreakerVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: BULLISH BREAKER BLOCK</text>
+    <path d="M 50 200 L 150 100 L 250 280 L 350 50 L 450 120" fill="none" stroke="#64748b" strokeWidth="2" />
+    <text x="130" y="90" fill="#94a3b8" fontSize="12">High</text>
+    <text x="230" y="300" fill="#94a3b8" fontSize="12">Lower Low (Stop Run)</text>
+    <text x="320" y="40" fill="#94a3b8" fontSize="12">Higher High (MSS)</text>
+    <rect x="130" y="100" width="340" height="40" fill="#10b981" fillOpacity="0.2" stroke="#10b981" strokeWidth="2" strokeDasharray="4,4"/>
+    <text x="480" y="125" fill="#10b981" fontSize="14" fontWeight="bold">Breaker Retest</text>
+    <circle cx="450" cy="120" r="8" fill="#10b981" />
+  </svg>
+);
+
+const SMTVisual = () => (
+  <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans bg-slate-950 rounded-xl border border-slate-800 shadow-inner p-4 my-4">
+    <text x="20" y="30" fill="#a5b4fc" fontSize="12" fontWeight="bold" letterSpacing="2">VISUAL: SMART MONEY TECHNIQUE (SMT)</text>
+    <line x1="50" y1="180" x2="550" y2="180" stroke="#334155" strokeWidth="2"/>
+    <text x="50" y="70" fill="#94a3b8" fontSize="14" fontWeight="bold">S&P 500 (ES)</text>
+    <path d="M 50 120 L 150 160 L 250 100 L 350 190" fill="none" stroke="#ef4444" strokeWidth="3" />
+    <text x="320" y="210" fill="#ef4444" fontSize="12">Lower Low</text>
+    
+    <text x="50" y="220" fill="#94a3b8" fontSize="14" fontWeight="bold">NASDAQ (NQ)</text>
+    <path d="M 50 270 L 150 310 L 250 250 L 350 290" fill="none" stroke="#10b981" strokeWidth="3" />
+    <text x="320" y="315" fill="#10b981" fontSize="12">Higher Low (SMT Divergence!)</text>
+    <circle cx="350" cy="290" r="8" fill="#10b981" />
+  </svg>
+);
+
 
 const stripMarkdown = (text) => {
   if (!text) return '';
@@ -45,6 +179,7 @@ const lessonDatabase = {
       "Draw a horizontal line exactly at the tip of the wick of these peaks and valleys.",
       "Label the lines above current price as BSL, and the lines below current price as SSL."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Open a 15-minute chart and mark at least 3 major Swing Highs (BSL) and Swing Lows (SSL)."
   },
   2: {
@@ -63,6 +198,7 @@ const lessonDatabase = {
       "Identify the last recent swing high (if reversing down) or swing low (if reversing up) before the sweep occurred.",
       "Watch for a large, energetic candle to close firmly past that swing point. This line is your MSS."
     ],
+    visualType: "MSS",
     homework: "Assignment: Locate a liquidity sweep followed by an energetic Market Structure Shift (MSS) on a 5-minute chart. Mark the MSS line."
   },
   3: {
@@ -81,6 +217,7 @@ const lessonDatabase = {
       "For a bullish (up) move: Draw a box from the HIGH wick of Candle 1 to the LOW wick of Candle 3.",
       "If there is empty space between those two wicks that Candle 2's body occupies, that box is your FVG."
     ],
+    visualType: "FVG",
     homework: "Assignment: Find 3 FVGs on a 15-minute chart and draw a box from Candle 1's wick to Candle 3's wick."
   },
   4: {
@@ -100,6 +237,7 @@ const lessonDatabase = {
       "If price drops into a bullish FVG, check the SMA. If the SMA is pointing UP, the trade is valid. If it is pointing DOWN, cancel the trade.",
       "Wait for a green 'Ignition' candle to form inside the FVG, bouncing off the SMA directionally, before entering."
     ],
+    visualType: "SMA",
     homework: "Assignment: Apply the 200 SMA. Find examples where price retraced into an FVG while respecting the slope. Mark the Ignition candle."
   },
   5: {
@@ -119,6 +257,7 @@ const lessonDatabase = {
       "If you expect a bearish day, look for price to rally ABOVE the Midnight open line during the London or early NY session (This is the Judas Swing / Manipulation).",
       "Look to short the market after this manipulation occurs, riding the distribution wave down."
     ],
+    visualType: "PO3",
     homework: "Assignment: Draw vertical lines marking Midnight EST and 08:30 EST. Draw a horizontal line at the Midnight Open price. Identify the Judas Swing."
   },
   6: {
@@ -138,6 +277,7 @@ const lessonDatabase = {
       "Look at the 0.5 (50%) line. This is Equilibrium.",
       "If you want to buy, you MUST wait for price to drop below the 50% line into the Discount area. Look for your FVG to line up with the 0.62 or 0.79 Fib levels."
     ],
+    visualType: "Matrix",
     homework: "Assignment: Pull a Fibonacci retracement on a recent displacement wave. Mark the 50% Equilibrium and highlight the Discount territory."
   },
   7: {
@@ -157,6 +297,7 @@ const lessonDatabase = {
       "Calculate your position size (number of micro contracts or shares) so that if your stop is hit, you only lose exactly $100.",
       "If you lose the trade, your next trade's max risk is automatically cut to 0.5% ($50)."
     ],
+    visualType: "PO3",
     homework: "Assignment: Calculate exactly 1% of your account balance. Find a setup, mark the stop loss, and calculate how many contracts/shares you can buy to equal exactly 1% risk."
   },
   8: {
@@ -176,6 +317,7 @@ const lessonDatabase = {
       "Ask: Which level is price currently moving towards with the most momentum?",
       "That level is your Draw on Liquidity. Do not take intraday trades fighting this direction."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Open a Daily chart. Mark the closest un-swept high and low. Determine which is the most likely draw on liquidity today."
   },
   9: {
@@ -195,6 +337,7 @@ const lessonDatabase = {
       "Project that measurement downward starting from the Midnight Open price.",
       "This gives you a highly accurate algorithmic profit target for the distribution phase."
     ],
+    visualType: "PO3",
     homework: "Assignment: Measure the distance of a morning Judas Swing from the open. Project that distance in the opposite direction to map a profit target."
   },
   10: {
@@ -214,6 +357,7 @@ const lessonDatabase = {
       "Watch the spike sweep a BSL or SSL level.",
       "Wait for the 1m or 5m chart to print a Market Structure Shift reversing the news spike, then enter on the FVG."
     ],
+    visualType: "MSS",
     homework: "Assignment: Mark 8:30 AM EST on a news day. Annotate the initial news spike (the trap) and the subsequent MSS that confirms the true direction."
   },
   11: {
@@ -233,6 +377,7 @@ const lessonDatabase = {
       "If the AM session was heavily trending, look for the PM session to offer a Discount/Premium FVG entry to continue the trend.",
       "If the AM session hit a major Daily target, look for the PM session to reverse and rebalance."
     ],
+    visualType: "PO3",
     homework: "Assignment: Find a setup that formed strictly after 13:30 EST. Did it continue the AM trend or reverse?"
   },
   12: {
@@ -252,6 +397,7 @@ const lessonDatabase = {
       "Look at the swing high immediately to the right of it. Is it lower?",
       "If the center peak is higher than both immediate neighbors, it is an ITH. This is a critical level for Market Structure Shifts."
     ],
+    visualType: "MSS",
     homework: "Assignment: Select an Hourly chart. Locate a peak and verify it has a lower high on both the left and right to label it an ITH."
   },
   13: {
@@ -270,6 +416,7 @@ const lessonDatabase = {
       "If price drops and sweeps the external Swing Low (External Liquidity), immediately shift your bias to bullish.",
       "Your new target is an un-filled FVG (Internal Liquidity) located higher up in the range."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Find a chart where price swept a major low (External), then immediately rallied to fill an FVG (Internal)."
   },
   14: {
@@ -289,6 +436,7 @@ const lessonDatabase = {
       "Write 'Daily Bias: BULLISH/BEARISH' on a sticky note.",
       "Drop to the 5-minute chart. Ignore ALL setups that go against your sticky note."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Look at the Daily chart. Write down the directional bias. Go to the 15m chart and find a setup aligning with that bias."
   },
   15: {
@@ -308,6 +456,7 @@ const lessonDatabase = {
       "If TNX is breaking out UP, expect intense downward pressure on SPX/Nasdaq. Prioritize short setups.",
       "If TNX is breaking DOWN, expect equities to rally. Prioritize long setups."
     ],
+    visualType: "SMT",
     homework: "Assignment: Open the TNX (10-year yield) chart alongside the S&P 500. Annotate a period showing their inverse correlation."
   },
   16: {
@@ -327,6 +476,7 @@ const lessonDatabase = {
       "If ES drops below its previous swing low, check NQ.",
       "If NQ stops short and forms a Higher Low while ES forms a Lower Low, SMT is confirmed. Buy NQ."
     ],
+    visualType: "SMT",
     homework: "Assignment: Place ES and NQ side-by-side on a 5-minute chart. Find SMT divergence at a major swing low."
   },
   17: {
@@ -345,6 +495,7 @@ const lessonDatabase = {
       "Step 2: 1-Hour Chart -> Mark a large FVG pointing in the direction of the Draw.",
       "Step 3: 5-Minute Chart -> Wait for price to touch the 1-Hour FVG, then look for a 5-minute MSS to enter."
     ],
+    visualType: "FVG",
     homework: "Assignment: Annotate a chart progressing from Daily bias, to a 1-Hour FVG, down to a 5-minute entry setup inside that FVG."
   },
   18: {
@@ -364,6 +515,7 @@ const lessonDatabase = {
       "At 15:50 EST, look for a sudden 1-minute MSS in the opposite direction of the weekly trend.",
       "Scalp the retracement back toward the middle of the week's range."
     ],
+    visualType: "PO3",
     homework: "Assignment: Review last Friday's price action from 15:50 to 16:00 EST. Did price square off and retrace against the weekly trend?"
   },
   19: {
@@ -383,6 +535,7 @@ const lessonDatabase = {
       "Stop aiming for home runs. Switch your targets to the 50% midpoint of yesterday's range.",
       "Buy Discount FVGs, Sell Premium FVGs within the box."
     ],
+    visualType: "Matrix",
     homework: "Assignment: Identify a day where price remained entirely within the previous day's high/low. Mark the 50% line."
   },
   20: {
@@ -402,6 +555,7 @@ const lessonDatabase = {
       "If yes, London likely created the Low of the Day.",
       "In the NY session, only look for Bullish FVGs to buy the continuation of London's reversal."
     ],
+    visualType: "PO3",
     homework: "Assignment: Find 3 examples where the London Killzone engineered the absolute High or Low of the Daily candle."
   },
   21: {
@@ -421,6 +575,7 @@ const lessonDatabase = {
       "Watch the candle close. If it slices straight through the bearish FVG and closes above it, your trade is incredibly strong.",
       "If it wicks the bearish FVG and immediately prints a massive red candle against you, manually close the trade early."
     ],
+    visualType: "FVG",
     homework: "Assignment: Replay a past trade. Note exactly how price reacted when it hit an opposing FVG. Did it slice through or reverse?"
   },
   22: {
@@ -440,6 +595,7 @@ const lessonDatabase = {
       "Watch the algorithm immediately slam price back down in the opposite direction to trap them.",
       "Enter short on the FVG created by the reversal slam."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Review an NFP Friday. Annotate the initial trap spike and the subsequent true reversal."
   },
   23: {
@@ -459,6 +615,7 @@ const lessonDatabase = {
       "If it's just a wick, it's a stop run (Retracement). Expect price to continue downward.",
       "If a large, full-bodied candle closes well above the line leaving an FVG, it is a true Reversal (MSS)."
     ],
+    visualType: "MSS",
     homework: "Assignment: Find a swing high that was broken by a wick (stop run) vs one broken by a heavy body (true shift)."
   },
   24: {
@@ -478,6 +635,7 @@ const lessonDatabase = {
       "Once price forms the Higher High, wait for it to pull back down to the box you drew.",
       "Buy when price taps the top of the Breaker box."
     ],
+    visualType: "Breaker",
     homework: "Assignment: Locate a Breaker. Find a High, Lower Low, Higher High sequence. Mark the up-close candle before the Lower Low."
   },
   25: {
@@ -497,6 +655,7 @@ const lessonDatabase = {
       "Wait for price to pull back up to this box.",
       "Sell when price taps the bottom of the Mitigation box."
     ],
+    visualType: "Breaker",
     homework: "Assignment: Find a failure swing (e.g., Lower High). Mark the down-close candle before the failure as the Mitigation Block."
   },
   26: {
@@ -515,6 +674,7 @@ const lessonDatabase = {
       "Draw a horizontal line right at the bottom edge of the actual candle BODY (not the tip of the wick).",
       "When price pulls back to re-test the area, it will often bounce exactly off your body line (Rejection Block) without needing to sweep the tip of the wick."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Find a long wick that swept liquidity. Mark the Rejection Block (candle body) and observe the retest."
   },
   27: {
@@ -533,6 +693,7 @@ const lessonDatabase = {
       "If price opens with a massive physical gap separating Friday's close from Sunday's open, draw a box filling the empty space.",
       "Treat this box exactly like an FVG. Target it for profit taking if trading back towards it, or enter off it once it is filled."
     ],
+    visualType: "FVG",
     homework: "Assignment: Look at a Sunday open on ES/NQ. Mark any opening gaps (Vacuum Blocks) and track when they were filled."
   },
   28: {
@@ -552,6 +713,7 @@ const lessonDatabase = {
       "Check 2: Did the up-move leave an FVG directly attached to the down candle? If no, invalid.",
       "If both are yes, draw a box around the entire down-close candle. This is your high-probability Bullish Order Block."
     ],
+    visualType: "MSS",
     homework: "Assignment: Find a down-close candle that led to an up-move. Run the 2 checks. If valid, mark it as a Bullish Order Block."
   },
   29: {
@@ -570,6 +732,7 @@ const lessonDatabase = {
       "Find the exact 50% midpoint of the FVG box.",
       "This 50% line is 'Consequent Encroachment'. Place your limit order exactly on this 50% line for the highest precision entry."
     ],
+    visualType: "FVG",
     homework: "Assignment: Draw an FVG box. Use a Fib tool or math to draw a line at the exact 50% midpoint (Consequent Encroachment)."
   },
   30: {
@@ -588,6 +751,7 @@ const lessonDatabase = {
       "When price eventually reverses, do not look for support inside those massive candles.",
       "Anticipate price will 'waterfall' crash rapidly through the void until it reaches the Order Block at the very bottom."
     ],
+    visualType: "FVG",
     homework: "Assignment: Find a massive 4-candle drop caused by news (a void). Observe how easily price rallied back through that void."
   },
   31: {
@@ -606,6 +770,7 @@ const lessonDatabase = {
       "Recognize that thousands of retail traders have placed their stop losses just above this 'resistance'.",
       "Set your profit target just above those Equal Highs, knowing the algorithm will magnetically draw price up to sweep those stops."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Find a 'Double Top' or 'Double Bottom'. Annotate the algorithmic sweep that inevitably blew through that retail pattern."
   },
   32: {
@@ -624,6 +789,7 @@ const lessonDatabase = {
       "As the London Session opens (02:00 EST), watch for price to dive quickly below the Asian Low.",
       "If it wicks below the Asian Low and immediately shoots upward, that was the Stop Run. It is now safe to look for longs."
     ],
+    visualType: "Liquidity",
     homework: "Assignment: Focus on an 08:30 EST open. Did price spike down to take out an old low (Stop Run) before rallying for the day?"
   },
   33: {
@@ -643,6 +809,7 @@ const lessonDatabase = {
       "Look at the 50% line. Is your FVG above the 50% line (Premium)?",
       "If yes, cancel the trade. Only buy if the FVG is physically located below the 50% line (Discount)."
     ],
+    visualType: "Matrix",
     homework: "Assignment: Pull a Fib on a daily dealing range. Mentally erase the top 50%. Find a valid FVG entry in the bottom half."
   },
   34: {
@@ -662,6 +829,7 @@ const lessonDatabase = {
       "Look at the 50% line. Is your bearish FVG located below the 50% line (Discount)?",
       "If yes, cancel the trade. Only short if the FVG is physically located in the top half (Premium)."
     ],
+    visualType: "Matrix",
     homework: "Assignment: Identify a bearish displacement. Locate a bearish FVG specifically in the top 50% (Premium) of that move."
   },
   35: {
@@ -680,6 +848,7 @@ const lessonDatabase = {
       "When price hits 4020 (50% of the way), move your stop up from 3980 to 3985 (reducing risk by 25%).",
       "When price hits 4030 (75% of the way), move your stop to 4000 (Break-Even). Your trade is now risk-free."
     ],
+    visualType: "PO3",
     homework: "Assignment: In a paper trade, calculate your target distance. Mark the exact price level for 50% and 75% to manually move your stops."
   },
   36: {
@@ -699,6 +868,7 @@ const lessonDatabase = {
       "Your next trade MUST only risk 0.5%.",
       "If you lose again, your next trade MUST only risk 0.25%. Do not increase risk until you win."
     ],
+    visualType: "PO3",
     homework: "Assignment: Write down the Drawdown Reduction Protocol on a post-it note and tape it to your monitor."
   },
   37: {
@@ -718,6 +888,7 @@ const lessonDatabase = {
       "Add a text box at the target: 'Targeted Equal Highs (BSL) on the 1H chart.'",
       "Save the image to a folder. Never write 'I was scared' or 'I am stupid'."
     ],
+    visualType: "FVG",
     homework: "Assignment: Take a screenshot of a completed trade. Add 3 'Self-Talk' text boxes explaining the logic objectively."
   },
   38: {
@@ -736,6 +907,7 @@ const lessonDatabase = {
       "Calculate your maximum position size so that 2 losses never breaches the firm's daily drawdown limit.",
       "Focus solely on hitting base hits (1:2 R:R) rather than home runs to slowly build a buffer."
     ],
+    visualType: "PO3",
     homework: "Assignment: Write down your specific rules for an evaluation (Max daily loss, Risk %, chosen Killzone)."
   },
   39: {
@@ -756,6 +928,7 @@ const lessonDatabase = {
       "Step 3: Wait for a liquidity sweep followed by an MSS.",
       "Step 4: Ensure the 200 SMA is pointing your direction, then place your limit order at the FVG."
     ],
+    visualType: "SMA",
     homework: "Assignment: Create a physical 4-step checklist based on the Master Protocol. Keep it next to your mouse."
   },
   40: {
@@ -774,6 +947,7 @@ const lessonDatabase = {
       "If you cannot confidently say 'Price is going to X' after 60 seconds, close the chart.",
       "Walk away from the computer for 1 hour. Do not trade chop."
     ],
+    visualType: "PO3",
     homework: "Assignment: Identify a chart that is currently chopping sideways. Force yourself to close the chart without trading."
   },
   41: {
@@ -793,7 +967,22 @@ const lessonDatabase = {
       "Review your risk math.",
       "Commit to executing flawlessly on Demo for 6 months before funding."
     ],
+    visualType: "Matrix",
     homework: "Final Assignment: Complete Trading Model Blueprint. Combine all your previous assignments into a single, cohesive Trading Plan document."
+  }
+};
+
+const renderVisual = (type) => {
+  switch(type) {
+    case "Liquidity": return <LiquiditySweepVisual />;
+    case "MSS": return <MSSVisual />;
+    case "FVG": return <FVGVisual />;
+    case "SMA": return <SMAVisual />;
+    case "PO3": return <PO3Visual />;
+    case "Matrix": return <MatrixVisual />;
+    case "Breaker": return <BreakerVisual />;
+    case "SMT": return <SMTVisual />;
+    default: return <FVGVisual />;
   }
 };
 
@@ -821,6 +1010,9 @@ const courseData = Object.keys(lessonDatabase).map((key) => {
             ))}
           </ul>
         </div>
+
+        {/* Dynamic SVG Visual Rendered Here */}
+        {renderVisual(data.visualType)}
 
         <div className="bg-slate-900 p-6 rounded-xl border border-emerald-500/30">
           <h4 className="text-lg font-bold text-emerald-400 mb-3">{data.executionTitle}</h4>
@@ -853,6 +1045,7 @@ export default function App() {
 
   const [auditImage, setAuditImage] = useState(null);
   const [auditImageName, setAuditImageName] = useState('');
+  // Enforcing user preference: 3 column pro layout is standard, SMA only (no EMA).
   const [checklist, setChecklist] = useState({ liquiditySweep: false, mss: false, fvgEntry: false, nyKillzone: false, sma200Check: false });
 
   const [journalNote, setJournalNote] = useState('');
@@ -884,9 +1077,11 @@ export default function App() {
   const [completedModules, setCompletedModules] = useState({});
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
+  // Lesson image upload states
   const [lessonImage, setLessonImage] = useState(null);
   const [lessonImageName, setLessonImageName] = useState('');
 
+  // Universal Paste Handler
   const handlePasteImage = (e, setImageState, setNameState) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -1114,7 +1309,7 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 w-full mx-auto max-w-[1600px]">
-        {/* TAB 1: Masterclass (3 Column Pro Layout) */}
+        {/* TAB 1: Masterclass (3 Column Pro Layout requirement) */}
         {activeTab === 1 && (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             
