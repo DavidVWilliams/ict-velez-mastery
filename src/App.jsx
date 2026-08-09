@@ -9,6 +9,7 @@ import {
   PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, StopCircle, MessageSquare
 } from 'lucide-react';
 
+// Custom Candlestick SVG Component
 const Candle = ({ x, o, c, h, l }) => {
   const isGreen = c <= o; 
   const color = isGreen ? '#10b981' : '#ef4444';
@@ -55,16 +56,41 @@ const courseData = episodeTitles.map((title, index) => {
   const epNum = index + 1;
   const officialPlaylist = "https://www.youtube.com/playlist?list=PLVgHx4Z63paYiFGQ56PjTF1PGePL3r69s";
   
-  // Dynamic Homework Injection based on NotebookLM Study Guide
+  // Explicit, Actionable Homework Assignment Mapping for all 41 Episodes
   let homework = "Review the concepts introduced in this episode on your live charts. Take a screenshot of an applicable setup and submit it to the AI Auditor for grading.";
-  if (epNum === 10) {
-    homework = "Assignment 1: Daily Bias and Power 3 Observation. \n• Open a Daily chart of the E-mini S&P or NASDAQ.\n• Identify the opening price (Midnight New York time).\n• Mark the High, Low, and Close of the day.\n• Annotate the 'Manipulation' (Judas Swing) above or below the open and the 'Distribution' (the expansion move).";
-  } else if (epNum === 11 || epNum === 12) {
-    homework = "Assignment 2: Market Structure Classification.\n• Select an Hourly chart and identify 'Long Term' Highs and Lows based on Daily chart resistance/support.\n• Find 'Intermediate Term' Highs (ITH) which are swing highs with lower highs on either side, OR highs that rebalance a Fair Value Gap.\n• Verify if subsequent 'Short Term' Highs (STH) respect the ITH by staying below them.";
-  } else if (epNum === 16) {
-    homework = "Assignment 3 & 5: Imbalance Mapping & Journaling.\n• Go back through 15-minute data and find every instance of an energetic displacement move. Highlight the resulting FVG.\n• Observe how price returns to the FVG and/or the 'Order Block' to re-accumulate positions.\n• Annotate your charts with 'Self-Talk' (e.g., 'I am expecting a run below this low because we are in a premium'). Log every trade with positive reinforcement.";
-  } else if (epNum === 13 || epNum === 41) {
-    homework = "Assignment 4: Risk and Trade Management Simulation.\n• In a demo account, place a trade using a 1% risk model.\n• Practice the '25% stop reduction at 50% target' and 'Break-even at 75% target' rules.\n• Document a 'Pyramid' scale-in: Enter your largest position first, followed by smaller increments (e.g., 3-2-1 micro contracts) as price moves in your favor.";
+  
+  if (epNum >= 1 && epNum <= 4) {
+    homework = "Assignment: Liquidity & Market Structure Shifts.\n• Open a 15-minute chart and mark at least 3 major Swing Highs (Buy-Side Liquidity) and Swing Lows (Sell-Side Liquidity).\n• Locate a liquidity sweep followed by an energetic Market Structure Shift (MSS).\n• Highlight the resulting Fair Value Gap (FVG).";
+  } else if (epNum === 5) {
+    homework = "Assignment: Intraday Order Flow & Daily Ranges.\n• Draw vertical lines marking the Asian Session, London Open, and New York Open.\n• Observe where the absolute High and absolute Low of the day were formed.\n• Did London or New York engineer the Judas Swing?";
+  } else if (epNum === 6 || epNum === 7) {
+    homework = "Assignment: Consolidation Hurdles & Daily Bias.\n• Identify 3 days of heavy, narrow consolidation on a 1-hour chart.\n• Mark the boundaries of the consolidation box.\n• Observe and annotate the specific algorithmic displacement that eventually purged the consolidation highs or lows.";
+  } else if (epNum === 8 || epNum === 17 || epNum === 18) {
+    homework = "Assignment: Forex Application of the ICT Model.\n• Apply the index execution model to a major Forex pair (e.g., EURUSD or GBPUSD).\n• Mark the Midnight New York opening price.\n• Trace the Accumulation, Manipulation, and Distribution (Power of 3) sequence for the daily candle.";
+  } else if (epNum === 9 || epNum === 10) {
+    homework = "Assignment 1 (From Mentorship Guide): Daily Bias & Power 3 Observation.\n• Open a Daily chart of the E-mini S&P or NASDAQ.\n• Identify the opening price (Midnight New York time).\n• Mark the High, Low, and Close of the day.\n• Annotate the 'Manipulation' (Judas Swing) above or below the open and the 'Distribution' (the expansion move).";
+  } else if (epNum >= 11 && epNum <= 12) {
+    homework = "Assignment 2 (From Mentorship Guide): Market Structure Classification.\n• Select an Hourly chart and identify 'Long Term' Highs and Lows based on Daily chart levels.\n• Find 'Intermediate Term' Highs (ITH) which are swing highs with lower highs on either side, OR highs that rebalance a Fair Value Gap.\n• Verify if subsequent 'Short Term' Highs (STH) respect the ITH by staying below them.";
+  } else if (epNum === 13) {
+    homework = "Assignment 4 (From Mentorship Guide): Risk & Scale-In Simulation.\n• In a demo account, place a trade using a 1% risk model.\n• Practice the '25% stop reduction at 50% target' and 'Break-even at 75% target' rules.\n• Document a 'Pyramid' scale-in: Enter your largest position first, followed by smaller increments as price moves in your favor.";
+  } else if (epNum >= 14 && epNum <= 16) {
+    homework = "Assignment 3 & 5 (From Mentorship Guide): Imbalance Mapping & Tape Self-Talk.\n• Drop down to a 1-minute or 2-minute chart during the NY AM session (08:30 - 11:00 EST).\n• Go back through 15-minute data and find every instance of an energetic displacement move. Highlight the resulting FVG.\n• Annotate your charts with 'Self-Talk' (e.g., 'I am expecting a run below this low because we are in a premium'). Log every trade with positive reinforcement.";
+  } else if (epNum === 19 || epNum === 20) {
+    homework = "Assignment: The London Open.\n• Track the London Open Killzone (02:00 AM - 05:00 AM EST).\n• Find 3 distinct examples where London engineered the absolute High or Low of the Daily candle.\n• Note how New York subsequently offered a continuation setup based on London's created extreme.";
+  } else if (epNum === 21 || epNum === 22) {
+    homework = "Assignment: Intermarket Analysis & SMT Divergence.\n• Place the S&P 500 (ES) and Nasdaq (NQ) charts side-by-side on the 5-minute timeframe.\n• Hunt for SMT divergence at a major swing low immediately prior to a bullish expansion (e.g., ES makes a lower low, NQ makes a higher low).\n• Annotate the hidden institutional accumulation.";
+  } else if (epNum === 23 || epNum === 24) {
+    homework = "Assignment: FOMC Study & Institutional Traps.\n• Review historical FOMC release days (Wednesdays at 2:00 PM EST).\n• Observe the artificial volatility injection.\n• Annotate how the initial aggressive spike is almost always an algorithmic trap designed to engineer liquidity for the true reversal.";
+  } else if (epNum >= 25 && epNum <= 28) {
+    homework = "Assignment: Daily Rebalance Theory & Counter-Trend Ideas.\n• Identify a day where price remained entirely within the previous day's range.\n• Map how price ping-ponged between internal premium FVGs and internal discount FVGs without ever breaking external daily liquidity.\n• Annotate the equilibrium (50%) of that internal range.";
+  } else if (epNum === 29 || epNum === 30) {
+    homework = "Assignment: PM Session Trading & Volatility Injection.\n• Study the New York PM Killzone (13:30 PM - 16:00 PM EST).\n• Find a setup that formed strictly after the 1:30 PM algorithmic shift.\n• Observe how the PM session either continues the AM trend or reverses to rebalance the morning's delivery.";
+  } else if (epNum >= 31 && epNum <= 38) {
+    homework = "Assignment: Consolidation Days & Market On Close (MOC).\n• Identify the Market On Close macro window (15:50 PM - 16:00 PM EST).\n• Observe how algorithms rush to balance the daily range or drive price into closing liquidity pools right before the bell.\n• Take a screenshot of the 1-minute chart during the MOC macro.";
+  } else if (epNum === 39 || epNum === 40) {
+    homework = "Assignment: Top-Down Analysis & Daily Bias.\n• Conduct a strict Top-Down Analysis.\n• Start on the Weekly chart to find the ultimate draw on liquidity.\n• Drop to the Daily chart to align the directional bias.\n• Drop to the 15-minute chart to identify the intraday execution pools (BSL/SSL) aligned with that higher-timeframe bias.";
+  } else if (epNum === 41) {
+    homework = "Final Assignment: Complete Trading Model Blueprint & Risk Simulation.\n• Write down your strict, personalized 2022 Model Trading Plan.\n• Define your exact risk parameters (e.g., 1% max risk), your chosen Killzone, and your specific entry trigger.\n• Conduct a demo trade utilizing the 50/75 stop reduction and break-even rules. Document the psychological execution.";
   }
 
   if (epNum === 1) return {
