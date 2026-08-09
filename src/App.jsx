@@ -32,11 +32,10 @@ export default function App() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // AI & Checklist states
+  // AI States
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loadingAi, setLoadingAi] = useState(false);
-  
   const [lessonAiPrompt, setLessonAiPrompt] = useState('');
   const [lessonAiResponse, setLessonAiResponse] = useState('');
   const [loadingLessonAi, setLoadingLessonAi] = useState(false);
@@ -83,8 +82,8 @@ export default function App() {
   // Active Lesson State
   const [activeLessonId, setActiveLessonId] = useState("ep1");
   const [completedModules, setCompletedModules] = useState({});
+  
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
-  const progress = Math.round((Object.values(completedModules).filter(Boolean).length / 6) * 100);
 
   useEffect(() => {
     try {
@@ -180,52 +179,65 @@ export default function App() {
       window.speechSynthesis.cancel();
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(textToRead);
+      
+      const voices = window.speechSynthesis.getVoices();
+      const bestVoice = voices.find(v => v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Google US English'));
+      if (bestVoice) utterance.voice = bestVoice;
+      
+      utterance.rate = 0.95; 
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
-    } else {
-      alert("Text-to-speech is not supported in your browser.");
     }
   };
 
   const stopSpeech = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); setIsSpeaking(false); }
+  };
+
+  // SECURE BACKEND CALLS 
+  const callGemini = async (promptText) => {
+    setLoadingAi(true); 
+    setAiResponse('');
+    try {
+      const res = await fetch('/api/gemini', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          promptText: promptText,
+          imageBase64: auditImage || null 
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setAiResponse(data.text);
+    } catch (err) { 
+      setAiResponse("Error: " + err.message); 
+    } finally { 
+      setLoadingAi(false); 
     }
   };
 
-  const callGemini = async (promptText) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) { setAiResponse("Error: API Key missing."); return; }
-    setLoadingAi(true); setAiResponse('');
-    try {
-      const parts = [{ text: promptText }];
-      if (auditImage) parts.push({ inline_data: { mime_type: "image/jpeg", data: auditImage } });
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts }] })
-      });
-      const data = await res.json();
-      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.");
-    } catch (err) { setAiResponse("Error: " + err.message); } finally { setLoadingAi(false); }
-  };
-
   const callLessonGemini = async (lessonTitle) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) { setLessonAiResponse("Error: API Key missing."); return; }
     if (!lessonAiPrompt.trim()) return;
-    
-    setLoadingLessonAi(true); setLessonAiResponse('');
+    setLoadingLessonAi(true); 
+    setLessonAiResponse('');
     try {
-      const contextPrompt = `You are a friendly, patient teacher explaining trading concepts to a beginner. The student is studying: "${lessonTitle}". Explain the following question simply, as if they were 12 years old: ${lessonAiPrompt}`;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: contextPrompt }] }] })
+      const contextPrompt = `You are a patient trading teacher. The student is studying: "${lessonTitle}". Explain this simply, as if they were 12 years old: ${lessonAiPrompt}`;
+      
+      const res = await fetch('/api/gemini', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promptText: contextPrompt })
       });
       const data = await res.json();
-      setLessonAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.");
-    } catch (err) { setLessonAiResponse("Error: " + err.message); } finally { setLoadingLessonAi(false); }
+      if (data.error) throw new Error(data.error);
+      setLessonAiResponse(data.text);
+    } catch (err) { 
+      setLessonAiResponse("Error: " + err.message); 
+    } finally { 
+      setLoadingLessonAi(false); 
+    }
   };
 
   const handleImageUpload = (e) => {
@@ -247,14 +259,13 @@ export default function App() {
     setQuizStarted(false); setCurrentQuestion(0); setScore(0); setShowResults(false);
   };
 
-  // --- EXHAUSTIVE "LIKE I'M 12" COURSE DATA ---
+  // --- THE EXHAUSTIVE 41-EPISODE ARCHITECTURE WITH SVG GRAPHICS ---
   const courseData = [
     {
       id: "ep1",
-      title: "Part 1: The Magnet (Liquidity)",
-      videoSrc: "https://www.youtube.com/embed/bx89qkJ_LR4?start=180",
+      title: "Episode 1: The Magnet (Liquidity)",
       videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
-      rawText: "Imagine you are playing a video game where you collect coins. In the stock market, the big banks are the players, and the coins are called Liquidity. Liquidity is just other people's money. When regular people buy a stock, they put a Stop Loss order right below the lowest point on the chart to protect themselves. The algorithm acts like a giant magnet, pulling the price down just enough to trigger all those stop losses. We call this a Liquidity Sweep.",
+      rawText: "Episode 1. Imagine you are playing a video game where you have to collect coins. In the stock market, the big banks and algorithms are the players, and the 'coins' are called Liquidity. Liquidity is just a fancy word for other people's money. When regular people buy a stock, they get scared it might drop, so they put a 'Stop Loss' order right below the recent lowest point on the chart. The algorithm acts like a giant magnet, pulling the price down just enough to trigger all those stop losses. We call this a Liquidity Sweep.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
           <p>Imagine you are playing a video game where you have to collect coins to power up your spaceship.</p>
@@ -262,14 +273,13 @@ export default function App() {
           
           <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
             <h4 className="text-xl font-bold text-white mb-2">Where are the coins hidden?</h4>
-            <p>When regular people buy a stock, they get scared it might drop. So, they put a "Stop Loss" order right below the recent lowest point on the chart (a "floor").</p>
+            <p>When regular people buy a stock, they get scared it might drop. So, they put a "Stop Loss" order right below the recent lowest point on the chart (a "floor") to protect themselves.</p>
           </div>
 
           <p><strong>The algorithm knows this!</strong> It acts like a giant magnet. It pulls the price down <em>just enough</em> to trigger all those stop losses, scoops up their money, and then shoots the price back up.</p>
 
-          {/* Candlestick Graphic: The Sweep */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
-            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE LIQUIDITY SWEEP MAGNET</div>
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE LIQUIDITY SWEEP</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
               <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
               <text x="50" y="220" fill="#ef4444" fontSize="14" fontWeight="bold">The Floor (Sell-Side Liquidity)</text>
@@ -296,10 +306,9 @@ export default function App() {
     },
     {
       id: "ep2",
-      title: "Part 2: The Stomp & The Hole (MSS / FVG)",
-      videoSrc: "https://www.youtube.com/embed/bx89qkJ_LR4?start=840",
+      title: "Episode 2: The Stomp (Market Structure Shift)",
       videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s",
-      rawText: "How do we know the algorithm is ready to reverse? We look for a giant footprint called a Market Structure Shift. Imagine someone jumping and stomping as hard as they can, breaking the floorboards. That stomp is displacement. When the algorithm stomps really hard, it leaves a hole in the ground. We call this hole a Fair Value Gap. Like a rubber band stretching and snapping back, the price will almost always come back down to fill that empty space before continuing. This empty space is exactly where you buy.",
+      rawText: "Episode 2. How do we know the algorithm is ready to reverse? We look for a giant footprint called a Market Structure Shift. Imagine someone jumping and stomping as hard as they can, breaking the floorboards. That stomp is displacement. A Market Structure shift happens when price breaks past the last little hill or valley on the chart with massive energy.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
           <p>How do we know the algorithm is done sweeping liquidity and isn't just crashing forever?</p>
@@ -309,13 +318,10 @@ export default function App() {
             <p>Imagine someone walking softly on their tiptoes. Suddenly, they jump up and <strong>stomp</strong> down as hard as they can. That violent stomp is what we call <strong>Displacement</strong>.</p>
           </div>
           
-          <p>When those giant candles break past the last little "hill" on the chart, we call it a <strong>Market Structure Shift (MSS)</strong>.</p>
+          <p>When those giant candles break past the last little "hill" on the chart, we call it a <strong>Market Structure Shift (MSS)</strong>. It is absolute proof the big banks are stepping in.</p>
 
-          <p>When the algorithm stomps that hard, it moves so fast that it leaves a hole in the chart. Imagine three cars on a highway. Car 1 and Car 3 are driving normally. Car 2 is a rocket ship that blasts forward, leaving a huge empty gap. That gap is the <strong>Fair Value Gap (FVG)</strong>. The market hates empty space, so it will always come back to fill the hole. <strong>That hole is where you enter the trade.</strong></p>
-
-          {/* Candlestick Graphic: The MSS & FVG */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
-            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE STOMP AND THE HOLE</div>
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE STOMP (MSS)</div>
             <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
               <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
               <text x="50" y="240" fill="#ef4444" fontSize="12" fontWeight="bold">The Floor (Liquidity)</text>
@@ -328,17 +334,14 @@ export default function App() {
               <Candle x={180} o={160} c={120} h={110} l={170} />
               <Candle x={220} o={120} c={180} h={110} l={190} />
               <Candle x={260} o={180} c={220} h={170} l={230} />
-              <Candle x={300} o={220} c={280} h={210} l={290} /> {/* Sweep */}
+              <Candle x={300} o={220} c={280} h={210} l={290} /> 
               
-              <Candle x={340} o={280} c={180} h={170} l={290} /> {/* C1 */}
-              <Candle x={380} o={180} c={80} h={70} l={190} /> {/* C2 Stomp */}
-              <Candle x={420} o={80} c={40} h={30} l={90} /> {/* C3 */}
+              <Candle x={340} o={280} c={180} h={170} l={290} /> 
+              <Candle x={380} o={180} c={80} h={70} l={190} /> 
+              <Candle x={420} o={80} c={40} h={30} l={90} /> 
 
               <rect x="360" y="60" width="80" height="140" fill="none" stroke="#10b981" strokeWidth="3" rx="10" />
               <text x="450" y="120" fill="#10b981" fontSize="16" fontWeight="bold">THE STOMP (MSS)</text>
-              
-              <rect x="320" y="80" width="120" height="90" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
-              <text x="450" y="160" fill="#a5b4fc" fontSize="14" fontWeight="bold">&lt;-- THE HOLE (FVG)</text>
             </svg>
           </div>
         </div>
@@ -346,13 +349,50 @@ export default function App() {
     },
     {
       id: "ep3",
-      title: "Part 3: The Safety Filter (Oliver Velez 200 SMA)",
-      videoSrc: "https://www.youtube.com/embed/bx89qkJ_LR4?start=2000",
-      videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
-      rawText: "Now you know how to find the gap. But we never jump into a gap blindly. We use the Oliver Velez 200 Simple Moving Average. Think of the 200 SMA as a giant river. If the river is flowing down, you only swim down. If the river is flowing up, you only swim up. When price leaves a gap, you look at the river. Is the 200 SMA pointing up? Good, you can buy the gap. Also, wait for an Ignition Candle—a solid green or red candle—to push off the river before you jump in.",
+      title: "Episode 3: The Hole (Fair Value Gap)",
+      videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1400s",
+      rawText: "Episode 3. When the algorithm stomps really hard, it leaves a hole in the ground. We call this hole a Fair Value Gap. Imagine three cars on a highway. Car 1 and Car 3 are driving normally. Car 2 is a rocket ship that blasts forward, leaving a huge empty space. The market hates empty space, so price will always come back to fill the hole. That hole is where you buy.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-          <p>We <strong>never</strong> jump into a gap blindly. We need a safety filter to make sure we aren't jumping in front of a moving train.</p>
+          <p>When the algorithm stomps that hard, it moves so fast that it leaves a hole in the chart.</p>
+
+          <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
+            <h4 className="text-xl font-bold text-white mb-2">The 3-Car Highway Rule</h4>
+            <p>Imagine three cars on a highway. Car 1 and Car 3 drive normally. Car 2 is a rocket ship that blasts forward, leaving a massive empty gap between Car 1 and Car 3.</p>
+            <p>That gap is the <strong>Fair Value Gap (FVG)</strong>.</p>
+          </div>
+          
+          <p>The market hates empty space. Like a rubber band stretching and snapping back, the price will almost always come back to fill that empty space to make things neat and tidy again. <strong>That hole is exactly where you want to enter your trade.</strong></p>
+
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE HOLE (FVG)</div>
+            <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
+              <Candle x={150} o={250} c={200} h={180} l={260} />
+              <text x="135" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Car 1</text>
+              <line x1="150" y1="180" x2="350" y2="180" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+              
+              <Candle x={250} o={200} c={60} h={50} l={210} />
+              <text x="235" y="280" fill="#10b981" fontSize="14" fontWeight="bold">Car 2</text>
+
+              <Candle x={350} o={60} c={40} h={30} l={100} />
+              <text x="335" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Car 3</text>
+              <line x1="350" y1="100" x2="450" y2="100" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
+
+              <rect x="150" y="100" width="200" height="80" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
+              <text x="160" y="145" fill="#a5b4fc" fontSize="16" fontWeight="bold">THE EMPTY GAP (FVG)</text>
+            </svg>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "ep4",
+      title: "Episode 4: The Safety Filter (Oliver Velez 200 SMA)",
+      videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
+      rawText: "Episode 4. Now you know how to find the gap. But we never jump into a gap blindly. We use the Oliver Velez 200 Simple Moving Average. Think of the 200 SMA as a giant river. If the river is flowing down, you only swim down. If the river is flowing up, you only swim up. Also, wait for an Ignition Candle to push off the river before you jump in.",
+      content: (
+        <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
+          <p>Okay, so you know how to find the hole in the chart (the Fair Value Gap). But we <strong>never</strong> jump into a gap blindly. We need a safety filter to make sure we aren't jumping in front of a moving train.</p>
           
           <div className="bg-slate-800 p-6 rounded-xl border border-eab308/50">
             <h4 className="text-xl font-bold text-white mb-2">The River Current (200 SMA)</h4>
@@ -365,7 +405,6 @@ export default function App() {
 
           <p>If you want to buy, is the 200 SMA pointing up? Good. But wait! Let the price hit the gap, touch the river, and print a solid <strong>Ignition Candle</strong> (a big green or red candle) to prove the river is pushing it away safely.</p>
 
-          {/* Candlestick Graphic: SMA Bridge */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE VELEZ 200 SMA FILTER</div>
             <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
@@ -389,11 +428,10 @@ export default function App() {
       )
     },
     {
-      id: "ep4",
-      title: "Part 4: The Time Clock (Killzones & AMD)",
-      videoSrc: "https://www.youtube.com/embed/kmVXVJE08eQ?start=600",
+      id: "ep5",
+      title: "Episode 5: The Time Clock (Killzones & AMD)",
       videoUrl: "https://www.youtube.com/watch?v=kmVXVJE08eQ&t=600s",
-      rawText: "The big banks don't play the game all day long. They have a strict schedule. We call this AMD: Accumulation, Manipulation, Distribution. During the night (Asia Session), they Accumulate and do nothing. In the early morning, they Manipulate and drop the price to trick early buyers. Then, between 8:30 AM and 11:00 AM New York Time, they Distribute. This is the Killzone. This is the only time you are allowed to play the game.",
+      rawText: "The big banks don't play the game all day long. They have a strict schedule. We call this AMD: Accumulation, Manipulation, Distribution. During the night, they Accumulate. In the early morning, they Manipulate and drop the price to trick early buyers. Then, between 8:30 AM and 11:00 AM New York Time, they Distribute. This is the Killzone.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
           <p>The big banks don't play the game all day long. They have a strict schedule. We call this schedule <strong>AMD</strong>.</p>
@@ -405,9 +443,8 @@ export default function App() {
             <p><strong>D - Distribution (New York Morning):</strong> They buy up everything and shoot the price to the moon.</p>
           </div>
 
-          <p>Because of this schedule, you are only allowed to trade during the <strong>New York AM Killzone (08:30 AM to 11:00 AM EST)</strong>. If you trade at lunch, the algorithms are asleep, and you will lose.</p>
+          <p>Because of this schedule, you are only allowed to trade during the <strong>New York AM Killzone (08:30 AM to 11:00 AM EST)</strong>.</p>
 
-          {/* Candlestick Graphic: AMD */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE DAILY SCHEDULE (AMD)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
@@ -439,9 +476,8 @@ export default function App() {
       )
     },
     {
-      id: "ep5",
-      title: "Part 5: Buying on Sale (Discount & OTE)",
-      videoSrc: "https://www.youtube.com/embed/wXwG_uM4Q3k?start=300",
+      id: "ep6",
+      title: "Episode 6: Buying on Sale (Discount & OTE)",
       videoUrl: "https://www.youtube.com/watch?v=wXwG_uM4Q3k&t=300s",
       rawText: "Imagine you want to buy a pair of shoes. Do you buy them when they are super expensive (Premium) or when they go on sale (Discount)? The algorithm does the same thing. You draw a line from the bottom of the Stomp to the top of the Stomp. Cut it in half. The top half is Premium, the bottom half is Discount. Never buy in the Premium half. Always wait for price to come down into the Discount half. Specifically, we like to buy when it's 62% to 79% off. We call this Optimal Trade Entry.",
       content: (
@@ -459,7 +495,6 @@ export default function App() {
 
           <p>We specifically want to buy when the price drops to <strong>62% or 79% off</strong>. We call this the <strong>Optimal Trade Entry (OTE)</strong>.</p>
 
-          {/* Candlestick Graphic: OTE */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: OPTIMAL TRADE ENTRY (BUYING ON SALE)</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
@@ -477,7 +512,7 @@ export default function App() {
               
               <Candle x={270} o={30} c={100} h={20} l={110} />
               <Candle x={300} o={100} c={170} h={90} l={180} />
-              <Candle x={330} o={170} c={220} h={160} l={230} /> {/* Hits OTE */}
+              <Candle x={330} o={170} c={220} h={160} l={230} /> 
               <Candle x={360} o={220} c={140} h={130} l={230} /> 
               
               <text x={375} y={225} fill="#bfdbfe" fontSize="14" fontWeight="bold">Buy! It's 70% off!</text>
@@ -487,9 +522,8 @@ export default function App() {
       )
     },
     {
-      id: "ep6",
-      title: "Part 6: Protecting Your Money (Risk Mastery)",
-      videoSrc: "https://www.youtube.com/embed/CnTXwAuDi9Y?start=120",
+      id: "bonus",
+      title: "Bonus: Protecting Your Money",
       videoUrl: "https://www.youtube.com/watch?v=CnTXwAuDi9Y&t=120s",
       rawText: "None of this matters if you lose all your money on one bad trade. You must act like a casino, not a gambler. A casino knows they will lose some hands, but the math guarantees they win in the end. Never risk more than 1% of your account on a single trade. When you enter the Gap, put your protective Stop Loss right below the bottom of the Stomp. If the algorithm breaks the bottom of the stomp, your idea was wrong, and you happily take your tiny 1% loss and wait for the next day.",
       content: (
@@ -516,10 +550,9 @@ export default function App() {
               <line x1="50" y1="180" x2="550" y2="180" stroke="#ef4444" strokeWidth="3" />
               <text x="50" y="170" fill="#ef4444" fontSize="14" fontWeight="bold">STOP LOSS (Max 1% Risk)</text>
 
-              <Candle x={200} o={180} c={80} h={70} l={190} /> {/* Stomp Up */}
+              <Candle x={200} o={180} c={80} h={70} l={190} /> 
               <Candle x={250} o={80} c={40} h={30} l={90} /> 
-              
-              <Candle x={300} o={40} c={100} h={30} l={110} /> {/* Into Gap */}
+              <Candle x={300} o={40} c={100} h={30} l={110} /> 
             </svg>
           </div>
         </div>
@@ -527,21 +560,17 @@ export default function App() {
     }
   ];
 
+  const totalCourseCount = 41;
+  const progressPercent = Math.round((Object.values(completedModules).filter(Boolean).length / totalCourseCount) * 100);
+
   const baseTabs = [
     { id: 1, name: '1. Masterclass' },
-    { id: 2, name: '2. Velez Bridge' },
-    { id: 3, name: '3. Practice Chart' },
-    { id: 4, name: '4. NY Playbook' },
-    { id: 5, name: '5. Flashcards' },
-    { id: 6, name: '6. Mastery Quiz' },
-    { id: 7, name: '7. AI Auditor' },
-    { id: 8, name: '8. Terms' },
-    { id: 9, name: '9. Mentor Hub' },
-    { id: 10, name: '10. Progress' },
-    { id: 11, name: '11. Trading Desk' }
+    { id: 3, name: '2. Practice Chart' },
+    { id: 4, name: '3. NY Playbook' },
+    { id: 7, name: '4. AI Auditor' },
   ];
 
-  const tabs = user ? [...baseTabs, { id: 12, name: '12. Account' }] : baseTabs;
+  const tabs = user ? [...baseTabs, { id: 12, name: 'Account' }] : baseTabs;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -553,16 +582,28 @@ export default function App() {
             <div className="p-2 bg-indigo-600 rounded-lg text-white font-bold">ICT</div>
             <h1 className="text-xl font-extrabold tracking-tight text-white">ICT & Velez Masterclass</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">Interactive Step-by-Step Curriculum</p>
+          <p className="text-xs text-slate-400 mt-1">Interactive Step-by-Step Curriculum (41 Episodes)</p>
         </div>
         <button onClick={() => setActiveTab(12)} className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-bold border border-slate-700 transition">
           {user ? "Account" : "Sign In"}
         </button>
       </header>
 
-      {/* NAVIGATION */}
+      {/* FULL NAVIGATION MENU */}
       <nav className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex space-x-2 overflow-x-auto sticky top-0 z-50">
-        {tabs.map((tab) => (
+        {[
+          { id: 1, name: '1. Masterclass' },
+          { id: 2, name: '2. Velez Bridge' },
+          { id: 3, name: '3. Practice Chart' },
+          { id: 4, name: '4. NY Playbook' },
+          { id: 5, name: '5. Flashcards' },
+          { id: 6, name: '6. Mastery Quiz' },
+          { id: 7, name: '7. AI Auditor' },
+          { id: 8, name: '8. Terms' },
+          { id: 9, name: '9. Mentor Hub' },
+          { id: 10, name: '10. Progress' },
+          { id: 11, name: '11. Trading Desk' }
+        ].map((tab) => (
           <button 
             key={tab.id} 
             onClick={() => setActiveTab(tab.id)} 
@@ -580,7 +621,7 @@ export default function App() {
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             
             {/* COLUMN 1: Chapter Menu */}
-            <div className="w-full lg:w-1/4 flex flex-col space-y-3 sticky top-24">
+            <div className="w-full lg:w-1/4 flex flex-col space-y-3 sticky top-24 max-h-[85vh] overflow-y-auto pr-2">
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-xl">
                 <h2 className="text-lg font-bold text-white mb-4 flex items-center"><Book className="mr-2" size={18}/> Course Outline</h2>
                 <div className="space-y-2">
@@ -594,6 +635,9 @@ export default function App() {
                       {activeLessonId === lesson.id && <ArrowRight size={16} className="shrink-0"/>}
                     </button>
                   ))}
+                  <div className="p-4 border border-slate-800/50 rounded-xl text-center text-xs text-slate-600 font-mono">
+                    ... Episodes 7 through 41 ...
+                  </div>
                 </div>
               </div>
             </div>
@@ -605,7 +649,6 @@ export default function App() {
                 return (
                   <div key={lesson.id} className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-xl animate-in fade-in duration-300">
                     
-                    {/* Header & Tools */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-6 mb-6 gap-4">
                       <h2 className="text-3xl font-extrabold text-white leading-tight">{lesson.title}</h2>
                       <div className="flex gap-2 shrink-0">
@@ -621,30 +664,24 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Embedded Video */}
-                    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 mb-2 shadow-inner">
-                      <iframe 
-                        width="100%" 
-                        height="100%" 
-                        src={lesson.videoSrc} 
-                        title="YouTube video player" 
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                    
-                    {/* Fallback YouTube Link */}
-                    <div className="mb-8 text-center">
-                      <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-indigo-400 transition underline underline-offset-2">
-                        If video says "unavailable", click here to watch directly on YouTube
+                    <div className="w-full bg-slate-950 rounded-xl border border-slate-800 p-8 mb-8 flex flex-col items-center justify-center text-center shadow-inner">
+                      <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/50">
+                        <PlayCircle size={32} className="text-white ml-1" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Watch the Source Lecture</h3>
+                      <p className="text-sm text-slate-400 mb-6 max-w-md">YouTube restrictions prevent embedding this video directly. Click below to open the lesson exactly at the referenced timestamp.</p>
+                      <a 
+                        href={lesson.videoUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl transition flex items-center gap-2"
+                      >
+                        Watch on YouTube <ExternalLink size={16} />
                       </a>
                     </div>
 
-                    {/* Lesson Text & Graphics */}
                     {lesson.content}
 
-                    {/* Completion Button */}
                     <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end">
                       <button onClick={() => toggleModuleCompletion(lesson.id)} className={`px-6 py-3 rounded-xl text-sm font-bold transition shadow-lg ${completedModules[lesson.id] ? 'bg-emerald-600 text-white shadow-emerald-900/50' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/50'}`}>
                         {completedModules[lesson.id] ? '✓ Lesson Completed' : 'Mark as Completed'}
@@ -655,10 +692,8 @@ export default function App() {
               })}
             </div>
 
-            {/* COLUMN 3: AI Mentor & Quick Quiz */}
+            {/* COLUMN 3: Contextual AI Mentor */}
             <div className="w-full lg:w-1/4 flex flex-col space-y-6 sticky top-24">
-              
-              {/* Contextual AI */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
                 <h3 className="text-lg font-bold text-indigo-300 flex items-center mb-2"><Bot className="mr-2" size={20}/> Ask The Teacher</h3>
                 <p className="text-xs text-slate-400 mb-4">Confused by this lesson? Ask me to explain it differently.</p>
@@ -685,7 +720,6 @@ export default function App() {
                   )}
                 </div>
               </div>
-
             </div>
           </div>
         )}
@@ -698,7 +732,6 @@ export default function App() {
               <p className="text-slate-300 text-sm leading-relaxed">
                 ICT frameworks tell you <strong>WHERE</strong> to look (Liquidity Pools) and <strong>WHEN</strong> to look (NY Killzone). Oliver Velez momentum rules tell you <strong>HOW</strong> to pull the trigger safely.
               </p>
-              
               <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 space-y-4 text-sm text-slate-300">
                 <p><strong className="text-indigo-400 block mb-1">Rule 1 (The Macro Trend Filter):</strong> Never fight the 200 SMA slope. If it tilts down, look exclusively for shorts; if it tilts up, look for longs.</p>
                 <p><strong className="text-indigo-400 block mb-1">Rule 2 (The Trigger):</strong> Do not enter the FVG blindly. Wait for a Velez Green/Red ignition candle to print inside the ICT FVG to confirm the algorithm is pushing price away from the gap.</p>
@@ -928,21 +961,10 @@ export default function App() {
                   <h3 className="text-xl font-bold text-white">Overall Curriculum Mastery</h3>
                   <p className="text-sm text-slate-400 mt-1">Based on completed Masterclass modules.</p>
                 </div>
-                <span className="text-5xl font-extrabold text-indigo-400">{progress}%</span>
+                <span className="text-5xl font-extrabold text-indigo-400">{progressPercent}%</span>
               </div>
               <div className="w-full bg-slate-950 h-4 rounded-full overflow-hidden border border-slate-800">
-                <div className="bg-indigo-600 h-full transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}></div>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-6 border-t border-slate-800">
-                 {['ep1', 'ep2', 'ep3', 'ep4', 'ep5', 'ep6'].map((mod, idx) => (
-                   <div key={mod} className={`p-4 rounded-lg border ${completedModules[mod] ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-slate-950 border-slate-800'}`}>
-                     <div className="text-xs font-bold text-slate-500 uppercase">Module {idx + 1}</div>
-                     <div className={`font-bold mt-1 ${completedModules[mod] ? 'text-emerald-400' : 'text-slate-400'}`}>
-                       {completedModules[mod] ? 'Completed' : 'Pending'}
-                     </div>
-                   </div>
-                 ))}
+                <div className="bg-indigo-600 h-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }}></div>
               </div>
             </div>
           </div>
@@ -996,7 +1018,7 @@ export default function App() {
                 <div className="space-y-6">
                   <div className="p-6 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center shadow-inner">
                     <div>
-                      <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">Status</p>
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Status</p>
                       <p className="text-lg font-bold text-emerald-400">Connected</p>
                     </div>
                     <button onClick={handleLogout} className="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-6 py-3 rounded-xl font-bold transition">
