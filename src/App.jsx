@@ -63,6 +63,7 @@ export default function App() {
       }
       setEmail('');
       setPassword('');
+      setActiveTab(1); // Return to curriculum after successful sign-in
     } catch (err) {
       setAuthError(err.message);
     }
@@ -74,6 +75,7 @@ export default function App() {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      setActiveTab(1); // Return to curriculum after successful sign-in
     } catch (err) {
       setAuthError(err.message);
     }
@@ -83,6 +85,7 @@ export default function App() {
     try {
       const auth = getAuth();
       await signOut(auth);
+      setActiveTab(1); // Return to curriculum on logout
     } catch (err) {
       console.error(err);
     }
@@ -114,7 +117,7 @@ export default function App() {
     }
   };
 
-  const tabs = [
+  const baseTabs = [
     { id: 1, name: 'YouTube Curriculum', icon: PlayCircle },
     { id: 2, name: 'Oliver Velez Bridge', icon: Cpu },
     { id: 3, name: 'Practice Trade Simulator', icon: BarChart2 },
@@ -126,8 +129,12 @@ export default function App() {
     { id: 9, name: 'AI Mentor Hub', icon: Bot },
     { id: 10, name: 'Progress & Analytics', icon: BarChart2 },
     { id: 11, name: 'Institutional Desk & Tools', icon: Briefcase },
-    { id: 12, name: 'Account & Profile', icon: User },
   ];
+
+  // Only show Account & Profile tab in nav when logged in
+  const tabs = user 
+    ? [...baseTabs, { id: 12, name: 'Account & Profile', icon: User }]
+    : baseTabs;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -151,7 +158,7 @@ export default function App() {
             }`}
           >
             <User className="w-4 h-4" />
-            <span>{user ? user.email.split('@')[0] : 'Sign In'}</span>
+            <span>{user ? (user.displayName || user.email.split('@')[0]) : 'Sign In'}</span>
           </button>
         </div>
       </header>
@@ -188,23 +195,60 @@ export default function App() {
                 <h3 className="text-xl font-bold mt-1 mb-2">Module 1: Foundational Mechanics & Liquidity Pools</h3>
                 <p className="text-slate-400 text-sm mb-4">Master institutional order flow language, liquidity pools (BSL/SSL), market structure shifts (MSS), Power of 3 (PO3), and economic time macros.</p>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 10))}
+                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
                   className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
                 >
-                  Mark Module Complete (+10%)
+                  Mark Module Complete (+20%)
                 </button>
               </div>
+
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 11-20 Execution</span>
                 <h3 className="text-xl font-bold mt-1 mb-2">Module 2: Order Block Science & Precision Execution</h3>
                 <p className="text-slate-400 text-sm mb-4">Master high-probability Order Blocks, live execution tape reading, multi-market futures/forex killzones, and trade management.</p>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 10))}
+                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
                   className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
                 >
-                  Mark Module Complete (+10%)
+                  Mark Module Complete (+20%)
                 </button>
               </div>
+
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 21-30 Tape Reading</span>
+                <h3 className="text-xl font-bold mt-1 mb-2">Module 3: Tape Reading, Consolidation & Rebalance Theory</h3>
+                <p className="text-slate-400 text-sm mb-4">Deep dive into live market tape reading, handling consolidation vs expansion days, and afternoon PM session liquidity sweeps.</p>
+                <button 
+                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
+                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                >
+                  Mark Module Complete (+20%)
+                </button>
+              </div>
+
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 31-41 Mastery</span>
+                <h3 className="text-xl font-bold mt-1 mb-2">Module 4: IPDA Algorithmic Theory, Profiles & Risk Mastery</h3>
+                <p className="text-slate-400 text-sm mb-4">Master intraday market profiles, IPDA 3:00 PM Market On Close (MOC) mechanics, position sizing, and psychological risk control.</p>
+                <button 
+                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
+                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                >
+                  Mark Module Complete (+20%)
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <span className="text-xs text-indigo-400 font-semibold uppercase">Special Topic Silver Bullet</span>
+              <h3 className="text-xl font-bold mt-1 mb-2">Bonus Module: ICT Silver Bullet & OV Momentum Hybrid</h3>
+              <p className="text-slate-400 text-sm mb-4">The simplified, 1-hour time-based algorithmic strategy combined with Oliver Velez visual confirmation triggers.</p>
+              <button 
+                onClick={() => setProgress(prev => Math.min(100, prev + 20))}
+                className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+              >
+                Mark Module Complete (+20%)
+              </button>
             </div>
           </div>
         )}
