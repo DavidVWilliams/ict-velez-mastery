@@ -361,7 +361,7 @@ export default function App() {
   };
   const stopSpeech = () => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); setIsSpeaking(false); } };
 
-  // STRICTLY SECURE BACKEND ROUTE (No frontend API keys)
+  // SECURE API ROUTING (No frontend API keys)
   const callGemini = async (promptText) => {
     setLoadingAi(true); setAiResponse('Connecting to AI Server...');
     try {
@@ -536,7 +536,19 @@ export default function App() {
                 <h3 className="text-lg font-bold text-indigo-300 flex items-center mb-2"><Bot className="mr-2" size={20}/> Ask The Teacher</h3>
                 <p className="text-xs text-slate-400 mb-4">Confused by this lesson? Ask me to explain it differently.</p>
                 <div className="space-y-4">
-                  <textarea rows={4} value={lessonAiPrompt} onChange={(e) => setLessonAiPrompt(e.target.value)} placeholder="e.g. 'Explain the Magnet analogy again?'" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                  <textarea 
+                    rows={4} 
+                    value={lessonAiPrompt} 
+                    onChange={(e) => setLessonAiPrompt(e.target.value)} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title);
+                      }
+                    }}
+                    placeholder="e.g. 'Explain the Magnet analogy again?'" 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500" 
+                  />
                   <button onClick={() => callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title)} disabled={loadingLessonAi || !lessonAiPrompt.trim()} className="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 flex justify-center items-center gap-2">
                     <MessageSquare size={16}/> {loadingLessonAi ? 'Thinking...' : 'Ask Question'}
                   </button>
