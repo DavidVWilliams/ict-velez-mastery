@@ -289,6 +289,26 @@ export default function App() {
   const [lessonImage, setLessonImage] = useState(null);
   const [lessonImageName, setLessonImageName] = useState('');
 
+  // Universal Paste Handler
+  const handlePasteImage = (e, setImageState, setNameState) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImageState(reader.result.split(',')[1]);
+            setNameState(`Pasted_Image_${new Date().toLocaleTimeString().replace(/:/g, '')}.png`);
+          };
+          reader.readAsDataURL(file);
+        }
+        break; // Stop after finding the first image
+      }
+    }
+  };
+
   const handleLessonImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -573,7 +593,8 @@ export default function App() {
                         callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title);
                       }
                     }}
-                    placeholder="Ask a question or press Enter..." 
+                    onPaste={(e) => handlePasteImage(e, setLessonImage, setLessonImageName)}
+                    placeholder="Ask a question, paste an image (Ctrl+V), or press Enter..." 
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500" 
                   />
 
@@ -733,7 +754,14 @@ export default function App() {
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 </label>
               </div>
-              <textarea rows={4} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Did I find a real FVG?" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-5 text-white mb-6 focus:border-indigo-500"/>
+              <textarea 
+                rows={4} 
+                value={aiPrompt} 
+                onChange={(e) => setAiPrompt(e.target.value)} 
+                onPaste={(e) => handlePasteImage(e, setAuditImage, setAuditImageName)}
+                placeholder="Did I find a real FVG? (You can paste an image here with Ctrl+V)" 
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-5 text-white mb-6 focus:border-indigo-500"
+              />
               <button onClick={() => callGemini("Audit this chart: " + aiPrompt)} disabled={loadingAi} className="w-full bg-indigo-600 hover:bg-indigo-500 px-10 py-4 rounded-xl font-bold text-white flex justify-center gap-3">
                 <Sparkles size={24}/> {loadingAi ? 'Looking...' : 'Ask AI'}
               </button>
