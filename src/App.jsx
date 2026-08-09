@@ -6,7 +6,7 @@ import {
   getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp 
 } from 'firebase/firestore';
 import { 
-  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, BookOpen, ChevronRight, ArrowRight
+  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, MessageSquare
 } from 'lucide-react';
 
 export default function App() {
@@ -21,6 +21,12 @@ export default function App() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loadingAi, setLoadingAi] = useState(false);
+  
+  // Lesson-specific AI state
+  const [lessonAiPrompt, setLessonAiPrompt] = useState('');
+  const [lessonAiResponse, setLessonAiResponse] = useState('');
+  const [loadingLessonAi, setLoadingLessonAi] = useState(false);
+
   const [auditImage, setAuditImage] = useState(null);
   const [auditImageName, setAuditImageName] = useState('');
   
@@ -47,8 +53,25 @@ export default function App() {
     { id: 4, term: "BPR (Balanced Price Range)", definition: "When a single candle's FVG is immediately overlapped by a returning FVG in the opposite direction, creating a balanced zone that price should not re-enter.", status: "Review" },
   ]);
 
+  // Quiz State
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+
+  const quizQuestions = [
+    { q: "What is the primary execution window for the ICT 2022 Model?", options: ["Asia Session", "London Open", "NY AM Killzone (08:30-11:00 EST)", "PM Session"], a: 2 },
+    { q: "What defines a valid Market Structure Shift (MSS)?", options: ["A slow grind past an old high", "Violent displacement breaking a swing point", "A doji candle formation", "Moving above the 200 SMA"], a: 1 },
+    { q: "What is the rule for the Velez 200 SMA filter?", options: ["Always fight the trend", "Only take longs if price is below it", "Never fight the 200 SMA slope", "Ignore moving averages completely"], a: 2 },
+    { q: "What acts as the 'Fuel' for algorithmic expansion?", options: ["RSI Divergence", "Buy-Side and Sell-Side Liquidity (Stop Losses)", "MACD Crossovers", "Volume Spikes"], a: 1 },
+    { q: "A Fair Value Gap (FVG) is a gap between which candles?", list: ["Candles 1 and 2", "Candles 2 and 3", "Candles 1 and 3", "Candles 1 and 4"], a: 2 }
+  ];
+
   // Active Lesson State for Tab 1
   const [activeLessonId, setActiveLessonId] = useState("c1");
+  const [completedModules, setCompletedModules] = useState({ c1: false, c2: false, c3: false, c4: false, c5: false, c6: false });
+  const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
+  const progress = Math.round((Object.values(completedModules).filter(Boolean).length / 6) * 100);
 
   useEffect(() => {
     try {
@@ -147,6 +170,7 @@ export default function App() {
     } catch (err) { console.error(err); }
   };
 
+  // General AI Call
   const callGemini = async (promptText) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) { setAiResponse("Error: VITE_GEMINI_API_KEY is not configured."); return; }
@@ -163,6 +187,24 @@ export default function App() {
     } catch (err) { setAiResponse("Error calling Gemini API: " + err.message); } finally { setLoadingAi(false); }
   };
 
+  // Lesson-Specific AI Call
+  const callLessonGemini = async (lessonTitle) => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) { setLessonAiResponse("Error: VITE_GEMINI_API_KEY is not configured."); return; }
+    if (!lessonAiPrompt.trim()) return;
+    
+    setLoadingLessonAi(true); setLessonAiResponse('');
+    try {
+      const contextPrompt = `You are an expert trading mentor teaching the ICT 2022 Mentorship and Oliver Velez Simple Moving Average strategies. The student is studying the chapter: "${lessonTitle}". Answer their question directly. Question: ${lessonAiPrompt}`;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: contextPrompt }] }] })
+      });
+      const data = await res.json();
+      setLessonAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.");
+    } catch (err) { setLessonAiResponse("Error calling Gemini API: " + err.message); } finally { setLoadingLessonAi(false); }
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -172,12 +214,36 @@ export default function App() {
     }
   };
 
-  // --- COMPREHENSIVE TEXTBOOK DATA ---
+  const speakText = (textToRead) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("Text-to-speech is not supported in your browser.");
+    }
+  };
+
+  const handleQuizAnswer = (selectedIndex) => {
+    if (selectedIndex === quizQuestions[currentQuestion].a) setScore(score + 1);
+    if (currentQuestion + 1 < quizQuestions.length) setCurrentQuestion(currentQuestion + 1);
+    else setShowResults(true);
+  };
+
+  const resetQuiz = () => {
+    setQuizStarted(false);
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowResults(false);
+  };
+
   const courseData = [
     {
       id: "c1",
       title: "Part 1: The Core Elements (Episodes 1-5)",
       episodes: "Eps 1-5",
+      rawText: "Part 1: The Core Elements. Episodes 1 through 5 lay the absolute groundwork. ICT explicitly states you must stop looking at patterns and start looking for the Draw on Liquidity. Algorithms move price from an area of consolidation to an area of resting liquidity, or stop losses. Step 1: Identifying the Draw on Liquidity. Before doing anything, you must determine where price is likely to reach. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old relative equal highs, daily highs, or weekly highs. They also seek out Sell-Side Liquidity, which are resting sell stops below old relative equal lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. The Mechanical Rules for a valid MSS are: Price runs above an old high to sweep liquidity. Price immediately aggressively reverses downward. Price must break the nearest short-term swing low. Crucial: The break must happen with energetic, large-bodied candles. Step 3: The Fair Value Gap. Displacement leaves a signature: The FVG. This is a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The space between them is a price inefficiency. The algorithm will re-price back into this gap. This is your entry point.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 1-5 lay the absolute groundwork. ICT explicitly states you must stop looking at patterns and start looking for the <em>Draw on Liquidity</em>. Algorithms move price from an area of consolidation to an area of resting liquidity (stop losses).</p>
@@ -211,6 +277,7 @@ export default function App() {
       id: "c2",
       title: "Part 2: The Daily Profile & AMD (Episodes 6-12)",
       episodes: "Eps 6-12",
+      rawText: "Part 2: The Daily Profile and AMD. Episodes 6 through 12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. This section introduces the Power of 3 (AMD) and the New York AM Killzone. The Power of 3: AMD stands for Accumulation, Manipulation, Distribution. For a bullish day, the algorithm executes the following sequence: 1. Accumulation. The Asia Session from 20:00 to 00:00 EST. Price consolidates in a tight range. Smart money is quietly accumulating long positions. This creates the Asia High and Asia Low. 2. Manipulation. The London or NY Open. Price drops below the Asia Low, moving in the opposite direction of the true daily bias. This engineers Sell-Side Liquidity. This is the Judas Swing. 3. Distribution. The NY AM Session. Price aggressively reverses upward, distributing long positions into the Buy-Side Liquidity resting above the Asia or London highs. Executing the NY AM Killzone from 08:30 to 11:00 EST: You do not trade the Asia range. You wait for the NY AM Killzone. You watch the Manipulation phase occur. Once the manipulation phase finishes, you look for the MSS and enter on the FVG to participate in the Distribution phase.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 6-12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. This section introduces the <strong>Power of 3 (AMD)</strong> and the New York AM Killzone.</p>
@@ -226,7 +293,7 @@ export default function App() {
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Executing the NY AM Killzone (08:30-11:00 EST)</h4>
           <p>You do not trade the Asia range. You wait for the NY AM Killzone. You watch the Manipulation phase occur (the sweep of liquidity). Once the manipulation phase finishes, you look for the MSS and enter on the FVG to participate in the Distribution phase.</p>
           
-          <p><em>Velez Bridge:</em> During the Manipulation phase (the Judas Swing down), the Velez 200 SMA on the 15-minute chart will likely still be sloping UP. The Judas Swing is a retracement *against* the 200 SMA. You wait for price to bounce off or near the 200 SMA, print a Green Ignition candle, and execute your long.</p>
+          <p><em>Velez Bridge:</em> During the Manipulation phase (the Judas Swing down), the Velez 200 SMA on the 15-minute chart will likely still be sloping UP. The Judas Swing is a retracement *against* the 200 SMA. You wait for price to bounce off or near the 200 SMA, print a Green/Red Ignition candle, and execute your trade.</p>
         </div>
       )
     },
@@ -234,6 +301,7 @@ export default function App() {
       id: "c3",
       title: "Part 3: PD Arrays & Breaker Blocks (Episodes 13-17)",
       episodes: "Eps 13-17",
+      rawText: "Part 3: PD Arrays and Breaker Blocks. Episodes 13 through 17 expand your entry toolkit. While the FVG is the primary entry mechanic, the algorithm uses a hierarchy of PD Arrays, or Premium and Discount Arrays. The most powerful of these, outside of the FVG, is the Breaker Block. What is an Order Block? An institutional Order Block is the last down-close candle before an impulsive upward displacement, or the last up-close candle before a downward displacement. Algorithms return to these blocks to mitigate the positions they used to manipulate the market. The High-Probability Breaker Block Setup: A Breaker Block is a failed Order Block. Step-by-Step Bearish Breaker: 1. Price makes a High, drops down to make a Low, which is a Bullish Order Block, and then pushes up to make a Higher High, sweeping BSL. 2. Price immediately violently reverses downward, completely smashing through that previous Bullish Order Block Low with displacement. 3. Because that Bullish Order Block failed, it is now a Bearish Breaker Block. 4. When price retraces back up into that Breaker Block, especially if it aligns with an FVG, you execute your short entry.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 13-17 expand your entry toolkit. While the FVG is the primary entry mechanic, the algorithm uses a hierarchy of PD Arrays (Premium/Discount Arrays). The most powerful of these, outside of the FVG, is the <strong>Breaker Block</strong>.</p>
@@ -252,7 +320,6 @@ export default function App() {
               <li>When price retraces back up into that Breaker Block (especially if it aligns with an FVG), you execute your short entry.</li>
             </ol>
           </div>
-          <p><em>Velez Bridge:</em> A Breaker Block entry is exponentially stronger if the 200 SMA is sloping downward and you get a Red Ignition candle confirming the rejection off the Breaker.</p>
         </div>
       )
     },
@@ -260,6 +327,7 @@ export default function App() {
       id: "c4",
       title: "Part 4: Premium/Discount & Tape Reading (Episodes 18-24)",
       episodes: "Eps 18-24",
+      rawText: "Part 4: Premium and Discount and Tape Reading. Episodes 18 through 24 introduce the necessity of framing the dealing range. You cannot blindly enter every FVG you see. You must know if you are buying at a Discount or selling at a Premium. The Dealing Range and Equilibrium: Once a swing high and swing low are established, you draw a Fibonacci retracement tool from the low to the high. The 50 percent mark is Equilibrium. Premium: The area above the 50 percent line. You ONLY look for shorts in a Premium. Discount: The area below the 50 percent line. You ONLY look for longs in a Discount. Optimal Trade Entry: Within the Premium or Discount zones, the algorithm prefers to re-price specifically to the 62 percent to 79 percent retracement levels. If an FVG aligns with the 70.5 percent retracement level, it is an A+ algorithmic setup. Tape Reading the PM Session: ICT emphasizes watching how candles deliver. If price is grinding slowly through a discount array with overlapping wicks, it is accumulating.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 18-24 introduce the necessity of framing the dealing range. You cannot blindly enter every FVG you see. You must know if you are buying at a Discount or selling at a Premium.</p>
@@ -273,9 +341,6 @@ export default function App() {
 
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Optimal Trade Entry (OTE)</h4>
           <p>Within the Premium or Discount zones, the algorithm prefers to re-price specifically to the 62% to 79% retracement levels. If an FVG aligns with the 70.5% retracement level (the sweet spot of OTE), it is an A+ algorithmic setup.</p>
-
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Tape Reading the PM Session</h4>
-          <p>ICT emphasizes watching how candles deliver. If price is grinding slowly through a discount array with overlapping wicks, it is accumulating. The New York PM Session (13:30 - 16:00 EST) is the secondary window. If the AM session manipulated price into a daily discount, the PM session will often provide the violent distribution phase back up into a premium.</p>
         </div>
       )
     },
@@ -283,6 +348,7 @@ export default function App() {
       id: "c5",
       title: "Part 5: Weekly Profiles & Market Context (Episodes 25-30)",
       episodes: "Eps 25-30",
+      rawText: "Part 5: Weekly Profiles and Market Context. Episodes 25 through 30 expand your view to the weekly chart. You cannot trade the daily Killzones effectively if you do not understand what the weekly algorithmic profile is doing. The Standard Weekly Profile: Just as the daily profile has AMD, the weekly profile does as well. Monday sets the initial range. Often a fake move. Tuesday or Wednesday, statistically, form the High of the Week in a bearish week, or the Low of the Week in a bullish week. Thursday and Friday are the expansion and distribution days. If your macro bias is Bullish, and it is Tuesday morning, you are anticipating price to drop to form the Low of the Week. This drop into a Daily Discount Array is where you hunt for your NY AM Killzone long setups.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 25-30 expand your view to the weekly chart. You cannot trade the daily Killzones effectively if you do not understand what the weekly algorithmic profile is doing.</p>
@@ -297,8 +363,6 @@ export default function App() {
             </ul>
           </div>
           <p>If your macro bias is Bullish, and it is Tuesday morning, you are anticipating price to drop (Manipulation) to form the Low of the Week. This drop into a Daily Discount Array is where you hunt for your NY AM Killzone long setups.</p>
-          
-          <p><em>Velez Bridge:</em> If the Daily 200 SMA is sloping up, you expect the Weekly Profile to be bullish. Therefore, you expect Tuesday or Wednesday to drop down into a discount, hit the 1-hour or 15-min 200 SMA, print a Green Ignition candle, and form the Low of the Week.</p>
         </div>
       )
     },
@@ -306,6 +370,7 @@ export default function App() {
       id: "c6",
       title: "Part 6: IPDA Lookbacks & Risk Mastery (Episodes 31-41)",
       episodes: "Eps 31-41",
+      rawText: "Part 6: IPDA Lookbacks and Risk Mastery. The final 11 episodes tie everything together using the Interbank Price Delivery Algorithm lookback periods and establish strict professional risk parameters. IPDA Data Ranges: The algorithm references past data in specific chunks: 20 days, 40 days, and 60 days. When you look at a daily chart, look back 20 days. Where is the most obvious unmitigated Daily FVG or old Daily Low? That is the macro Draw on Liquidity. Your intraday NY AM Killzone setups should align with delivering price to that 20-day or 40-day target. Professional Risk Management: ICT explicitly states that model mechanics mean nothing without risk control. The rule is absolute: Never risk more than 1 to 2 percent of equity per setup. Minimum 1 to 2 Risk to Reward.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> The final 11 episodes tie everything together using the Interbank Price Delivery Algorithm (IPDA) lookback periods and establish strict professional risk parameters.</p>
@@ -328,6 +393,22 @@ export default function App() {
     }
   ];
 
+  const baseTabs = [
+    { id: 1, name: '1. Masterclass' },
+    { id: 2, name: '2. Velez Bridge' },
+    { id: 3, name: '3. Practice Chart' },
+    { id: 4, name: '4. NY Playbook' },
+    { id: 5, name: '5. Flashcards' },
+    { id: 6, name: '6. Mastery Quiz' },
+    { id: 7, name: '7. AI Auditor' },
+    { id: 8, name: '8. Terms' },
+    { id: 9, name: '9. Mentor Hub' },
+    { id: 10, name: '10. Progress' },
+    { id: 11, name: '11. Trading Desk' }
+  ];
+
+  const tabs = user ? [...baseTabs, { id: 12, name: '12. Account' }] : baseTabs;
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -342,28 +423,26 @@ export default function App() {
       </header>
 
       <nav className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex space-x-2 overflow-x-auto">
-        <button onClick={() => setActiveTab(1)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>1. Step-by-Step Curriculum</button>
-        <button onClick={() => setActiveTab(2)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 2 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>2. Oliver Velez Bridge</button>
-        <button onClick={() => setActiveTab(3)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>3. Practice Chart</button>
-        <button onClick={() => setActiveTab(4)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 4 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>4. NY Playbook</button>
-        <button onClick={() => setActiveTab(5)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>5. Flashcards</button>
-        <button onClick={() => setActiveTab(7)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === 7 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>7. AI Auditor</button>
+        {tabs.map((tab) => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
+            {tab.name}
+          </button>
+        ))}
       </nav>
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-6 w-full mx-auto" style={{ maxWidth: '1600px' }}>
         
-        {/* TAB 1: THE TEXTBOOK (MASTER/DETAIL VIEW) */}
+        {/* TAB 1: THE TEXTBOOK (3 COLUMN PRO LAYOUT) */}
         {activeTab === 1 && (
-          <div className="flex flex-col md:flex-row gap-8">
-            
-            {/* Sidebar Navigation */}
-            <div className="w-full md:w-1/3 flex flex-col space-y-2">
-              <h2 className="text-xl font-bold text-white mb-4">Course Chapters</h2>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Column 1: Navigation Menu */}
+            <div className="w-full lg:w-1/4 flex flex-col space-y-3 sticky top-6">
+              <h2 className="text-xl font-bold text-white mb-2">Course Chapters</h2>
               {courseData.map((lesson) => (
                 <button 
                   key={lesson.id} 
-                  onClick={() => setActiveLessonId(lesson.id)}
-                  className={`text-left p-4 rounded-xl border transition flex justify-between items-center ${activeLessonId === lesson.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500'}`}
+                  onClick={() => { setActiveLessonId(lesson.id); setLessonAiResponse(''); setLessonAiPrompt(''); }}
+                  className={`text-left p-4 rounded-xl border transition flex justify-between items-center shadow-lg ${activeLessonId === lesson.id ? 'bg-indigo-600 border-indigo-500 text-white shadow-indigo-900/50' : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500'}`}
                 >
                   <div>
                     <div className="text-xs font-bold opacity-70 mb-1">{lesson.episodes}</div>
@@ -374,17 +453,59 @@ export default function App() {
               ))}
             </div>
 
-            {/* Main Content Area */}
-            <div className="w-full md:w-2/3">
+            {/* Column 2: Main Educational Content */}
+            <div className="w-full lg:w-2/4">
               {courseData.map((lesson) => {
                 if (lesson.id !== activeLessonId) return null;
                 return (
                   <div key={lesson.id} className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-xl animate-in fade-in duration-300">
-                    <h2 className="text-3xl font-extrabold text-white mb-8">{lesson.title}</h2>
+                    <div className="flex justify-between items-start border-b border-slate-800 pb-6 mb-6">
+                      <h2 className="text-3xl font-extrabold text-white">{lesson.title}</h2>
+                      <div className="flex gap-2">
+                        <button onClick={() => speakText(lesson.rawText)} className="flex items-center space-x-2 bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-lg text-xs font-bold transition">
+                          <Volume2 size={16} /> <span>Read Aloud</span>
+                        </button>
+                        <button onClick={() => toggleModuleCompletion(lesson.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition ${completedModules[lesson.id] ? 'bg-emerald-600' : 'bg-slate-800 hover:bg-slate-700'}`}>
+                          {completedModules[lesson.id] ? '✓ Done' : 'Mark Done'}
+                        </button>
+                      </div>
+                    </div>
                     {lesson.content}
                   </div>
                 );
               })}
+            </div>
+
+            {/* Column 3: Contextual AI Mentor */}
+            <div className="w-full lg:w-1/4 sticky top-6">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
+                <h3 className="text-lg font-bold text-indigo-300 flex items-center mb-4"><Bot className="mr-2" size={20}/> Chapter AI Mentor</h3>
+                <p className="text-xs text-slate-400 mb-4">
+                  This AI knows you are studying <strong>{courseData.find(l => l.id === activeLessonId)?.title}</strong>. Ask for clarification on this specific topic.
+                </p>
+                <div className="space-y-4">
+                  <textarea 
+                    rows={4}
+                    value={lessonAiPrompt}
+                    onChange={(e) => setLessonAiPrompt(e.target.value)}
+                    placeholder="e.g. 'Can you explain the difference between a normal order block and a breaker block?'"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  />
+                  <button 
+                    onClick={() => callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title)} 
+                    disabled={loadingLessonAi || !lessonAiPrompt.trim()} 
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 flex justify-center items-center gap-2"
+                  >
+                    <MessageSquare size={16}/> {loadingLessonAi ? 'Thinking...' : 'Ask Mentor'}
+                  </button>
+                  
+                  {lessonAiResponse && (
+                    <div className="p-4 bg-slate-950 border border-indigo-900/50 rounded-lg text-sm text-slate-300 whitespace-pre-wrap">
+                      {lessonAiResponse}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -499,13 +620,52 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB 6: MASTERY QUIZ */}
+        {activeTab === 6 && (
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold flex items-center gap-2"><HelpCircle className="text-indigo-400"/> Algorithmic Mastery Quiz</h2>
+            <div className="bg-slate-900 p-8 rounded-xl border border-slate-800">
+              {!quizStarted ? (
+                <div className="text-center space-y-4">
+                  <p className="text-slate-300">Test your knowledge of the ICT 2022 Mentorship and Oliver Velez concepts.</p>
+                  <button onClick={() => setQuizStarted(true)} className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-bold text-white transition">Start Quiz</button>
+                </div>
+              ) : showResults ? (
+                <div className="text-center space-y-4">
+                  <h3 className="text-2xl font-bold text-emerald-400">Quiz Complete!</h3>
+                  <p className="text-lg text-white">Your Score: {score} / {quizQuestions.length}</p>
+                  <button onClick={resetQuiz} className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-bold text-white transition">Retake Quiz</button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex justify-between text-xs text-slate-500 font-bold uppercase">
+                    <span>Question {currentQuestion + 1} of {quizQuestions.length}</span>
+                    <span>Score: {score}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">{quizQuestions[currentQuestion].q}</h3>
+                  <div className="space-y-3">
+                    {quizQuestions[currentQuestion].options ? quizQuestions[currentQuestion].options.map((opt, idx) => (
+                      <button key={idx} onClick={() => handleQuizAnswer(idx)} className="w-full text-left p-4 bg-slate-950 hover:bg-indigo-900/40 border border-slate-800 hover:border-indigo-500 rounded-lg text-sm text-slate-300 transition">
+                        {opt}
+                      </button>
+                    )) : quizQuestions[currentQuestion].list.map((opt, idx) => (
+                      <button key={idx} onClick={() => handleQuizAnswer(idx)} className="w-full text-left p-4 bg-slate-950 hover:bg-indigo-900/40 border border-slate-800 hover:border-indigo-500 rounded-lg text-sm text-slate-300 transition">
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* TAB 7: AI AUDITOR */}
         {activeTab === 7 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><FileText className="text-indigo-400"/> AI Trade Auditor & Chart Analyzer</h2>
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
               <p className="text-slate-400 text-sm">Upload a screenshot of your chart during the NY Killzone. Describe your BSL/SSL, MSS, and FVG logic for instant AI analysis:</p>
-              
               <div className="flex items-center gap-4">
                 <label className="flex items-center space-x-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 px-4 py-2.5 rounded-lg cursor-pointer text-xs font-medium text-slate-300 transition">
                   <Upload className="w-4 h-4 text-indigo-400" />
@@ -513,7 +673,6 @@ export default function App() {
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 </label>
               </div>
-
               <textarea rows={4} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="e.g. Swept Asia BSL at 09:30 EST, clear MSS, entered in 15m FVG below the 200 SMA..." className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"/>
               <button onClick={() => callGemini("Audit this ICT 2022 setup based on AMD, MSS, FVG, and Velez 200 SMA logic: " + aiPrompt)} disabled={loadingAi} className="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                 <Sparkles className="w-4 h-4"/> {loadingAi ? 'Analyzing...' : 'Run AI Trade Audit'}
@@ -527,6 +686,137 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB 8: TERMS */}
+        {activeTab === 8 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2"><Book className="text-indigo-400"/> Terms & Abbreviations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">BSL / SSL:</strong> Buy Side Liquidity / Sell Side Liquidity</div>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">200 SMA:</strong> Oliver Velez Simple Moving Average trend baseline</div>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">NY AM Killzone:</strong> 08:30 - 11:00 EST institutional execution window</div>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">OTE:</strong> Optimal Trade Entry (62% - 79% Fibonacci retracement)</div>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">IPDA:</strong> Interbank Price Delivery Algorithm</div>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><strong className="text-indigo-400">AMD:</strong> Accumulation, Manipulation, Distribution</div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 9: AI MENTOR HUB */}
+        {activeTab === 9 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2"><Bot className="text-indigo-400"/> AI Mentor Hub</h2>
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+              <p className="text-slate-400 text-sm">Ask your global AI Mentor any general trading question regarding the New York AM Killzone, liquidity, or 200 SMA momentum rules:</p>
+              <input type="text" placeholder="e.g. How do I trade the liquidity sweep during the New York AM open?" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500" onKeyDown={(e) => { if (e.key === 'Enter') callGemini("Answer as an expert ICT & Oliver Velez trading mentor focusing on New York AM Killzone setups and 200 SMA discipline: " + e.target.value); }} />
+              {aiResponse && (
+                <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 mt-4 text-sm text-slate-200 whitespace-pre-wrap">
+                  <strong className="text-indigo-400 block mb-1">Mentor Response:</strong> {aiResponse}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 10: PROGRESS */}
+        {activeTab === 10 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart2 className="text-indigo-400"/> Progress Analytics</h2>
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+              <div className="flex justify-between items-center">
+                <span>Overall Curriculum Mastery Progress</span>
+                <span className="font-bold text-indigo-400">{progress}%</span>
+              </div>
+              <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+                <div className="bg-indigo-600 h-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 11: DESK */}
+        {activeTab === 11 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2"><Briefcase className="text-indigo-400"/> Institutional Desk & Tools</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <h3 className="text-lg font-bold mb-2">NinjaTrader Integration</h3>
+                <p className="text-sm text-slate-400 mb-4">Custom 200 SMA and High Minus Low range indicators for automated NY Killzone tracking.</p>
+                <span className="text-xs bg-emerald-600/20 text-emerald-400 px-2 py-1 rounded">Connected</span>
+              </div>
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                <h3 className="text-lg font-bold mb-2">CME Market Data Feed</h3>
+                <p className="text-sm text-slate-400 mb-4">Active subscription for top-of-book futures pricing during New York morning sessions.</p>
+                <span className="text-xs bg-emerald-600/20 text-emerald-400 px-2 py-1 rounded">Active</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 12: ACCOUNT */}
+        {activeTab === 12 && (
+          <div className="max-w-xl mx-auto space-y-6">
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-3 bg-indigo-600/20 text-indigo-400 rounded-xl">
+                  <User className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Account & Profile Management</h2>
+                  <p className="text-slate-400 text-sm">{user ? `Signed in as ${user.email}` : "Sign in or create an account to sync your progress."}</p>
+                </div>
+              </div>
+              {user ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-slate-500">Account Status</p>
+                      <p className="text-sm font-semibold text-emerald-400">Authenticated via Firebase</p>
+                    </div>
+                    <button onClick={handleLogout} className="flex items-center space-x-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg text-sm font-medium transition">
+                      <LogOut className="w-4 h-4" /> <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {authError && <div className="p-3 bg-red-950/50 border border-red-800 text-red-300 text-xs rounded-lg">{authError}</div>}
+                  <button onClick={handleGoogleSignIn} className="w-full bg-white hover:bg-slate-100 text-slate-900 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center space-x-2 transition">
+                    <span>Sign In with Google</span>
+                  </button>
+                  <div className="flex items-center my-4">
+                    <div className="flex-grow border-t border-slate-800"></div>
+                    <span className="px-3 text-xs text-slate-500 uppercase">Or email</span>
+                    <div className="flex-grow border-t border-slate-800"></div>
+                  </div>
+                  <form onSubmit={handleAuth} className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Email Address</label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+                        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Password</label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+                        <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                      </div>
+                    </div>
+                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-medium transition">
+                      {isSignUp ? 'Create Account' : 'Sign In'}
+                    </button>
+                    <div className="text-center">
+                      <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-xs text-indigo-400 hover:underline">
+                        {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
