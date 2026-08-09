@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { 
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
 } from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { 
-  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowLeft, BookMarked, Target, TrendingUp, Anchor
+  getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp 
+} from 'firebase/firestore';
+import { 
+  PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowLeft, BookMarked
 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(1);
-  const [activeModuleDetail, setActiveModuleDetail] = useState(null); // Tracks which module deep-dive is open
+  const [activeModuleDetail, setActiveModuleDetail] = useState(null);
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,14 +30,14 @@ export default function App() {
   const [auditImageName, setAuditImageName] = useState('');
   const [checklist, setChecklist] = useState({ asiaRange: false, londonSweep: false, nyKillzone: false, sma200Slope: false, ignitionTrigger: false });
   const [journalNote, setJournalNote] = useState('');
-  const [journalSetupType, setJournalSetupType] = useState('Asia Sweep + FVG');
+  const [journalSetupType, setJournalSetupType] = useState('NY AM Killzone + FVG');
   const [savedJournals, setSavedJournals] = useState([]);
   const [savingJournal, setSavingJournal] = useState(false);
   const [cardIndex, setCardIndex] = useState(0);
   const [showDefinition, setShowDefinition] = useState(false);
   const [flashcardDeck, setFlashcardDeck] = useState([
-    { id: 1, term: "Fair Value Gap (FVG)", definition: "A 3-candle imbalance zone where price leaves an unmitigated footprint acting as a magnetic draw.", status: "Review" },
-    { id: 2, term: "200 Simple Moving Average (SMA)", definition: "The core Oliver Velez baseline trend filter. Price above = bullish bias, price below = bearish bias, slope dictates momentum.", status: "Review" }
+    { id: 1, term: "NY AM Killzone", definition: "08:30 AM – 11:00 AM EST. The primary institutional execution window for the ICT 2022 Model.", status: "Review" },
+    { id: 2, term: "Market Structure Shift (MSS)", definition: "A violent displacement of price that breaks a significant swing high/low, signaling a change in institutional order flow.", status: "Review" }
   ]);
 
   // Auth & Firestore Handlers
@@ -80,44 +82,28 @@ export default function App() {
     }
   }, [activeTab]);
 
-  // Render Component for Module Deep Dives
   const renderDeepDive = (moduleId) => {
     const content = {
       1: {
-        title: "Module 1: Liquidity & Market Structure (Eps 1-10)",
-        intro: "The foundation of all algorithmic delivery is liquidity. This module explores how price is driven to areas of high stop-loss density.",
+        title: "Module 1: New York AM Killzone & The 2022 Algorithm Model",
+        intro: "The core of the 2022 Mentorship. This study guide focuses on the 08:30-11:00 EST Killzone and the institutional logic governing daily price delivery.",
         sections: [
-          { subtitle: "Liquidity Mapping", text: "We identify BSL (Buy-Side Liquidity) above relative equal highs and SSL (Sell-Side Liquidity) below equal lows. These are not just 'support/resistance' levels; they are algorithmic magnets." },
-          { subtitle: "The Asia Consolidation Box", text: "The Tokyo session (20:00-00:00 EST) constructs the overnight range. This is the institutional accumulation phase." }
-        ],
-        graphic: (
-          <div className="bg-slate-950 p-6 rounded-lg border border-indigo-900/50 flex flex-col items-center gap-4">
-            <div className="text-xs text-indigo-400 font-bold mb-2">SCHEMATIC: ASIA ACCUMULATION & LIQUIDITY RUN</div>
-            <div className="flex items-end h-24 gap-2">
-              <div className="w-12 bg-slate-800 border-t-2 border-slate-600"></div>
-              <div className="w-12 bg-slate-700 h-16 border-t-2 border-slate-500"></div>
-              <div className="w-12 bg-slate-800 h-12 border-t-2 border-slate-600 relative">
-                <div className="absolute -top-6 text-[8px] text-emerald-400 w-24">ASIA HIGH (BSL)</div>
-                <div className="absolute -top-3 w-full border-t border-dashed border-emerald-500"></div>
-              </div>
-            </div>
-          </div>
-        )
+          { subtitle: "The New York AM Killzone (08:30-11:00 EST)", text: "This is the primary window for institutional order execution. The algorithm is not searching for trades all day; it is programmed to deliver price to liquidity targets during this specific 150-minute macro. Outside of this time, price delivery is frequently noisy and low-probability." },
+          { subtitle: "Liquidity Sweeps (The 'Fuel')", text: "Before an institutional reversal occurs, the algorithm must 'clear the books.' This means running above previous session highs or below previous session lows (often Asia or London highs/lows) to induce retail stop-losses. This is not a 'breakout' to be traded; it is a stop-run used to fill large institutional buy/sell orders." },
+          { subtitle: "Identifying the Market Structure Shift (MSS)", text: "After the liquidity sweep, price must demonstrate displacement—a violent, impulsive move that breaks the most recent significant swing low (if bearish) or high (if bullish). This MSS is the algorithmic fingerprint verifying that the Smart Money has engaged." }
+        ]
       }
-      // ... (This pattern continues for other modules)
     };
-    
     const m = content[moduleId];
     return (
       <div className="space-y-6">
-        <button onClick={() => setActiveModuleDetail(null)} className="flex items-center space-x-2 text-indigo-400"><ArrowLeft size={16}/> Back</button>
+        <button onClick={() => setActiveModuleDetail(null)} className="flex items-center space-x-2 text-indigo-400 hover:text-indigo-300"><ArrowLeft size={16}/> Back to Curriculum</button>
         <h2 className="text-3xl font-bold">{m.title}</h2>
-        <p>{m.intro}</p>
-        {m.graphic}
+        <p className="text-slate-400">{m.intro}</p>
         {m.sections.map((s, i) => (
           <div key={i} className="bg-slate-900 p-6 rounded-xl border border-slate-800">
             <h4 className="font-bold text-indigo-300">{s.subtitle}</h4>
-            <p className="text-sm mt-2">{s.text}</p>
+            <p className="text-sm mt-2 text-slate-300">{s.text}</p>
           </div>
         ))}
       </div>
@@ -126,7 +112,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* ... Header and Nav remain the same ... */}
+      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-indigo-600 rounded-lg text-white font-bold">ICT</div>
+            <h1 className="text-xl font-extrabold tracking-tight text-white">ICT 2022 & Oliver Velez Mastery Platform</h1>
+          </div>
+        </div>
+        <button onClick={() => setActiveTab(12)} className="bg-indigo-600 px-4 py-2 rounded-lg text-sm">{user ? "Account" : "Sign In"}</button>
+      </header>
+
+      <nav className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 overflow-x-auto">
+        <div className="flex space-x-2 min-w-max">
+          {[1,2,3,4,5,6,7,8,9,10,11].map((id) => (
+            <button key={id} onClick={() => { setActiveTab(id); setActiveModuleDetail(null); }} className={`px-3 py-2 rounded-lg text-xs ${activeTab === id ? 'bg-indigo-600' : 'bg-slate-800'}`}>Tab {id}</button>
+          ))}
+        </div>
+      </nav>
+
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         {activeTab === 1 && activeModuleDetail === null && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -139,7 +142,12 @@ export default function App() {
           </div>
         )}
         {activeTab === 1 && activeModuleDetail !== null && renderDeepDive(activeModuleDetail)}
-        {/* ... Other Tabs remain the same ... */}
+        
+        {/* ... Other Tabs 2-12 ... */}
+        {activeTab === 2 && (<div>Oliver Velez & 200 SMA Bridge Content...</div>)}
+        {activeTab === 3 && (<div id="tradingview-widget-container" className="h-[600px] w-full" />)}
+        {activeTab === 4 && (<div>Checklist and Journal Content...</div>)}
+        {activeTab === 5 && (<div>Flashcards...</div>)}
       </main>
     </div>
   );
