@@ -22,417 +22,533 @@ const Candle = ({ x, o, c, h, l }) => {
   );
 };
 
-// --- UTILITY: CLEAN MARKDOWN SYMBOLS FOR PLAIN TEXT UI ---
 const stripMarkdown = (text) => {
   if (!text) return '';
-  return text
-    .replace(/#{1,6}\s?/g, '') 
-    .replace(/\*\*/g, '')      
-    .replace(/\*/g, '')        
-    .replace(/---/g, '')       
-    .replace(/- /g, '• ');     
+  return text.replace(/#{1,6}\s?/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/---/g, '').replace(/- /g, '• ');     
 };
 
-// --- GLOBAL COURSE DATA ARCHITECTURE ---
-const episodeTitles = [
-  "Episode 1: Liquidity & Order Pairing", "Episode 2: Institutional Displacement (MSS)", "Episode 3: Price Inefficiencies (FVG)", 
-  "Episode 4: The Velez Macro Baseline (200 SMA)", "Episode 5: Time Cycles (AMD & Killzones)", "Episode 6: Wholesale vs. Retail (Premium/Discount)", 
-  "Episode 7: Capital Preservation & Risk", "Episode 8: Institutional Sponsorship", "Episode 9: Power of 3 Deep Dive", 
-  "Episode 10: New York AM Killzone", "Episode 11: PM Session Killzone", "Episode 12: Advanced Price Action Theory", 
-  "Episode 13: Data Ranges & IPDA", "Episode 14: Macro Timeframes", "Episode 15: Interest Rate Yields", 
-  "Episode 16: Intermarket Analysis", "Episode 17: Top Down Analysis", "Episode 18: Trading The Weekly Profile", 
-  "Episode 19: Trading The Daily Profile", "Episode 20: The London Open", "Episode 21: Tape Reading", 
-  "Episode 22: Identifying Traps", "Episode 23: Reversals vs Retracements", "Episode 24: Breaker Blocks", 
-  "Episode 25: Mitigation Blocks", "Episode 26: Rejection Blocks", "Episode 27: Vacuum Blocks", 
-  "Episode 28: Order Block Theory", "Episode 29: Fair Value Gaps Deep Dive", "Episode 30: Liquidity Voids", 
-  "Episode 31: Liquidity Pools", "Episode 32: Stop Runs", "Episode 33: Equilibrium & Discount", 
-  "Episode 34: Premium Arrays", "Episode 35: Risk Management", "Episode 36: Trading Psychology", 
-  "Episode 37: Journaling & Tracking", "Episode 38: Prop Firm Funding", "Episode 39: Building Your Model", 
-  "Episode 40: Execution & Consistency", "Episode 41: The Final Review"
-];
-
-const courseData = episodeTitles.map((title, index) => {
-  const epNum = index + 1;
-  const officialPlaylist = "https://www.youtube.com/playlist?list=PLVgHx4Z63paYiFGQ56PjTF1PGePL3r69s";
-  
-  // Explicit, Actionable Homework Assignment Mapping for all 41 Episodes
-  let homework = "Review the concepts introduced in this episode on your live charts. Take a screenshot of an applicable setup and submit it to the AI Auditor for grading.";
-  
-  if (epNum >= 1 && epNum <= 4) {
-    homework = "Assignment: Liquidity & Market Structure Shifts.\n• Open a 15-minute chart and mark at least 3 major Swing Highs (Buy-Side Liquidity) and Swing Lows (Sell-Side Liquidity).\n• Locate a liquidity sweep followed by an energetic Market Structure Shift (MSS).\n• Highlight the resulting Fair Value Gap (FVG).";
-  } else if (epNum === 5) {
-    homework = "Assignment: Intraday Order Flow & Daily Ranges.\n• Draw vertical lines marking the Asian Session, London Open, and New York Open.\n• Observe where the absolute High and absolute Low of the day were formed.\n• Did London or New York engineer the Judas Swing?";
-  } else if (epNum === 6 || epNum === 7) {
-    homework = "Assignment: Consolidation Hurdles & Daily Bias.\n• Identify 3 days of heavy, narrow consolidation on a 1-hour chart.\n• Mark the boundaries of the consolidation box.\n• Observe and annotate the specific algorithmic displacement that eventually purged the consolidation highs or lows.";
-  } else if (epNum === 8 || epNum === 17 || epNum === 18) {
-    homework = "Assignment: Forex Application of the ICT Model.\n• Apply the index execution model to a major Forex pair (e.g., EURUSD or GBPUSD).\n• Mark the Midnight New York opening price.\n• Trace the Accumulation, Manipulation, and Distribution (Power of 3) sequence for the daily candle.";
-  } else if (epNum === 9 || epNum === 10) {
-    homework = "Assignment 1 (From Mentorship Guide): Daily Bias & Power 3 Observation.\n• Open a Daily chart of the E-mini S&P or NASDAQ.\n• Identify the opening price (Midnight New York time).\n• Mark the High, Low, and Close of the day.\n• Annotate the 'Manipulation' (Judas Swing) above or below the open and the 'Distribution' (the expansion move).";
-  } else if (epNum >= 11 && epNum <= 12) {
-    homework = "Assignment 2 (From Mentorship Guide): Market Structure Classification.\n• Select an Hourly chart and identify 'Long Term' Highs and Lows based on Daily chart levels.\n• Find 'Intermediate Term' Highs (ITH) which are swing highs with lower highs on either side, OR highs that rebalance a Fair Value Gap.\n• Verify if subsequent 'Short Term' Highs (STH) respect the ITH by staying below them.";
-  } else if (epNum === 13) {
-    homework = "Assignment 4 (From Mentorship Guide): Risk & Scale-In Simulation.\n• In a demo account, place a trade using a 1% risk model.\n• Practice the '25% stop reduction at 50% target' and 'Break-even at 75% target' rules.\n• Document a 'Pyramid' scale-in: Enter your largest position first, followed by smaller increments as price moves in your favor.";
-  } else if (epNum >= 14 && epNum <= 16) {
-    homework = "Assignment 3 & 5 (From Mentorship Guide): Imbalance Mapping & Tape Self-Talk.\n• Drop down to a 1-minute or 2-minute chart during the NY AM session (08:30 - 11:00 EST).\n• Go back through 15-minute data and find every instance of an energetic displacement move. Highlight the resulting FVG.\n• Annotate your charts with 'Self-Talk' (e.g., 'I am expecting a run below this low because we are in a premium'). Log every trade with positive reinforcement.";
-  } else if (epNum === 19 || epNum === 20) {
-    homework = "Assignment: The London Open.\n• Track the London Open Killzone (02:00 AM - 05:00 AM EST).\n• Find 3 distinct examples where London engineered the absolute High or Low of the Daily candle.\n• Note how New York subsequently offered a continuation setup based on London's created extreme.";
-  } else if (epNum === 21 || epNum === 22) {
-    homework = "Assignment: Intermarket Analysis & SMT Divergence.\n• Place the S&P 500 (ES) and Nasdaq (NQ) charts side-by-side on the 5-minute timeframe.\n• Hunt for SMT divergence at a major swing low immediately prior to a bullish expansion (e.g., ES makes a lower low, NQ makes a higher low).\n• Annotate the hidden institutional accumulation.";
-  } else if (epNum === 23 || epNum === 24) {
-    homework = "Assignment: FOMC Study & Institutional Traps.\n• Review historical FOMC release days (Wednesdays at 2:00 PM EST).\n• Observe the artificial volatility injection.\n• Annotate how the initial aggressive spike is almost always an algorithmic trap designed to engineer liquidity for the true reversal.";
-  } else if (epNum >= 25 && epNum <= 28) {
-    homework = "Assignment: Daily Rebalance Theory & Counter-Trend Ideas.\n• Identify a day where price remained entirely within the previous day's range.\n• Map how price ping-ponged between internal premium FVGs and internal discount FVGs without ever breaking external daily liquidity.\n• Annotate the equilibrium (50%) of that internal range.";
-  } else if (epNum === 29 || epNum === 30) {
-    homework = "Assignment: PM Session Trading & Volatility Injection.\n• Study the New York PM Killzone (13:30 PM - 16:00 PM EST).\n• Find a setup that formed strictly after the 1:30 PM algorithmic shift.\n• Observe how the PM session either continues the AM trend or reverses to rebalance the morning's delivery.";
-  } else if (epNum >= 31 && epNum <= 38) {
-    homework = "Assignment: Consolidation Days & Market On Close (MOC).\n• Identify the Market On Close macro window (15:50 PM - 16:00 PM EST).\n• Observe how algorithms rush to balance the daily range or drive price into closing liquidity pools right before the bell.\n• Take a screenshot of the 1-minute chart during the MOC macro.";
-  } else if (epNum === 39 || epNum === 40) {
-    homework = "Assignment: Top-Down Analysis & Daily Bias.\n• Conduct a strict Top-Down Analysis.\n• Start on the Weekly chart to find the ultimate draw on liquidity.\n• Drop to the Daily chart to align the directional bias.\n• Drop to the 15-minute chart to identify the intraday execution pools (BSL/SSL) aligned with that higher-timeframe bias.";
-  } else if (epNum === 41) {
-    homework = "Final Assignment: Complete Trading Model Blueprint & Risk Simulation.\n• Write down your strict, personalized 2022 Model Trading Plan.\n• Define your exact risk parameters (e.g., 1% max risk), your chosen Killzone, and your specific entry trigger.\n• Conduct a demo trade utilizing the 50/75 stop reduction and break-even rules. Document the psychological execution.";
+// --- COMPREHENSIVE LESSON DATABASE (1-41) ---
+const lessonDatabase = {
+  1: {
+    title: "Episode 1: Liquidity & Order Pairing",
+    rawText: "Liquidity acts as the ultimate fuel for institutional algorithms. Large banks require a counter-party. To buy heavily, they need a vast pool of willing sellers found below established support levels.",
+    heading: "The Counter-Party Requirement",
+    p1: "Large banks cannot simply buy massive quantities without shifting the price. They need a vast pool of willing sellers.",
+    bullets: [
+      "Buy Side Liquidity (BSL): Buy stops resting above old highs; used to exit longs or enter shorts.",
+      "Sell Side Liquidity (SSL): Sell stops resting below old lows; used to exit shorts or enter longs."
+    ],
+    homework: "Assignment: Liquidity Mapping. Open a 15-minute chart and mark at least 3 major Swing Highs (BSL) and Swing Lows (SSL)."
+  },
+  2: {
+    title: "Episode 2: Institutional Displacement (MSS)",
+    rawText: "A liquidity sweep alone is not a valid trade signal. We look for institutional displacement, categorized as a Market Structure Shift breaking an Intermediate-Term High or Low.",
+    heading: "Displacement & Market Structure",
+    p1: "Displacement is a sudden, energetic move indicating institutional pressure. To identify a valid shift, we look for energetic displacement breaking an Intermediate-Term High (ITH).",
+    bullets: [
+      "A true shift indicates a reversal, while a lethargic break is merely a stop run.",
+      "The MSS must be heavy-handed and leave behind an imbalance."
+    ],
+    homework: "Assignment: MSS Identification. Locate a liquidity sweep followed by an energetic Market Structure Shift (MSS) on a 5-minute chart."
+  },
+  3: {
+    title: "Episode 3: Price Inefficiencies (FVG)",
+    rawText: "When institutional displacement occurs, it leaves behind a Fair Value Gap. The algorithm seeks equilibrium and will return to this inefficiency to properly offer both buy and sell liquidity.",
+    heading: "The Imbalance-Rebalance Loop",
+    p1: "Rapid repricing leaves behind a Fair Value Gap (FVG). Mechanically, it is a three-candle sequence where the wicks of Candle 1 and Candle 3 fail to overlap.",
+    bullets: [
+      "FVG: A vacuum of unfulfilled orders.",
+      "Order Blocks: Must be accompanied by an FVG and a clear shift in market structure to be valid."
+    ],
+    homework: "Assignment: Inefficiency Mapping. Find 3 FVGs on a 15-minute chart and draw a box from Candle 1's wick to Candle 3's wick."
+  },
+  4: {
+    title: "Episode 4: The Velez Macro Baseline (200 SMA)",
+    rawText: "To enhance execution safety, we apply the Oliver Velez 200 Simple Moving Average as a macro baseline. We never initiate positions contrary to its slope.",
+    heading: "The Velez Macro Baseline",
+    p1: "We integrate the 200 Simple Moving Average (SMA) as our primary trend filter. Note the strict reliance on Simple, not Exponential, averages.",
+    bullets: [
+      "Ascending SMA: Only authorize long executions.",
+      "Descending SMA: Only authorize short executions.",
+      "Ignition Confirmation: Wait for a definitive continuation bar pushing away from the SMA within the FVG."
+    ],
+    homework: "Assignment: Trend Filtering. Apply the 200 SMA. Find examples where price retraced into an FVG while respecting the slope."
+  },
+  5: {
+    title: "Episode 5: Time Cycles (AMD & Killzones)",
+    rawText: "Algorithmic delivery is Accumulation, Manipulation, and Distribution (AMD). Algorithms accumulate during illiquid hours, manipulate to capture stops, and distribute toward the true target.",
+    heading: "Power of 3 & The Judas Swing",
+    p1: "Order flow is irrelevant outside proper timing. Algorithmic volatility adheres to predictable daily cycles.",
+    bullets: [
+      "Accumulation: Passive baseline positioning during overnight sessions.",
+      "Manipulation (Judas Swing): A deceptive price move opposite the true daily bias.",
+      "Distribution: The true directional expansion toward primary targets."
+    ],
+    homework: "Assignment: AMD Observation. Draw vertical lines marking Asian, London, and NY sessions. Annotate the Judas Swing."
+  },
+  6: {
+    title: "Episode 6: Wholesale vs. Retail (Premium/Discount)",
+    rawText: "Institutions operate on wholesale pricing. We bisect price into Premium and Discount territories, strictly limiting executions to the Discount matrix for long positions.",
+    heading: "Discount, Premium & Technical Science",
+    p1: "By mapping a Fibonacci tool from the highest and lowest bodies within a swing, we bisect the range.",
+    bullets: [
+      "Premium: Above 50% equilibrium; ideal for selling.",
+      "Discount: Below 50% equilibrium; ideal for buying.",
+      "Optimal Trade Entry (OTE): precision targeting between the 62% and 79% retracement levels."
+    ],
+    homework: "Assignment: OTE Matrix. Pull a Fibonacci retracement on a displacement wave. Mark the 50% Equilibrium and Discount territory."
+  },
+  7: {
+    title: "Episode 7: Capital Preservation & Risk",
+    rawText: "Variance guarantees flawless setups will fail. Exposure is capped at a maximum of 1% per configuration, with invalidation stops rigidly placed beyond the displacement wave.",
+    heading: "Systematic Risk Management",
+    p1: "Survival hinges entirely on rigid capital preservation and viewing drawdown as a temporary loan to the market.",
+    bullets: [
+      "The 1% Rule: Never exceed 1% account equity per setup.",
+      "Drawdown Mitigation: Halve your risk for the next trade after a loss.",
+      "Hard Invalidation: Place stops beyond the structural extreme."
+    ],
+    homework: "Assignment: Risk Math. Calculate exactly 1% of your account balance. Write down your maximum dollar risk per trade."
+  },
+  8: {
+    title: "Episode 8: Institutional Sponsorship",
+    rawText: "Institutional sponsorship means higher timeframe objectives are actively drawing price. We look for HTF Order Blocks and liquidity pools to guide the daily bias.",
+    heading: "Higher Timeframe Draw on Liquidity",
+    p1: "The daily range expands toward macro liquidity pools. Sponsorship is confirmed when price energetically rejects counter-trend arrays.",
+    bullets: [
+      "Identify the HTF target first (Weekly/Daily).",
+      "Sponsorship defends HTF arrays with obvious displacement.",
+      "Avoid initiating intraday trades that conflict with the HTF draw."
+    ],
+    homework: "Assignment: HTF Mapping. Mark the closest Daily un-swept highs and lows. Determine which is the most likely draw on liquidity."
+  },
+  9: {
+    title: "Episode 9: Power of 3 Deep Dive",
+    rawText: "The Midnight New York open dictates the daily bias base. For a bearish model, we expect a rally above the Midnight Open to accumulate shorts.",
+    heading: "Opening Range Mathematics",
+    p1: "The relationship between the Midnight Open and the 08:30 EST Open is critical for framing the Judas Swing.",
+    bullets: [
+      "Bearish Bias: Look for the Judas Swing to sweep above the open.",
+      "Bullish Bias: Look for the Judas Swing to sweep below the open.",
+      "Project the Judas Swing distance below the open to target distribution."
+    ],
+    homework: "Assignment: Opening Prices. Mark the Midnight Open and 08:30 Open on a Daily chart. Annotate the subsequent manipulation."
+  },
+  10: {
+    title: "Episode 10: New York AM Killzone",
+    rawText: "The 08:30 AM EST News Embargo serves as a volatility catalyst. High-impact news drivers engineer liquidity before the real move occurs.",
+    heading: "The News Smoke Screen",
+    p1: "News acts as a catalyst to run liquidity. The NY AM Killzone (08:30–11:00 EST) produces the bulk of the daily expansion.",
+    bullets: [
+      "Wait for the 8:30 embargo lift before executing.",
+      "News spikes are typically algorithmic traps (Manipulation).",
+      "Look for the MSS immediately following the news sweep."
+    ],
+    homework: "Assignment: NY AM Tracking. Mark 8:30 AM EST. Observe how news acts as a catalyst to run liquidity and engineer the Judas Swing."
+  },
+  11: {
+    title: "Episode 11: PM Session Killzone",
+    rawText: "The Lunch Hour (12:00-13:00 EST) is a void for observation. The PM Killzone (13:30-16:00 EST) offers secondary expansion or rebalancing of the morning delivery.",
+    heading: "The Lunch Void & PM Distribution",
+    p1: "Do not initiate new positions during the lunch hour. Monitor it for stop-runs that setup the PM session.",
+    bullets: [
+      "Rule 1: No new positions from 12:00 to 13:00 EST.",
+      "Rule 2: The PM session either continues the AM trend or reverses to rebalance.",
+      "Wait for the 1:30 PM algorithmic shift before looking for setups."
+    ],
+    homework: "Assignment: PM Session Trading. Find a setup that formed strictly after 13:30 EST. Did it continue the AM trend or reverse?"
+  },
+  12: {
+    title: "Episode 12: Advanced Price Action Theory",
+    rawText: "Market structure is categorized by Long-Term Highs (LTH), Intermediate-Term Highs (ITH), and Short-Term Highs (STH) to understand true algorithmic efficiency.",
+    heading: "The Hierarchy of Swings",
+    p1: "We move beyond simple 'higher highs' to track how the algorithm re-delivers price.",
+    bullets: [
+      "LTH: Anchored to Daily chart liquidity pools.",
+      "ITH: A high flanked by two lower short-term highs, or a high that rebalances an FVG.",
+      "STH: Immediate swing points acting as internal liquidity."
+    ],
+    homework: "Assignment: Structure Classification. Select an Hourly chart. Label the LTH, ITH, and STH structure."
+  },
+  13: {
+    title: "Episode 13: Data Ranges & IPDA",
+    rawText: "The Interbank Price Delivery Algorithm operates on specific lookback periods. We map the current dealing range to identify relevant internal and external liquidity.",
+    heading: "Dealing Ranges & Lookbacks",
+    p1: "Identify the current high-to-low dealing range. Price strictly moves from Internal Liquidity (FVGs) to External Liquidity (old highs/lows).",
+    bullets: [
+      "Define the high and low of the active algorithmic cycle.",
+      "If price sweeps External Liquidity, expect a draw to Internal Liquidity.",
+      "If price rebalances Internal Liquidity, expect a draw to External."
+    ],
+    homework: "Assignment: Dealing Range. Mark the absolute high and low of the last 20 days. Bisect it at 50% to find Premium/Discount."
+  },
+  14: {
+    title: "Episode 14: Macro Timeframes",
+    rawText: "The daily chart is the 'Parent' of price structure. All minor intraday swings are subordinate to the daily chart's objective to reach old highs or fill macro imbalances.",
+    heading: "The Parent Timeframe",
+    p1: "To read order flow, lock in the macro narrative first. Intraday setups that conflict with the Daily draw on liquidity are inherently low probability.",
+    bullets: [
+      "Begin analysis strictly on Weekly and Daily charts.",
+      "Identify the closest un-swept daily liquidity pool.",
+      "Filter intraday setups to only trade toward the daily pool."
+    ],
+    homework: "Assignment: Top-Down Bias. Look at the Daily chart. Write down the directional bias based on the closest daily liquidity target."
+  },
+  15: {
+    title: "Episode 15: Interest Rate Yields",
+    rawText: "Understanding the correlation between bond yields and equities helps frame risk-on vs. risk-off environments, feeding into broader intermarket analysis.",
+    heading: "Risk-On vs Risk-Off",
+    p1: "The algorithm heavily weights macro environments. Rising yields typically pressure equities, providing a macro bias for shorting indices.",
+    bullets: [
+      "Monitor the 10-Year Treasury Yield.",
+      "Use macro strength/weakness to validate your Daily bias.",
+      "Align execution with the broader capital flow."
+    ],
+    homework: "Assignment: Yield Tracking. Open the TNX (10-year yield) chart alongside the S&P 500. Note their inverse correlation."
+  },
+  16: {
+    title: "Episode 16: Intermarket Analysis",
+    rawText: "The 2022 model relies on Correlated Asset Divergence to confirm smart money activity. We use the Smart Money Technique (SMT) between closely related assets.",
+    heading: "Smart Money Technique (SMT)",
+    p1: "SMT occurs when correlated indices fail to make symmetrical highs or lows. This 'cracked correlation' reveals institutional heavy-handedness.",
+    bullets: [
+      "Compare ES (S&P 500) and NQ (Nasdaq).",
+      "If ES makes a lower low but NQ makes a higher low, NQ is being supported.",
+      "SMT divergence at a key liquidity pool confirms the Judas Swing."
+    ],
+    homework: "Assignment: SMT Hunt. Place ES and NQ side-by-side on a 5-minute chart. Find SMT divergence at a major swing low."
+  },
+  17: {
+    title: "Episode 17: Top Down Analysis",
+    rawText: "A mechanical Top-Down Analysis transitions from the Weekly narrative to the 1-minute execution context, ensuring intraday trades are sponsored by macro order flow.",
+    heading: "The Execution Pipeline",
+    p1: "Never execute based solely on a 1-minute pattern. The pattern must form at a HTF Key Level.",
+    bullets: [
+      "Weekly/Daily: Define the Draw on Liquidity.",
+      "1-Hour/15-Minute: Identify the specific PD Array (FVG/OB).",
+      "1-Minute/5-Minute: Wait for MSS and entry execution."
+    ],
+    homework: "Assignment: Full Pipeline. Annotate a chart progressing from Weekly bias, to 15m POI, down to a 1m entry setup."
+  },
+  18: {
+    title: "Episode 18: Trading The Weekly Profile",
+    rawText: "The weekly range often exhibits a specific expansion profile. Fridays frequently feature Market On Close (MOC) position squaring, creating predictable retracements.",
+    heading: "Weekly Profiles & MOC",
+    p1: "Institutions close weekly positions on Friday afternoons, causing price to retrace back toward the weekly range equilibrium.",
+    bullets: [
+      "Identify the Weekly High and Low by Thursday.",
+      "MOC Macro: 15:50 - 16:00 EST on Fridays.",
+      "Expect sharp counter-trend rebalancing into the close."
+    ],
+    homework: "Assignment: MOC Observation. Review last Friday's price action from 15:50 to 16:00 EST. Did price square off and retrace?"
+  },
+  19: {
+    title: "Episode 19: Trading The Daily Profile",
+    rawText: "Daily Rebalance Theory filters out continuous expansion setups on days meant for tight, narrow consolidation, preventing over-trading during chop.",
+    heading: "Consolidation Hurdles",
+    p1: "Not every day expands. Learn to identify consolidation profiles where price ping-pongs between internal premium and discount FVGs.",
+    bullets: [
+      "Consolidation Day: Price remains inside the previous day's range.",
+      "Avoid targeting external liquidity on these days.",
+      "Take profits at the 50% equilibrium of the internal range."
+    ],
+    homework: "Assignment: Consolidation Box. Identify a day where price remained entirely within the previous day's high/low. Mark the 50% line."
+  },
+  20: {
+    title: "Episode 20: The London Open",
+    rawText: "The London Killzone frequently engineers the highest or lowest price point of the daily range, executing the primary manipulation phase.",
+    heading: "London Open Killzone (02:00 - 05:00 EST)",
+    p1: "London sets the stage. If London creates the low of the day, New York will typically offer a continuation setup for distribution.",
+    bullets: [
+      "London Open: 02:00 - 05:00 EST.",
+      "Often forms the Judas Swing extreme.",
+      "NY session will trade away from the London extreme."
+    ],
+    homework: "Assignment: London Extremes. Find 3 examples where the London Killzone engineered the absolute High or Low of the Daily candle."
+  },
+  21: {
+    title: "Episode 21: Tape Reading",
+    rawText: "Active tape reading requires observing how price reacts at opposing arrays. If you are long, bearish FVGs should offer no resistance as price trades through them.",
+    heading: "Reading Institutional Flow",
+    p1: "Once in a trade, monitor the immediate reaction to opposing PD arrays.",
+    bullets: [
+      "A valid long trade will slice effortlessly through bearish FVGs.",
+      "If price respects and reverses off a counter-trend FVG, your premise may be wrong.",
+      "Use tape reading to cut losses early if the algorithm abandons the objective."
+    ],
+    homework: "Assignment: Tape Reading. Replay a past trade. Note exactly how price reacted when it hit an opposing FVG."
+  },
+  22: {
+    title: "Episode 22: Identifying Traps",
+    rawText: "High impact news is a smoke screen. Initial aggressive spikes are almost always algorithmic traps designed to trap retail breakout artists.",
+    heading: "The Retail Trap",
+    p1: "The algorithm utilizes retail conventionality (trendlines, breakouts) to engineer liquidity pools.",
+    bullets: [
+      "Do not trade the immediate news candle.",
+      "The initial move runs into liquidity to trap buyers/sellers.",
+      "The true algorithmic reversal happens after the stops are purged."
+    ],
+    homework: "Assignment: News Traps. Review an NFP Friday. Annotate the initial trap spike and the subsequent true reversal."
+  },
+  23: {
+    title: "Episode 23: Reversals vs Retracements",
+    rawText: "A true shift in market structure requires energetic displacement. A lethargic break of a high/low is merely a retracement stop-run to continue the trend.",
+    heading: "Validating the Shift",
+    p1: "The visual signature of a true change in market structure is heavy-handed, one-sided price delivery.",
+    bullets: [
+      "Stop Run: Wicks through the level but fails to close heavily.",
+      "True MSS: Closes decisively with a large body and creates an FVG.",
+      "Context: Reversals happen at HTF arrays; retracements happen mid-range."
+    ],
+    homework: "Assignment: Wicks vs Bodies. Find a swing high that was broken by a wick (stop run) vs one broken by a heavy body (true shift)."
+  },
+  24: {
+    title: "Episode 24: Breaker Blocks",
+    rawText: "A Breaker Block is a failed Order Block. When price violently breaks through an established Order Block, it converts into a Breaker for trade execution.",
+    heading: "Failed Arrays & Breakers",
+    p1: "When an institution abandons a level, the resulting failed array becomes a highly sensitive execution zone.",
+    bullets: [
+      "Bullish Breaker: An old high that was swept, then broken downward.",
+      "It forms the center of a 'High, Lower Low, Higher High' pattern.",
+      "Price will return to the Breaker to mitigate positions."
+    ],
+    homework: "Assignment: Locate a Breaker. Find a High, Lower Low, Higher High sequence. Mark the up-close candle before the Lower Low."
+  },
+  25: {
+    title: "Episode 25: Mitigation Blocks",
+    rawText: "Similar to Breakers, Mitigation Blocks occur when price fails to make a higher high or lower low, creating a failure swing that institutions use to mitigate losses.",
+    heading: "Failure Swings & Mitigation",
+    p1: "Mitigation blocks lack the initial stop run of a Breaker. They represent a failure to sweep liquidity.",
+    bullets: [
+      "Forms from a Lower High or Higher Low.",
+      "Institutions use the return to the block to close underwater positions at break-even.",
+      "Provides excellent continuation entries."
+    ],
+    homework: "Assignment: Mitigation Identification. Find a failure swing (e.g., Lower High). Mark the down-close candle before the failure."
+  },
+  26: {
+    title: "Episode 26: Rejection Blocks",
+    rawText: "Rejection Blocks occur at the extremes of price action characterized by long wicks. Institutions accumulate positions inside the wick before price reverses.",
+    heading: "Trading the Wick Extreme",
+    p1: "Long wicks represent aggressive repricing. The body of the candle prior to the long wick forms the Rejection Block.",
+    bullets: [
+      "Bullish Rejection Block: The low of the candle body before a long downward wick.",
+      "Bearish Rejection Block: The high of the candle body before a long upward wick.",
+      "Price often returns to the Rejection Block before continuing."
+    ],
+    homework: "Assignment: Wick Sweeps. Find a long wick that swept liquidity. Mark the Rejection Block and observe the retest."
+  },
+  27: {
+    title: "Episode 27: Vacuum Blocks",
+    rawText: "Vacuum Blocks are opening gaps in price delivery, typically seen at the start of a new trading week. They represent extreme imbalances.",
+    heading: "Opening Gaps & Vacuums",
+    p1: "When the market opens with a significant gap, it creates a Vacuum Block. The algorithm will eventually seek to close this gap.",
+    bullets: [
+      "Represents a complete absence of trading at specific prices.",
+      "Acts identically to a Fair Value Gap.",
+      "Price is magnetically drawn to fill the vacuum."
+    ],
+    homework: "Assignment: Weekend Gaps. Look at a Sunday open on ES/NQ. Mark any opening gaps and track when they were filled."
+  },
+  28: {
+    title: "Episode 28: Order Block Theory",
+    rawText: "A high-probability Order Block is not just any down-closed candle. It must be accompanied by a Fair Value Gap and a clear shift in market structure.",
+    heading: "Validating Order Blocks",
+    p1: "The algorithm uses Order Blocks to 'block' price from going lower and accumulate longs. Validation requires strict criteria.",
+    bullets: [
+      "Must have an associated FVG immediately following it.",
+      "Must result in a Market Structure Shift (MSS).",
+      "Must align with the HTF draw on liquidity."
+    ],
+    homework: "Assignment: OB Qualification. Find a down-close candle that led to an up-move. Did it leave an FVG? If not, invalidate it."
+  },
+  29: {
+    title: "Episode 29: Fair Value Gaps Deep Dive",
+    rawText: "The FVG is the cornerstone of the 2022 model. It represents a specific price range offered only to one side of the market. The algorithm re-delivers price to ensure efficiency.",
+    heading: "The Re-Delivery Sequence",
+    p1: "Like a paint roller applied too fast, leaving an unpainted patch, the algorithm must 're-deliver' price to the FVG to close the inefficiency.",
+    bullets: [
+      "BISI: Buy-Side Imbalance, Sell-Side Inefficiency (Bullish FVG).",
+      "SIBI: Sell-Side Imbalance, Buy-Side Inefficiency (Bearish FVG).",
+      "Price returns to the FVG to offer the missing liquidity."
+    ],
+    homework: "Assignment: BISI/SIBI Labeling. Find one bullish FVG and label it BISI. Find one bearish FVG and label it SIBI."
+  },
+  30: {
+    title: "Episode 30: Liquidity Voids",
+    rawText: "Liquidity Voids are macro-scale inefficiencies created by extreme, multi-candle displacement. Price will often cascade through these voids to reach equilibrium.",
+    heading: "Macro Inefficiencies",
+    p1: "When news or heavy institutional selling creates consecutive, massive one-sided candles, it leaves a Liquidity Void.",
+    bullets: [
+      "Larger than a standard FVG.",
+      "Price will rapidly retrace through the void because there is no structural support.",
+      "Targets the origin of the displacement."
+    ],
+    homework: "Assignment: Void Cascades. Find a massive 4-candle drop caused by news. Observe how easily price rallied back through that void."
+  },
+  31: {
+    title: "Episode 31: Liquidity Pools",
+    rawText: "Liquidity Pools (BSL/SSL) are the external targets for the IPDA algorithm. The algorithm constantly seeks to pair institutional orders with retail stops.",
+    heading: "Engineering Liquidity",
+    p1: "Retail support and resistance concepts are weaponized by the algorithm to build Liquidity Pools.",
+    bullets: [
+      "Equal Highs / Equal Lows are prime algorithmic targets.",
+      "Retail traders view them as strong support/resistance.",
+      "The algorithm views them as a dense pool of resting stop-loss orders."
+    ],
+    homework: "Assignment: Equal Highs/Lows. Find a 'Double Top' or 'Double Bottom'. Annotate the algorithmic sweep of that retail pattern."
+  },
+  32: {
+    title: "Episode 32: Stop Runs",
+    rawText: "A stop run is the mechanical execution of the manipulation phase. By dropping price below an old low, the algorithm triggers sell-stops, allowing institutions to buy at a discount.",
+    heading: "The Mechanics of Manipulation",
+    p1: "The market must seek liquidity before it can expand. The stop run provides the fuel.",
+    bullets: [
+      "Occurs precisely at Killzone opens (e.g., 08:30 EST).",
+      "Characterized by a rapid wick through a key level.",
+      "Immediately followed by a structural shift in the opposite direction."
+    ],
+    homework: "Assignment: Killzone Stop Runs. Focus on 08:30 EST. Did price spike down to take out an old low before rallying for the day?"
+  },
+  33: {
+    title: "Episode 33: Equilibrium & Discount",
+    rawText: "Institutions refuse to buy at a Premium. We utilize the 50% Equilibrium midpoint of the dealing range to define the boundary between acceptable and prohibited execution zones.",
+    heading: "The 50% Midpoint Rule",
+    p1: "If you are bullish, you must wait for price to drop below the 50% Equilibrium of the current dealing range before executing.",
+    bullets: [
+      "Identify High to Low of the displacement wave.",
+      "Bisect exactly at 50%.",
+      "Executions above 50% for longs are strictly prohibited."
+    ],
+    homework: "Assignment: Equilibrium Enforcement. Pull a Fib on a daily dealing range. Erase the top 50%. Only look for long setups in the bottom half."
+  },
+  34: {
+    title: "Episode 34: Premium Arrays",
+    rawText: "For short-selling, the logic is inverted. Executions are only permitted in the Premium (upper 50%) of the range, specifically targeting FVGs or Order Blocks located there.",
+    heading: "Selling in a Premium",
+    p1: "Institutions sell at a premium to retail buyers. A Premium Array is a PD Array (OB, FVG, Breaker) located in the top 50% of the range.",
+    bullets: [
+      "Identify Low to High of the displacement wave.",
+      "Bisect at 50%.",
+      "Only execute short entries at arrays located in the Premium half."
+    ],
+    homework: "Assignment: Premium Arrays. Identify a bearish displacement. Locate a bearish FVG specifically in the top 50% (Premium) of that move."
+  },
+  35: {
+    title: "Episode 35: Risk Management",
+    rawText: "Strict systematic stop management protects equity. We employ the 50/75 rule: reducing risk as the trade progresses to systematically secure capital.",
+    heading: "The 50/75 Stop Protocol",
+    p1: "You must use the stop loss as a professional tool to limit liability and secure profits during the distribution phase.",
+    bullets: [
+      "When price reaches 50% of the target, reduce the stop by 25%.",
+      "When price reaches 75% of the target, move the stop to Break-Even.",
+      "Take partial profits at the 50% equilibrium of the dealing range."
+    ],
+    homework: "Assignment: Stop Math. In a paper trade, calculate your target distance. Mark the exact price level for 50% and 75% to move your stops."
+  },
+  36: {
+    title: "Episode 36: Trading Psychology",
+    rawText: "Professional operators act as a management company for losing trades. Drawdown is not a permanent loss; it is a 'Bank Loan' to the market that you will collect interest on.",
+    heading: "The Professional Loser",
+    p1: "The divide between an infantile gambler and a professional is defined entirely by adherence to protocol during a drawdown.",
+    bullets: [
+      "Infantile: Revenge trading to 'get back' losses.",
+      "Professional: Viewing losses as a business tax.",
+      "Protocol: Halve your risk after every losing trade (1% -> 0.5%)."
+    ],
+    homework: "Assignment: Psychology Check. Write down the Drawdown Reduction Protocol on a post-it note and tape it to your monitor."
+  },
+  37: {
+    title: "Episode 37: Journaling & Tracking",
+    rawText: "Subconscious trust in the algorithm is built through data collection. Journaling must be purely technical, utilizing 'Self-Talk' annotations on charts.",
+    heading: "Technical Self-Talk",
+    p1: "Avoid emotional venting in your journal. Train your brain to recognize repeating signatures through objective documentation.",
+    bullets: [
+      "Annotate charts with statements like: 'I expect a run below this low because we are in a premium.'",
+      "Log every trade with technical observations.",
+      "Remove negative self-labeling."
+    ],
+    homework: "Assignment: Annotation. Take a screenshot of a completed trade. Add 3 'Self-Talk' text boxes explaining the logic objectively."
+  },
+  38: {
+    title: "Episode 38: Prop Firm Funding",
+    rawText: "Passing a funded evaluation requires capital preservation over raw return. The 1% risk rule and drawdown protocols ensure survival through inevitable variance.",
+    heading: "The 12-Month Path",
+    p1: "Treat evaluations as an exercise in consistency, not a get-rich-quick sprint.",
+    bullets: [
+      "Backtesting (Discovery): Build subconscious trust.",
+      "Forward Testing (Desensitization): Paper trade to neutralize emotions.",
+      "Live Execution (Professionalism): Transition only after 6 months of consistency."
+    ],
+    homework: "Assignment: Evaluation Blueprint. Write down your specific rules for taking an evaluation (Max daily loss, Risk %, chosen Killzone)."
+  },
+  39: {
+    title: "Episode 39: Building Your Model",
+    rawText: "Synthesizing the concepts into the Master Execution Protocol: Bias, Time Filter, Displacement, Entry, and Targeting. Strict adherence prevents over-trading.",
+    heading: "The Master Execution Algorithm",
+    p1: "Your personalized model must check off every mechanical event before routing an order.",
+    bullets: [
+      "1. Bias: Midnight Open & HTF Draw.",
+      "2. Time: NY AM or PM Killzone.",
+      "3. Trigger: MSS & FVG in Discount/Premium.",
+      "4. Safety: 200 SMA validation."
+    ],
+    homework: "Assignment: Checklist Creation. Create a physical 4-step checklist based on the Master Protocol. Keep it next to your mouse."
+  },
+  40: {
+    title: "Episode 40: Execution & Consistency",
+    rawText: "If you cannot clearly define a lopsided probability for a setup, you must invoke Absolute Neutrality. Staying on the sidelines protects capital from low-probability chop.",
+    heading: "Absolute Neutrality",
+    p1: "The highest probability setup guarantees nothing on a trade-by-trade basis. If the market is confusing, do not force an execution.",
+    bullets: [
+      "If it's equally easy to argue for a bullish or bearish move, stand down.",
+      "Protecting capital is more important than catching every move.",
+      "Wait for the algorithm to clearly reveal its hand via displacement."
+    ],
+    homework: "Assignment: Forced Neutrality. Identify a chart that is currently chopping sideways. Force yourself to close the chart without trading."
+  },
+  41: {
+    title: "Episode 41: The Final Review",
+    rawText: "The 2022 Mentorship culminates in the application of the model. Algorithmic price action is predictable, but demands a sober-minded strategist with professional humility.",
+    heading: "Synthesizing the 2022 Model",
+    p1: "Success is the result of impeccable risk management and the patience to allow the algorithm to deliver its scripted expansion.",
+    bullets: [
+      "Respect the Power of 3.",
+      "Wait for the Killzones.",
+      "Demand the FVG.",
+      "Manage risk like a Professional Loser."
+    ],
+    homework: "Final Assignment: Complete Trading Model Blueprint. Combine all your previous assignments into a single, cohesive Trading Plan document."
   }
+};
 
-  // Episode 1
-  if (epNum === 1) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
-    rawText: "Liquidity acts as the ultimate fuel for institutional algorithms. Large banks cannot simply press a button to buy massive block orders without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers. Where do they find them? Right below established support levels, where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these stop-loss clusters to absorb that liquidity, pairing their massive buy orders with the triggered retail sell orders.",
-    homework: homework,
+const courseData = Object.keys(lessonDatabase).map((key) => {
+  const epNum = parseInt(key);
+  const data = lessonDatabase[key];
+  const officialPlaylist = "https://www.youtube.com/playlist?list=PLVgHx4Z63paYiFGQ56PjTF1PGePL3r69s";
+
+  return {
+    id: `ep${epNum}`,
+    title: data.title,
+    videoUrl: officialPlaylist,
+    rawText: data.rawText,
+    homework: data.homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Liquidity acts as the ultimate fuel for the Interbank Price Delivery Algorithm (IPDA). To understand market movement, you must first understand how large institutions execute block orders.</p>
+        <p>Welcome to <strong>{data.title}</strong>.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Counter-Party Requirement & Technical Science</h4>
-          <p>Large banks cannot simply buy massive quantities of an asset without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers.</p>
+          <h4 className="text-xl font-bold text-white mb-2">{data.heading}</h4>
+          <p>{data.p1}</p>
           <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li><strong>Buy Side Liquidity (BSL):</strong> A pool of buy stop orders resting above old highs; used by smart money to exit long positions or enter short.</li>
-            <li><strong>Sell Side Liquidity (SSL):</strong> A pool of sell stop orders resting below old lows; used by smart money to exit short positions or enter long.</li>
-          </ul>
-        </div>
-
-        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: SELL-SIDE LIQUIDITY SWEEP</div>
-          <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-            <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
-            <text x="50" y="220" fill="#ef4444" fontSize="14" fontWeight="bold">Retail Support (Resting Sell-Stops)</text>
-            <Candle x={100} o={100} c={150} h={80} l={160} />
-            <Candle x={140} o={150} c={180} h={140} l={190} />
-            <Candle x={180} o={180} c={140} h={130} l={190} />
-            <Candle x={300} o={160} c={190} h={150} l={200} />
-            <Candle x={380} o={120} c={170} h={100} l={180} />
-            <Candle x={420} o={170} c={250} h={160} l={260} />
-            <Candle x={460} o={250} c={150} h={140} l={260} />
-            <circle cx="420" cy="260" r="15" fill="none" stroke="#eab308" strokeWidth="3" />
-            <text x="440" y="265" fill="#eab308" fontSize="14" fontWeight="bold">Liquidity Purge / Stop Run</text>
-          </svg>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 2
-  if (epNum === 2) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s",
-    rawText: "How do we confirm the algorithm has finished sweeping liquidity and is initiating a true reversal? We look for institutional displacement, categorized as a Market Structure Shift. This is characterized by highly energetic, large-range candles that decisively break through the nearest opposing swing high or swing low. It is the visible footprint of institutional money entering the market with urgency.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>A liquidity sweep alone is not a valid trade signal. We must differentiate between a stop run that continues the trend and a genuine shift that indicates a reversal.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Displacement & Market Structure</h4>
-          <p><strong>Displacement</strong> is a sudden, energetic move in price characterized by large candles, indicating institutional pressure and often leaving behind an imbalance.</p>
-          <p className="mt-3">To identify a valid shift, we look for energetic displacement breaking an <strong>Intermediate-Term High (ITH)</strong>. An ITH is defined as a swing high that has a lower short-term high to its immediate left and another lower short-term high to its immediate right. Alternatively, a swing high that forms specifically when an imbalance is rebalanced is also classified as an intermediate-term high.</p>
-        </div>
-
-        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: DISPLACEMENT & MARKET STRUCTURE SHIFT</div>
-          <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
-            <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
-            <line x1="50" y1="120" x2="550" y2="120" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" />
-            <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">Intermediate-Term High (MSS Trigger)</text>
-            <Candle x={180} o={160} c={120} h={110} l={170} />
-            <Candle x={300} o={220} c={280} h={210} l={290} /> 
-            <Candle x={340} o={280} c={180} h={170} l={290} /> 
-            <Candle x={380} o={180} c={80} h={70} l={190} /> 
-            <rect x="360" y="60" width="80" height="140" fill="none" stroke="#10b981" strokeWidth="3" rx="10" />
-            <text x="450" y="120" fill="#10b981" fontSize="16" fontWeight="bold">Displacement Wave (MSS)</text>
-          </svg>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 3
-  if (epNum === 3) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1400s",
-    rawText: "When institutional displacement occurs, the speed of the price action frequently leaves behind a pricing inefficiency known as a Fair Value Gap. This is a three-candle sequence where the wicks of the first and third candles fail to overlap, creating a vacuum of unfulfilled orders. The algorithm seeks equilibrium, meaning price will naturally gravitate back to this inefficiency to properly offer both buy and sell liquidity at those price levels.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>When heavy displacement occurs, the resulting price action is often so rapid that it causes a breakdown in the normal bid-ask delivery process.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Imbalance-Rebalance Loop</h4>
-          <p><strong>Fair Value Gap (FVG):</strong> An imbalance in price delivery where a specific price range is only traded through by one candle, leaving a gap between the previous candle's wick and the following candle's wick.</p>
-          <p className="mt-3"><strong>High-Probability Order Blocks:</strong> A high-probability Bullish Order Block is not merely a down-closed candle; it must be accompanied by an FVG and a clear shift in market structure. Furthermore, the underlying market narrative must support higher prices, meaning the order block should form as the market reaches for buy-side liquidity.</p>
-        </div>
-
-        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE FAIR VALUE GAP (FVG)</div>
-          <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
-            <Candle x={150} o={250} c={200} h={180} l={260} />
-            <text x="135" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 1</text>
-            <line x1="150" y1="180" x2="350" y2="180" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
-            
-            <Candle x={250} o={200} c={60} h={50} l={210} />
-            <text x="235" y="280" fill="#10b981" fontSize="14" fontWeight="bold">Candle 2</text>
-
-            <Candle x={350} o={60} c={40} h={30} l={100} />
-            <text x="335" y="280" fill="#94a3b8" fontSize="14" fontWeight="bold">Candle 3</text>
-            <line x1="350" y1="100" x2="450" y2="100" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5,5" />
-
-            <rect x="150" y="100" width="200" height="80" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
-            <text x="160" y="145" fill="#a5b4fc" fontSize="16" fontWeight="bold">Price Inefficiency (FVG)</text>
-          </svg>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 4
-  if (epNum === 4) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
-    rawText: "To enhance the execution safety of the ICT model, we bridge it with Oliver Velez methodology by applying a 200 Simple Moving Average (SMA). The 200 SMA acts as a definitive macro trend baseline. We never initiate positions contrary to the slope of this average. Furthermore, execution requires an ignition candle—a solid continuation bar forming off the SMA within the bounds of our Fair Value Gap.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Locating an inefficiency is only half the battle. We must implement rigid filters to prevent executing into adverse momentum.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-eab308/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Velez Macro Baseline</h4>
-          <p>We integrate the <strong>200 Simple Moving Average (SMA)</strong> as our primary trend filter. Note the strict reliance on Simple, not Exponential, moving averages.</p>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li>If the 200 SMA slope is ascending, we only authorize long executions.</li>
-            <li>If the 200 SMA slope is declining, we only authorize short executions.</li>
-          </ul>
-          <p className="mt-3">Upon price retracing into our designated FVG, we mandate the formation of a <strong>Velez Ignition Candle</strong> (a definitive continuation bar) pushing away from the SMA as final entry confirmation.</p>
-        </div>
-
-        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE 200 SMA & IGNITION CONFIRMATION</div>
-          <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
-            <path d="M 50 250 Q 300 200 550 50" fill="none" stroke="#eab308" strokeWidth="4" />
-            <text x="50" y="270" fill="#fde047" fontSize="14" fontWeight="bold">200 SMA (Ascending Baseline)</text>
-            <rect x="230" y="100" width="100" height="60" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="2" />
-            <text x="340" y="130" fill="#a5b4fc" fontSize="14" fontWeight="bold">FVG Zone</text>
-            <Candle x={100} o={40} c={70} h={30} l={80} />
-            <Candle x={150} o={70} c={110} h={60} l={120} />
-            <Candle x={200} o={110} c={150} h={100} l={160} />
-            <Candle x={250} o={150} c={130} h={120} l={160} /> 
-            <Candle x={300} o={130} c={60} h={50} l={140} /> 
-            <text x="320" y="70" fill="#10b981" fontSize="14" fontWeight="bold">Ignition Confirmation</text>
-          </svg>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 5
-  if (epNum === 5) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=kmVXVJE08eQ&t=600s",
-    rawText: "Institutional volume is strictly bound to time. The foundational framework for daily algorithmic delivery is Accumulation, Manipulation, and Distribution (AMD). During illiquid hours, algorithms accumulate positions within a consolidation range. Approaching high-volume opens, they manipulate price counter to the true daily bias to capture stop liquidity. Following this sweep, they aggressively distribute positions toward the true target during predefined Killzones.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Order flow is irrelevant if executed outside of proper timing parameters. Algorithmic volatility adheres to predictable daily cycles known as the <strong>Power of 3 (AMD)</strong>.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Power of 3 & The Judas Swing</h4>
-          <p><strong>Accumulation:</strong> Occurs during low-volume overnight sessions. Price consolidates tightly as algorithms passively establish baseline positioning.</p>
-          <p><strong>Manipulation (Judas Swing):</strong> A deceptive price move in the opposite direction of the actual daily bias, intended to trigger stops and lure retail traders onto the wrong side of the market. It typically manifests as a rally above the Midnight opening price on a bearish day or a drop below it on a bullish day.</p>
-          <p><strong>Distribution:</strong> The true directional expansion. Having secured necessary liquidity, price displaces rapidly toward primary targets. This expansion defines our targeted execution window, specifically aligning with the <strong>8:30 AM News Embargo</strong> lift, which acts as a catalyst for volatility.</p>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 6
-  if (epNum === 6) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=wXwG_uM4Q3k&t=300s",
-    rawText: "Institutions operate entirely on wholesale pricing models; they fundamentally refuse to accumulate inventory at premium valuations. Using standard Fibonacci retracement parameters mapped across the displacement range, we bisect price into Premium and Discount territories. Executions are strictly limited to the Discount matrix for long positions, with the Optimal Trade Entry (OTE) calibrated between the 62% and 79% retracement levels.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Retail participants frequently buy assets after an extended uptrend, purchasing at retail or "Premium" prices. Institutions operate on a strictly wholesale basis.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Discount, Premium & Technical Science</h4>
-          <p>By mapping a Fibonacci tool from the highest and lowest bodies (open/close) within a specific swing, we can calculate equitable pricing zones. We mathematically bisect this range:</p>
-          <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
-            <li><strong>Premium:</strong> A market condition where price is above the 50% equilibrium of a recent range; the ideal zone for selling.</li>
-            <li><strong>Discount:</strong> A market condition where price is below the 50% equilibrium of a recent range; the ideal area for seeking long entries.</li>
-          </ul>
-        </div>
-
-        <p>Precision execution requires targeting the <strong>Optimal Trade Entry (OTE)</strong>, which resides specifically between the <strong>62% and 79%</strong> retracement levels deep within the Discount matrix.</p>
-
-        <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
-          <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: OPTIMAL TRADE ENTRY MATRIX</div>
-          <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-            <rect x="150" y="200" width="300" height="40" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="1" />
-            <line x1="100" y1="200" x2="500" y2="200" stroke="#60a5fa" strokeWidth="1" />
-            <text x="100" y="195" fill="#60a5fa" fontSize="10">62% Retracement</text>
-            <line x1="100" y1="220" x2="500" y2="220" stroke="#3b82f6" strokeWidth="2" />
-            <text x="100" y="215" fill="#3b82f6" fontSize="10" fontWeight="bold">70.5% (OTE Sweet Spot)</text>
-            <line x1="100" y1="240" x2="500" y2="240" stroke="#60a5fa" strokeWidth="1" />
-            <text x="100" y="235" fill="#60a5fa" fontSize="10">79% Retracement</text>
-
-            <Candle x={180} o={280} c={180} h={170} l={290} />
-            <Candle x={210} o={180} c={80} h={70} l={190} />
-            <Candle x={240} o={80} c={30} h={20} l={90} />
-            
-            <Candle x={270} o={30} c={100} h={20} l={110} />
-            <Candle x={300} o={100} c={170} h={90} l={180} />
-            <Candle x={330} o={170} c={220} h={160} l={230} /> 
-            <Candle x={360} o={220} c={140} h={130} l={230} /> 
-            
-            <text x={375} y={225} fill="#bfdbfe" fontSize="14" fontWeight="bold">Execution Zone</text>
-          </svg>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 7
-  if (epNum === 7) return {
-    id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=CnTXwAuDi9Y&t=120s",
-    rawText: "The technical framework is irrelevant without stringent capital preservation protocols. Variance guarantees that flawless setups will routinely result in losses. Professional execution requires divorcing emotion from individual outcomes through strict mathematical limitations. Exposure is universally capped at a maximum of 1% total account equity per configuration, with invalidation stops rigidly placed beneath the structural origin of the displacement wave.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>The highest probability setup guarantees nothing on a trade-by-trade basis. Survival and profitability in algorithmic trading hinge entirely on rigid capital preservation and viewing drawdown as a temporary loan to the market.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-red-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Systematic Risk & Trade Management</h4>
-          <p>Professional operators function on statistical edges across a broad sample size, anticipating failure in a percentage of executions. Consequently, maximum risk exposure and stop management are aggressively restricted.</p>
-          <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
-            <li><strong>Drawdown Mitigation:</strong> After a loss, a trader must reduce their risk by half (e.g., from 1% to 0.5%) for the next trade to manage psychological impact. Risk only returns to the full percentage once 50% of the previous loss is recovered.</li>
-            <li><strong>The 50/75 Stop Rule:</strong> Once price has moved 50% of the way to the target, the stop can be reduced by 25%. When price reaches 75% of the expected range from entry to target, the stop must be moved to the break-even point.</li>
-            <li><strong>Absolute Neutrality:</strong> If a trader cannot clearly define a lopsided probability, they must remain neutral. Staying on the sidelines protects capital from low-probability chop.</li>
+            {data.bullets.map((bullet, i) => (
+              <li key={i}>{bullet}</li>
+            ))}
           </ul>
         </div>
       </div>
     )
   };
-
-  // Episodes 8-10: Foundational Architecture & Opening Prices
-  if (epNum >= 8 && epNum <= 10) return {
-    id: `ep${epNum}`, title, videoUrl: officialPlaylist,
-    rawText: "The daily range is not a product of random buying and selling, but a scripted expansion. By submitting to the daily range’s structural requirements, a professional identifies the opening price as the pivot where the algorithm begins its work. Successful navigation requires understanding how price interacts with the Midnight and 08:30 EST opens to determine the daily bias before the expansion ensues.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Welcome to <strong>{title}</strong>. The bedrock of algorithmic price delivery is the "Power of 3" (Accumulation, Manipulation, Distribution) and its intersection with specific opening price levels.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Opening Prices & The Economic Catalyst</h4>
-          <p>The relationship between the <strong>Midnight Open</strong> and the <strong>08:30 EST Open</strong> dictates the daily bias. For a bearish model, a professional expects a rally above these levels to accumulate shorts.</p>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li><strong>Opening Range Mathematics:</strong> Identify the distance from the Opening Price to the high of the Judas Swing. Project that same distance below the opening price to find where the algorithm will likely seek efficiency.</li>
-            <li><strong>Close Proximity Entries:</strong> If the trader misses the initial Judas Swing, they must look for setups forming just below the opening price as the algorithm begins its distribution phase.</li>
-          </ul>
-        </div>
-      </div>
-    )
-  };
-
-  // Episodes 11-20: Advanced Precision & Market Structure Hierarchy
-  if (epNum >= 11 && epNum <= 20) return {
-    id: `ep${epNum}`, title, videoUrl: officialPlaylist,
-    rawText: "Market structure is a technical science based on the hierarchy of swings and institutional order flow. It moves beyond the myopic retail view of 'higher highs' into a study of how the algorithm re-delivers price to ensure efficiency. Price swings are categorized by their role in the institutional narrative: Long-Term, Intermediate-Term, and Short-Term Highs and Lows.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Welcome to <strong>{title}</strong>. This module focuses on the transition from foundational mechanics into precise algorithmic execution using the 2022 Model.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Hierarchy of Swings</h4>
-          <p>Price swings are explicitly categorized by their role in the institutional narrative:</p>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li><strong>Long-Term Highs/Lows (LTH/LTL):</strong> Anchored to Higher Time Frame (HTF) objectives and daily chart liquidity pools. These are the ultimate algorithmic targets.</li>
-            <li><strong>Intermediate-Term Highs/Lows (ITH/ITL):</strong> These form the "ground truth" of market momentum. An ITH is formed when a high is flanked by two lower short-term highs, OR whenever an imbalance is successfully rebalanced.</li>
-            <li><strong>Short-Term Highs/Lows (STH/STL):</strong> Immediate swing points that serve as internal liquidity.</li>
-          </ul>
-        </div>
-      </div>
-    )
-  };
-
-  // Episodes 21-30: Intermarket Narrative & SMT Divergence
-  if (epNum >= 21 && epNum <= 30) return {
-    id: `ep${epNum}`, title, videoUrl: officialPlaylist,
-    rawText: "The execution model relies heavily on Correlated Asset Divergence to confirm that smart money is actively supporting or capping a move. Smart Money Technique, or SMT, occurs when correlated indices fail to make symmetrical highs or lows. This cracked correlation reveals institutional heavy-handedness and dramatically increases trade probability.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Welcome to <strong>{title}</strong>. Precision execution requires confirming that heavy-handed institutional intervention is driving the market.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Smart Money Technique (SMT)</h4>
-          <p>SMT divergence is the ultimate validation tool for a stop-run. It occurs when correlated assets (e.g., ES and NQ) fail to confirm each other's price action.</p>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li>If the S&P 500 (ES) makes a lower low, but the Nasdaq (NQ) fails to make a lower low, NQ is the "leader" and is being supported by smart money accumulation.</li>
-            <li>This divergence proves the initial drop was a manipulation phase (Judas Swing) rather than a true structural breakdown.</li>
-          </ul>
-        </div>
-      </div>
-    )
-  };
-
-  // Episodes 31-40: Temporal Boundaries, MOC Profiles & AM/PM Sessions
-  if (epNum >= 31 && epNum <= 40) return {
-    id: `ep${epNum}`, title, videoUrl: officialPlaylist,
-    rawText: "The New York session is divided into temporal boundaries that dictate algorithmic behavior and the completion of the daily range. High-probability conditions require strict adherence to the Killzones and avoiding the Lunch Hour void. The PM session acts as the second leg of expansion or a reversal to clean remaining liquidity.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Welcome to <strong>{title}</strong>. Order flow cannot be analyzed in a vacuum; it is strictly bound to algorithmic time windows.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Temporal Boundaries & Market On Close</h4>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li><strong>Lunch Hour (12:00–13:00 EST):</strong> A period for observation, not participation. No new positions are permitted. Monitor for stop-runs that prepare the PM session move.</li>
-            <li><strong>PM Session (13:30–16:00 EST):</strong> Acts as the secondary distribution phase, either continuing the AM trend or reversing to rebalance the morning's delivery.</li>
-            <li><strong>Market On Close (MOC) Profiles:</strong> On Fridays, the MOC profile triggers "Position Squaring." Institutions close weekly positions, often creating a rapid retracement back into the weekly range toward the 50% Equilibrium level right before the bell.</li>
-          </ul>
-        </div>
-      </div>
-    )
-  };
-
-  // Episode 41: Master Risk Protocol & The Professional Loser
-  if (epNum === 41) return {
-    id: `ep${epNum}`, title, videoUrl: officialPlaylist,
-    rawText: "In algorithmic trading, you must operate as a 'Professional Loser.' Trading is a management company for losing trades; drawdowns are merely a tax on success. The psychological divide between an infantile gambler and a professional speculator is defined entirely by adherence to strict risk management protocols and the understanding that drawdown is a bank loan you will collect interest on over time.",
-    homework: homework,
-    content: (
-      <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>Welcome to <strong>{title}</strong>. Technical precision is a severe liability without the underpinning of institutional-grade risk management.</p>
-        
-        <div className="bg-slate-800 p-6 rounded-xl border border-red-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Professional Loser Mindset</h4>
-          <p>You must shift your psychology to view drawdown not as failure, but as a "Bank Loan" provided to the market that you will collect back with interest through disciplined execution.</p>
-          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
-            <li><strong>Drawdown Reduction Protocol:</strong> If a loss occurs, you must halve your risk for the next trade (e.g., 1% drops to 0.5%). This mechanically halts the emotional "revenge trading" cycle.</li>
-            <li><strong>Systematic Stop Management:</strong> Reduce your stop loss by 25% once price reaches 50% of the profit target. Move the stop loss to Breakeven once 75% of the target is achieved.</li>
-            <li><strong>Absolute Neutrality:</strong> If you cannot clearly define a lopsided probability (e.g., it is equally easy to argue for a bullish or bearish outcome), you must remain neutral to protect capital from erratic chop.</li>
-          </ul>
-        </div>
-      </div>
-    )
-  };
-
 });
 
 export default function App() {
@@ -453,10 +569,11 @@ export default function App() {
 
   const [auditImage, setAuditImage] = useState(null);
   const [auditImageName, setAuditImageName] = useState('');
+  // Enforcing user preference: 3 column pro layout is standard, SMA only (no EMA).
   const [checklist, setChecklist] = useState({ liquiditySweep: false, mss: false, fvgEntry: false, nyKillzone: false, sma200Check: false });
 
   const [journalNote, setJournalNote] = useState('');
-  const [journalSetupType, setJournalSetupType] = useState('ICT 2022 Model + Velez Filter');
+  const [journalSetupType, setJournalSetupType] = useState('ICT 2022 Model + Velez SMA Filter');
   const [savedJournals, setSavedJournals] = useState([]);
   const [savingJournal, setSavingJournal] = useState(false);
 
@@ -466,7 +583,7 @@ export default function App() {
     { id: 1, term: "Liquidity", definition: "Other people's money. Resting stop-losses." },
     { id: 2, term: "MSS", definition: "Market Structure Shift. Violent displacement breaking a swing point." },
     { id: 3, term: "FVG", definition: "Fair Value Gap. 3-candle sequence inefficiency." },
-    { id: 4, term: "200 SMA", definition: "The Trend River. Only execute with the SMA slope." }
+    { id: 4, term: "200 SMA", definition: "The Trend River. Only execute with the SMA slope. Never EMA." }
   ]);
 
   const [quizStarted, setQuizStarted] = useState(false);
@@ -716,7 +833,7 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 w-full mx-auto max-w-[1600px]">
-        {/* TAB 1: Masterclass (3 Column Pro Layout) */}
+        {/* TAB 1: Masterclass (3 Column Pro Layout requirement) */}
         {activeTab === 1 && (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             
@@ -728,7 +845,7 @@ export default function App() {
                   {courseData.map((lesson) => (
                     <button key={lesson.id} onClick={() => { setActiveLessonId(lesson.id); setLessonAiResponse(''); setLessonAiPrompt(''); }}
                       className={`w-full text-left p-4 rounded-xl border transition flex justify-between items-center ${activeLessonId === lesson.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-indigo-500/50 hover:text-slate-200'}`}>
-                      <div className="font-semibold text-sm pr-2">{lesson.title}</div>
+                      <div className="font-semibold text-sm pr-2 truncate">{lesson.title}</div>
                       {activeLessonId === lesson.id && <ArrowRight size={16} className="shrink-0"/>}
                     </button>
                   ))}
