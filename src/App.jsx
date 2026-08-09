@@ -336,22 +336,24 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {/* Tab 1: Curriculum & Direct YouTube Links */}
+        {/* Tab 1: Fully Restored Robust Curriculum Content */}
         {activeTab === 1 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Core Curriculum</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Robust Core Curriculum</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Module 1 */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 1-10 Foundations</span>
                 <h3 className="text-xl font-bold">Module 1: Foundational Mechanics & Liquidity</h3>
-                <p className="text-slate-400 text-sm">Master institutional order flow language, liquidity pools (BSL/SSL), and Asia session high/low framing.</p>
-                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
-                  <div>• Identifying internal vs external range liquidity.</div>
-                  <div>• Marking Tokyo Asia session boundaries.</div>
-                  <div>• Understanding market structure shifts (MSS).</div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Master the foundational language of institutional order flow. This module establishes how interbank price delivery algorithms dictate the daily trading range by targeting resting liquidity pools (Buy-Side and Sell-Side Liquidity) and framing overnight consolidation boxes during the Tokyo Asia session.
+                </p>
+                <div className="text-xs text-slate-300 bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+                  <strong className="text-indigo-300 block mb-1 font-semibold">Comprehensive Core Objectives:</strong>
+                  <div>• Identifying internal range liquidity (FVGs, old highs/lows) vs external range liquidity (daily/weekly highs & lows).</div>
+                  <div>• Marking Tokyo Asia session high and low boundaries to anticipate overnight accumulation boxes.</div>
+                  <div>• Recognizing Market Structure Shifts (MSS) on lower timeframes as confirmation of institutional intent.</div>
                 </div>
                 
                 <a 
@@ -374,7 +376,7 @@ export default function App() {
 
                 <button 
                   onClick={() => toggleModuleCompletion('m1')}
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold transition ${
                     completedModules.m1 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                   }`}
                 >
@@ -386,12 +388,14 @@ export default function App() {
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 11-20 Execution</span>
                 <h3 className="text-xl font-bold">Module 2: Order Block Science & Killzones</h3>
-                <p className="text-slate-400 text-sm">Master high-probability Order Blocks across Asia, London, and New York killzones.</p>
-                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
-                  <div>• Defining valid order blocks with mitigation rules.</div>
-                  <div>• Timing London open sweeps of Asia extremes.</div>
-                  <div>• Executing off 15-minute Fair Value Gaps.</div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Bridge theory to live execution by mastering high-probability Order Blocks and Fair Value Gaps. Learn how institutional algorithms re-deliver price into discount or premium arrays specifically inside timed London and New York Killzone windows.
+                </p>
+                <div className="text-xs text-slate-300 bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+                  <strong className="text-indigo-300 block mb-1 font-semibold">Comprehensive Core Objectives:</strong>
+                  <div>• Defining valid order blocks using strict mitigation and displacement criteria.</div>
+                  <div>• Timing London open sweeps of Asia extremes to catch high-reward reversal expansions.</div>
+                  <div>• Executing precise entries off 15-minute and 5-minute Fair Value Gaps (FVGs) with tight risk parameters.</div>
                 </div>
 
                 <a 
@@ -414,7 +418,7 @@ export default function App() {
 
                 <button 
                   onClick={() => toggleModuleCompletion('m2')}
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold transition ${
                     completedModules.m2 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                   }`}
                 >
@@ -426,12 +430,14 @@ export default function App() {
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 21-30 Tape Reading</span>
                 <h3 className="text-xl font-bold">Module 3: Tape Reading & Rebalance Theory</h3>
-                <p className="text-slate-400 text-sm">Deep dive into live market tape reading, handling consolidation vs expansion days, and afternoon PM session sweeps.</p>
-                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
-                  <div>• Recognizing institutional distribution signatures.</div>
-                  <div>• Managing afternoon PM session liquidity windows.</div>
-                  <div>• Avoiding low-probability midday chop zones.</div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Develop advanced tape-reading skills to interpret live market momentum. Understand how to differentiate true institutional expansion days from tedious consolidation profiles, and navigate afternoon PM session liquidity windows with confidence.
+                </p>
+                <div className="text-xs text-slate-300 bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+                  <strong className="text-indigo-300 block mb-1 font-semibold">Comprehensive Core Objectives:</strong>
+                  <div>• Recognizing subtle institutional distribution signatures on lower timeframes.</div>
+                  <div>• Managing afternoon PM session liquidity sweeps and market-on-close (MOC) imbalances.</div>
+                  <div>• Avoiding low-probability midday chop zones by respecting institutional time templates.</div>
                 </div>
 
                 <a 
@@ -454,7 +460,7 @@ export default function App() {
 
                 <button 
                   onClick={() => toggleModuleCompletion('m3')}
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold transition ${
                     completedModules.m3 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                   }`}
                 >
@@ -466,12 +472,14 @@ export default function App() {
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 31-41 Mastery</span>
                 <h3 className="text-xl font-bold">Module 4: IPDA Algorithmic Theory & Risk Control</h3>
-                <p className="text-slate-400 text-sm">Master intraday market profiles, IPDA 3:00 PM Market On Close (MOC) mechanics, and risk parameters.</p>
-                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
-                  <div>• Interbank Price Delivery Algorithm (IPDA) lookback periods.</div>
-                  <div>• Managing fixed fractional risk per setup.</div>
-                  <div>• Psychological discipline during drawdown streaks.</div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Synthesize the complete Interbank Price Delivery Algorithm (IPDA). This module covers multi-day historical lookback profiles, robust position sizing protocols, and psychological armor required to sustain long-term consistency.
+                </p>
+                <div className="text-xs text-slate-300 bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+                  <strong className="text-indigo-300 block mb-1 font-semibold">Comprehensive Core Objectives:</strong>
+                  <div>• Calculating 20, 40, and 60-day IPDA lookback reference points.</div>
+                  <div>• Implementing strict fixed-fractional risk management rules to survive consecutive loss streaks.</div>
+                  <div>• Maintaining peak psychological discipline and avoiding revenge trading during market drawdowns.</div>
                 </div>
 
                 <a 
@@ -494,7 +502,7 @@ export default function App() {
 
                 <button 
                   onClick={() => toggleModuleCompletion('m4')}
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold transition ${
                     completedModules.m4 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                   }`}
                 >
@@ -508,15 +516,17 @@ export default function App() {
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
               <span className="text-xs text-indigo-400 font-semibold uppercase">Special Topic Silver Bullet</span>
               <h3 className="text-xl font-bold">Bonus Module: ICT Silver Bullet & OV Momentum Hybrid</h3>
-              <p className="text-slate-400 text-sm">The simplified, 1-hour time-based algorithmic strategy combined with Oliver Velez visual confirmation triggers and 200 SMA slope alignment.</p>
-              <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                <strong className="text-indigo-300">Core Lesson Objectives:</strong>
-                <div>• London and New York 1-hour Silver Bullet windows.</div>
-                <div>• Combining FVG liquidity magnets with Velez ignition pulses.</div>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                A streamlined, high-probability execution model combining 1-hour time-based algorithmic windows with Oliver Velez visual momentum confirmation triggers and 200 Simple Moving Average (SMA) slope alignment.
+              </p>
+              <div className="text-xs text-slate-300 bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
+                <strong className="text-indigo-300 block mb-1 font-semibold">Comprehensive Core Objectives:</strong>
+                <div>• Exploiting the London and New York 1-hour Silver Bullet liquidity delivery windows.</div>
+                <div>• Marrying ICT Fair Value Gap magnets with Oliver Velez Green/Red ignition candles.</div>
               </div>
               <button 
                 onClick={() => toggleModuleCompletion('bonus')}
-                className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                className={`w-full py-2.5 rounded-lg text-xs font-semibold transition ${
                   completedModules.bonus ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                 }`}
               >
@@ -526,14 +536,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Oliver Velez & SMA Bridge (Upgraded with Real-World Execution Examples) */}
+        {/* Tab 2: Oliver Velez & SMA Bridge */}
         {activeTab === 2 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><Cpu className="text-indigo-400"/> Oliver Velez & 200 SMA Visual Momentum Bridge</h2>
             
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
               <h3 className="text-lg font-bold text-indigo-300">Platform Intent & Explanation</h3>
-              <p className="text-slate-300 text-sm">
+              <p className="text-slate-300 text-sm leading-relaxed">
                 ICT frameworks provide the <strong>institutional map</strong> (where algorithms target liquidity across Asia, London, and New York), while Oliver Velez momentum rules provide the <strong>visual trigger</strong> (using the 200 SMA slope and ignition candles to enter safely). Tab 2 bridges these two systems so you never enter a liquidity trap blindly.
               </p>
               
