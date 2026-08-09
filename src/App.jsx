@@ -46,7 +46,23 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [progress, setProgress] = useState(0);
+
+  // Fixed Progress Tracking state (Prevents button spamming bug)
+  const [completedModules, setCompletedModules] = useState({
+    m1: false,
+    m2: false,
+    m3: false,
+    m4: false,
+    bonus: false
+  });
+
+  const toggleModuleCompletion = (key) => {
+    setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const progress = Math.round(
+    (Object.values(completedModules).filter(Boolean).length / 5) * 100
+  );
 
   // AI states
   const [aiPrompt, setAiPrompt] = useState('');
@@ -209,7 +225,7 @@ export default function App() {
     }
   };
 
-  // Multimodal Gemini API call (supports both text and uploaded chart images)
+  // Multimodal Gemini API call
   const callGemini = async (promptText) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
@@ -324,18 +340,24 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {/* Tab 1: Curriculum & Embedded Video Players with Timestamps */}
+        {/* Tab 1: Curriculum & Embedded Video Players with Full Content */}
         {activeTab === 1 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Embedded Video Players</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Core Curriculum</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Module 1 */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 1-10 Foundations</span>
                 <h3 className="text-xl font-bold">Module 1: Foundational Mechanics & Liquidity</h3>
                 <p className="text-slate-400 text-sm">Master institutional order flow language, liquidity pools (BSL/SSL), and Asia session high/low framing.</p>
-                
-                {/* Embedded YouTube Player with Timestamp */}
-                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
+                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
+                  <div>• Identifying internal vs external range liquidity.</div>
+                  <div>• Marking Tokyo Asia session boundaries.</div>
+                  <div>• Understanding market structure shifts (MSS).</div>
+                </div>
+                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
                   <iframe 
                     className="w-full h-full"
                     src="https://www.youtube.com/embed/bx89qkJ_LR4?start=840&end=1500" 
@@ -345,20 +367,27 @@ export default function App() {
                   ></iframe>
                 </div>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
+                  onClick={() => toggleModuleCompletion('m1')}
+                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                    completedModules.m1 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  }`}
                 >
-                  Mark Module Complete (+20%)
+                  {completedModules.m1 ? '✓ Module 1 Completed' : 'Mark Module 1 Complete'}
                 </button>
               </div>
 
+              {/* Module 2 */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 11-20 Execution</span>
                 <h3 className="text-xl font-bold">Module 2: Order Block Science & Killzones</h3>
                 <p className="text-slate-400 text-sm">Master high-probability Order Blocks across Asia, London, and New York killzones.</p>
-                
-                {/* Embedded YouTube Player with Timestamp */}
-                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
+                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
+                  <div>• Defining valid order blocks with mitigation rules.</div>
+                  <div>• Timing London open sweeps of Asia extremes.</div>
+                  <div>• Executing off 15-minute Fair Value Gaps.</div>
+                </div>
+                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
                   <iframe 
                     className="w-full h-full"
                     src="https://www.youtube.com/embed/bx89qkJ_LR4?start=1800&end=2400" 
@@ -368,47 +397,88 @@ export default function App() {
                   ></iframe>
                 </div>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
+                  onClick={() => toggleModuleCompletion('m2')}
+                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                    completedModules.m2 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  }`}
                 >
-                  Mark Module Complete (+20%)
+                  {completedModules.m2 ? '✓ Module 2 Completed' : 'Mark Module 2 Complete'}
                 </button>
               </div>
 
+              {/* Module 3 */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 21-30 Tape Reading</span>
                 <h3 className="text-xl font-bold">Module 3: Tape Reading & Rebalance Theory</h3>
                 <p className="text-slate-400 text-sm">Deep dive into live market tape reading, handling consolidation vs expansion days, and afternoon PM session sweeps.</p>
-                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
+                  <div>• Recognizing institutional distribution signatures.</div>
+                  <div>• Managing afternoon PM session liquidity windows.</div>
+                  <div>• Avoiding low-probability midday chop zones.</div>
+                </div>
+                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
                   Curated Tape Reading Stream Linked
                 </div>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
+                  onClick={() => toggleModuleCompletion('m3')}
+                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                    completedModules.m3 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  }`}
                 >
-                  Mark Module Complete (+20%)
+                  {completedModules.m3 ? '✓ Module 3 Completed' : 'Mark Module 3 Complete'}
                 </button>
               </div>
 
+              {/* Module 4 */}
               <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 31-41 Mastery</span>
                 <h3 className="text-xl font-bold">Module 4: IPDA Algorithmic Theory & Risk Control</h3>
                 <p className="text-slate-400 text-sm">Master intraday market profiles, IPDA 3:00 PM Market On Close (MOC) mechanics, and risk parameters.</p>
-                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                  <strong className="text-indigo-300">Core Lesson Objectives:</strong>
+                  <div>• Interbank Price Delivery Algorithm (IPDA) lookback periods.</div>
+                  <div>• Managing fixed fractional risk per setup.</div>
+                  <div>• Psychological discipline during drawdown streaks.</div>
+                </div>
+                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
                   Curated IPDA Algorithm Module Linked
                 </div>
                 <button 
-                  onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
+                  onClick={() => toggleModuleCompletion('m4')}
+                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                    completedModules.m4 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  }`}
                 >
-                  Mark Module Complete (+20%)
+                  {completedModules.m4 ? '✓ Module 4 Completed' : 'Mark Module 4 Complete'}
                 </button>
               </div>
+
+            </div>
+
+            {/* Bonus Module */}
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+              <span className="text-xs text-indigo-400 font-semibold uppercase">Special Topic Silver Bullet</span>
+              <h3 className="text-xl font-bold">Bonus Module: ICT Silver Bullet & OV Momentum Hybrid</h3>
+              <p className="text-slate-400 text-sm">The simplified, 1-hour time-based algorithmic strategy combined with Oliver Velez visual confirmation triggers and 200 SMA slope alignment.</p>
+              <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                <strong className="text-indigo-300">Core Lesson Objectives:</strong>
+                <div>• London and New York 1-hour Silver Bullet windows.</div>
+                <div>• Combining FVG liquidity magnets with Velez ignition pulses.</div>
+              </div>
+              <button 
+                onClick={() => toggleModuleCompletion('bonus')}
+                className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
+                  completedModules.bonus ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                }`}
+              >
+                {completedModules.bonus ? '✓ Bonus Module Completed' : 'Mark Bonus Module Complete'}
+              </button>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Oliver Velez & 200 SMA Bridge */}
+        {/* Tab 2: Oliver Velez & SMA Bridge */}
         {activeTab === 2 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><Cpu className="text-indigo-400"/> Oliver Velez & 200 SMA Visual Momentum Bridge</h2>
@@ -418,10 +488,6 @@ export default function App() {
                 <div>Rule 1: Never fight the 200 SMA slope. Trade strictly in the direction of the medium/long-term SMA tilt.</div>
                 <div>Rule 2: Asia session boundaries establish the initial high/low box; look for London/NY sweeps of Asia extremes.</div>
                 <div>Rule 3: Align ICT Killzone timing with Velez Green/Red ignition candle pulses off the 200 SMA support/resistance.</div>
-              </div>
-              <div className="p-6 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-2">
-                <span className="text-emerald-400 font-bold text-sm uppercase">Visual Momentum Chart Reference Active</span>
-                <p className="text-xs text-slate-400">Green ignition candles above a rising 200 SMA signal aggressive continuation; red pulses below a falling 200 SMA signal short expansion.</p>
               </div>
             </div>
           </div>
@@ -433,7 +499,6 @@ export default function App() {
             <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart2 className="text-indigo-400"/> Practice Trade Simulator & Live Chart</h2>
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
               <p className="text-slate-400 text-sm">Analyze live CME futures price action, mark Fair Value Gaps, and observe 200 SMA boundaries directly on the chart below across Asia, London, and New York sessions.</p>
-              
               <div className="w-full h-[600px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden relative">
                 <div id="tradingview-widget-container" className="w-full h-full"></div>
               </div>
