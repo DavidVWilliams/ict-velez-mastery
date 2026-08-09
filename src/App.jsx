@@ -9,6 +9,15 @@ import {
   onAuthStateChanged 
 } from 'firebase/auth';
 import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  orderBy, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { 
   BookOpen, 
   Cpu, 
   PlayCircle, 
@@ -24,11 +33,10 @@ import {
   Lock,
   Mail,
   LogOut,
-  CheckCircle2,
-  Clock,
-  Compass,
-  Zap,
-  RotateCw
+  Upload,
+  CheckCircle,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 export default function App() {
@@ -44,31 +52,121 @@ export default function App() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loadingAi, setLoadingAi] = useState(false);
+  const [auditImage, setAuditImage] = useState(null);
+  const [auditImageName, setAuditImageName] = useState('');
 
-  // Flashcard state
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  // Flashcard spaced-repetition state
+  const [cardIndex, setCardIndex] = useState(0);
+  const [showDefinition, setShowDefinition] = useState(false);
+  const [flashcardDeck, setFlashcardDeck] = useState([
+    { id: 1, term: "Fair Value Gap (FVG)", definition: "A 3-candle imbalance zone where price leaves an unmitigated footprint acting as a magnetic draw.", status: "Review" },
+    { id: 2, term: "200 Simple Moving Average (SMA)", definition: "The core Oliver Velez baseline trend filter. Price above = bullish bias, price below = bearish bias, slope dictates momentum.", status: "Review" },
+    { id: 3, term: "Asia Session Range", definition: "The initial overnight consolidation box (Tokyo open) often defining the daily high/low template or accumulation phase.", status: "Review" },
+    { id: 4, term: "Ignition Candle", definition: "An oversized momentum candle breaking key resistance or support backed by high relative volume and green/red pulse.", status: "Review" },
+    { id: 5, term: "Turtle Soup", definition: "A false breakout above/below session highs/lows (Asia/London) designed to trap retail breakout traders.", status: "Review" }
+  ]);
 
-  // Pre-market interactive checklist state (Including Asia, London, New York)
+  // Pre-market interactive multi-session checklist state
   const [checklist, setChecklist] = useState({
     asiaRange: false,
-    liquidityPools: false,
+    londonSweep: false,
+    nyKillzone: false,
     sma200Slope: false,
-    killzoneTiming: false,
     ignitionTrigger: false
   });
+
+  // Journaling database state
+  const [journalNote, setJournalNote] = useState('');
+  const [journalSetupType, setJournalSetupType] = useState('Asia Sweep + FVG');
+  const [savedJournals, setSavedJournals] = useState([]);
+  const [savingJournal, setSavingJournal] = useState(false);
 
   useEffect(() => {
     try {
       const auth = getAuth();
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
+        if (currentUser) {
+          fetchUserJournals(currentUser.uid);
+        }
       });
       return () => unsubscribe();
     } catch (e) {
       console.warn("Auth not initialized:", e);
     }
   }, []);
+
+  // Fetch saved journals from Firebase Firestore
+  const fetchUserJournals = async (uid) => {
+    try {
+      const db = getFirestore();
+      const q = query(collection(db, 'users', uid, 'journals'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const journals = [];
+      querySnapshot.forEach((doc) => {
+        journals.push({ id: doc.id, ...doc.data() });
+      });
+      setSavedJournals(journals);
+    } catch (err) {
+      console.warn("Firestore fetch warning:", err);
+    }
+  };
+
+  // Save journal entry to Firebase Firestore
+  const handleSaveJournal = async () => {
+    if (!user) {
+      alert("Please sign in to save your journal entries to Firebase.");
+      setActiveTab(12);
+      return;
+    }
+    if (!journalNote.trim()) return;
+
+    setSavingJournal(true);
+    try {
+      const db = getFirestore();
+      const newEntry = {
+        setupType: journalSetupType,
+        note: journalNote,
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db, 'users', user.uid, 'journals'), newEntry);
+      setJournalNote('');
+      fetchUserJournals(user.uid);
+      alert("Journal entry saved and tracked in Firebase!");
+    } catch (err) {
+      console.error("Error saving journal:", err);
+      alert("Error saving entry: " + err.message);
+    } finally {
+      setSavingJournal(false);
+    }
+  };
+
+  // Embed TradingView Widget script dynamically in Tab 3
+  useEffect(() => {
+    if (activeTab === 3) {
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+      script.type = 'text/javascript';
+      script.async = true;
+      script.innerHTML = JSON.stringify({
+        "autosize": true,
+        "symbol": "CME_MINI:ES1!",
+        "interval": "15",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "allow_symbol_change": true,
+        "calendar": false,
+        "support_host": "https://www.tradingview.com"
+      });
+      
+      const container = document.getElementById('tradingview-widget-container');
+      if (container && !container.hasChildNodes()) {
+        container.appendChild(script);
+      }
+    }
+  }, [activeTab]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -104,12 +202,14 @@ export default function App() {
     try {
       const auth = getAuth();
       await signOut(auth);
+      setSavedJournals([]);
       setActiveTab(1);
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Multimodal Gemini API call (supports both text and uploaded chart images)
   const callGemini = async (promptText) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
@@ -119,12 +219,20 @@ export default function App() {
     setLoadingAi(true);
     setAiResponse('');
     try {
+      const parts = [{ text: promptText }];
+      if (auditImage) {
+        parts.push({
+          inline_data: {
+            mime_type: "image/jpeg",
+            data: auditImage
+          }
+        });
+      }
+
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: promptText }] }]
-        })
+        body: JSON.stringify({ contents: [{ parts }] })
       });
       const data = await res.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
@@ -136,20 +244,23 @@ export default function App() {
     }
   };
 
-  // Flashcards deck data
-  const flashcards = [
-    { term: "Fair Value Gap (FVG)", definition: "A 3-candle imbalance zone where price leaves an unmitigated footprint acting as a magnetic draw." },
-    { term: "200 Simple Moving Average (SMA)", definition: "The core Oliver Velez baseline trend filter. Price above = bullish bias, price below = bearish bias, slope dictates momentum." },
-    { term: "Asia Session Range", definition: "The initial overnight consolidation box (Tokyo open) often defining the daily high/low template or accumulation phase." },
-    { term: "Ignition Candle", definition: "An oversized momentum candle breaking key resistance or support backed by high relative volume and green/red pulse." },
-    { term: "Turtle Soup", definition: "A false breakout above/below session highs/lows (Asia/London) designed to trap retail breakout traders." }
-  ];
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAuditImage(reader.result.split(',')[1]);
+        setAuditImageName(file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const baseTabs = [
     { id: 1, name: 'YouTube Curriculum & Video', icon: PlayCircle },
     { id: 2, name: 'Oliver Velez & SMA Bridge', icon: Cpu },
-    { id: 3, name: 'Practice Trade Simulator', icon: BarChart2 },
-    { id: 4, name: 'Pre-Market & Session Playbook', icon: CheckSquare },
+    { id: 3, name: 'Practice Trade Simulator & Chart', icon: BarChart2 },
+    { id: 4, name: 'Pre-Market Playbook & Database', icon: CheckSquare },
     { id: 5, name: 'Spaced-Repetition Flashcards', icon: Layers },
     { id: 6, name: 'Quiz & Assessment', icon: HelpCircle },
     { id: 7, name: 'AI Trade Auditor', icon: FileText },
@@ -213,64 +324,82 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {/* Tab 1: Curriculum & Video Modules */}
+        {/* Tab 1: Curriculum & Embedded Video Players with Timestamps */}
         {activeTab === 1 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Curated Video Timestamps</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Embedded Video Players</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 1-10 Foundations</span>
-                <h3 className="text-xl font-bold mt-1 mb-2">Module 1: Foundational Mechanics & Liquidity</h3>
-                <p className="text-slate-400 text-sm mb-4">Master institutional order flow language, liquidity pools (BSL/SSL), and Asia session high/low framing.</p>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs text-slate-300 mb-4 space-y-1">
-                  <div className="font-semibold text-indigo-300">Key Video Reference Timestamps:</div>
-                  <div>• Ep 3: Marking Asia Session Highs & Lows (00:14:20)</div>
-                  <div>• Ep 7: Market Structure Shifts & Order Flow (00:32:10)</div>
+                <h3 className="text-xl font-bold">Module 1: Foundational Mechanics & Liquidity</h3>
+                <p className="text-slate-400 text-sm">Master institutional order flow language, liquidity pools (BSL/SSL), and Asia session high/low framing.</p>
+                
+                {/* Embedded YouTube Player with Timestamp */}
+                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
+                  <iframe 
+                    className="w-full h-full"
+                    src="https://www.youtube.com/embed/bx89qkJ_LR4?start=840&end=1500" 
+                    title="ICT 2022 Mentorship Ep 3"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
                 <button 
                   onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
                 >
                   Mark Module Complete (+20%)
                 </button>
               </div>
 
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 11-20 Execution</span>
-                <h3 className="text-xl font-bold mt-1 mb-2">Module 2: Order Block Science & Killzones</h3>
-                <p className="text-slate-400 text-sm mb-4">Master high-probability Order Blocks across Asia, London, and New York killzones.</p>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs text-slate-300 mb-4 space-y-1">
-                  <div className="font-semibold text-indigo-300">Key Video Reference Timestamps:</div>
-                  <div>• Ep 14: London Open Sweep of Asia Range (00:18:45)</div>
-                  <div>• Ep 19: High Probability FVG Entries (00:41:10)</div>
+                <h3 className="text-xl font-bold">Module 2: Order Block Science & Killzones</h3>
+                <p className="text-slate-400 text-sm">Master high-probability Order Blocks across Asia, London, and New York killzones.</p>
+                
+                {/* Embedded YouTube Player with Timestamp */}
+                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
+                  <iframe 
+                    className="w-full h-full"
+                    src="https://www.youtube.com/embed/bx89qkJ_LR4?start=1800&end=2400" 
+                    title="ICT 2022 Mentorship Ep 14"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
                 <button 
                   onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
                 >
                   Mark Module Complete (+20%)
                 </button>
               </div>
 
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 21-30 Tape Reading</span>
-                <h3 className="text-xl font-bold mt-1 mb-2">Module 3: Tape Reading & Rebalance Theory</h3>
-                <p className="text-slate-400 text-sm mb-4">Deep dive into live market tape reading, handling consolidation vs expansion days, and afternoon PM session sweeps.</p>
+                <h3 className="text-xl font-bold">Module 3: Tape Reading & Rebalance Theory</h3>
+                <p className="text-slate-400 text-sm">Deep dive into live market tape reading, handling consolidation vs expansion days, and afternoon PM session sweeps.</p>
+                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                  Curated Tape Reading Stream Linked
+                </div>
                 <button 
                   onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
                 >
                   Mark Module Complete (+20%)
                 </button>
               </div>
 
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
                 <span className="text-xs text-indigo-400 font-semibold uppercase">Episodes 31-41 Mastery</span>
-                <h3 className="text-xl font-bold mt-1 mb-2">Module 4: IPDA Algorithmic Theory & Risk Control</h3>
-                <p className="text-slate-400 text-sm mb-4">Master intraday market profiles, IPDA 3:00 PM Market On Close (MOC) mechanics, and risk parameters.</p>
+                <h3 className="text-xl font-bold">Module 4: IPDA Algorithmic Theory & Risk Control</h3>
+                <p className="text-slate-400 text-sm">Master intraday market profiles, IPDA 3:00 PM Market On Close (MOC) mechanics, and risk parameters.</p>
+                <div className="w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                  Curated IPDA Algorithm Module Linked
+                </div>
                 <button 
                   onClick={() => setProgress(prev => Math.min(100, prev + 20))}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-medium transition"
                 >
                   Mark Module Complete (+20%)
                 </button>
@@ -279,7 +408,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Oliver Velez & SMA Bridge */}
+        {/* Tab 2: Oliver Velez & 200 SMA Bridge */}
         {activeTab === 2 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><Cpu className="text-indigo-400"/> Oliver Velez & 200 SMA Visual Momentum Bridge</h2>
@@ -290,126 +419,188 @@ export default function App() {
                 <div>Rule 2: Asia session boundaries establish the initial high/low box; look for London/NY sweeps of Asia extremes.</div>
                 <div>Rule 3: Align ICT Killzone timing with Velez Green/Red ignition candle pulses off the 200 SMA support/resistance.</div>
               </div>
+              <div className="p-6 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-2">
+                <span className="text-emerald-400 font-bold text-sm uppercase">Visual Momentum Chart Reference Active</span>
+                <p className="text-xs text-slate-400">Green ignition candles above a rising 200 SMA signal aggressive continuation; red pulses below a falling 200 SMA signal short expansion.</p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tab 3: Trade Simulator */}
+        {/* Tab 3: Practice Trade Simulator with Live TradingView Chart */}
         {activeTab === 3 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart2 className="text-indigo-400"/> Practice Trade Simulator</h2>
-            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-              <p className="text-slate-400 text-sm mb-4">Simulate futures executions across Asia, London, and New York sessions using NinjaTrader playback mechanics.</p>
-              <div className="bg-slate-950 p-8 rounded-lg text-center border border-slate-800 space-y-2">
-                <span className="text-emerald-400 font-mono text-lg font-bold">MULTI-SESSION SIMULATION ENGINE ACTIVE</span>
-                <p className="text-xs text-slate-500">CME Top market data feed linked with 200 SMA visual indicators.</p>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart2 className="text-indigo-400"/> Practice Trade Simulator & Live Chart</h2>
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+              <p className="text-slate-400 text-sm">Analyze live CME futures price action, mark Fair Value Gaps, and observe 200 SMA boundaries directly on the chart below across Asia, London, and New York sessions.</p>
+              
+              <div className="w-full h-[600px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden relative">
+                <div id="tradingview-widget-container" className="w-full h-full"></div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 4: Pre-Market & Session Playbook */}
+        {/* Tab 4: Pre-Market Playbook & Firebase Journaling Database */}
         {activeTab === 4 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><CheckSquare className="text-indigo-400"/> Interactive Pre-Market & Session Playbook</h2>
-            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
-              <p className="text-slate-400 text-sm">Complete this pre-flight checklist across Asia, London, and New York windows before executing any live trade setup:</p>
-              
-              <div className="space-y-3">
-                <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-700">
-                  <input 
-                    type="checkbox" 
-                    checked={checklist.asiaRange}
-                    onChange={(e) => setChecklist({...checklist, asiaRange: e.target.checked})}
-                    className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
-                  />
-                  <span className="text-sm text-slate-200">1. Mark Asia Session high/low range box (Tokyo accumulation window).</span>
-                </label>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><CheckSquare className="text-indigo-400"/> Pre-Market Playbook & Firebase Journaling Database</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+                <h3 className="text-lg font-bold text-indigo-300">Interactive Pre-Flight Checklist (Asia, London, NY)</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={checklist.asiaRange}
+                      onChange={(e) => setChecklist({...checklist, asiaRange: e.target.checked})}
+                      className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-sm text-slate-200">1. Mark Asia Session high/low range box (Tokyo accumulation).</span>
+                  </label>
 
-                <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-700">
-                  <input 
-                    type="checkbox" 
-                    checked={checklist.liquidityPools}
-                    onChange={(e) => setChecklist({...checklist, liquidityPools: e.target.checked})}
-                    className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
-                  />
-                  <span className="text-sm text-slate-200">2. Identify Buy Side Liquidity (BSL) & Sell Side Liquidity (SSL) targets.</span>
-                </label>
+                  <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={checklist.londonSweep}
+                      onChange={(e) => setChecklist({...checklist, londonSweep: e.target.checked})}
+                      className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-sm text-slate-200">2. Track London Open sweep of Asia range extremes (Turtle Soup).</span>
+                  </label>
 
-                <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-700">
-                  <input 
-                    type="checkbox" 
-                    checked={checklist.sma200Slope}
-                    onChange={(e) => setChecklist({...checklist, sma200Slope: e.target.checked})}
-                    className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
-                  />
-                  <span className="text-sm text-slate-200">3. Verify 200 Simple Moving Average (SMA) slope and bias direction.</span>
-                </label>
+                  <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={checklist.nyKillzone}
+                      onChange={(e) => setChecklist({...checklist, nyKillzone: e.target.checked})}
+                      className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-sm text-slate-200">3. Target New York Killzone window (AM open / PM session macros).</span>
+                  </label>
 
-                <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-700">
-                  <input 
-                    type="checkbox" 
-                    checked={checklist.killzoneTiming}
-                    onChange={(e) => setChecklist({...checklist, killzoneTiming: e.target.checked})}
-                    className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
-                  />
-                  <span className="text-sm text-slate-200">4. Confirm active Killzone window (Asia open, London open, or New York open).</span>
-                </label>
+                  <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={checklist.sma200Slope}
+                      onChange={(e) => setChecklist({...checklist, sma200Slope: e.target.checked})}
+                      className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-sm text-slate-200">4. Verify 200 SMA slope and directional momentum bias.</span>
+                  </label>
 
-                <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-700">
-                  <input 
-                    type="checkbox" 
-                    checked={checklist.ignitionTrigger}
-                    onChange={(e) => setChecklist({...checklist, ignitionTrigger: e.target.checked})}
-                    className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
-                  />
-                  <span className="text-sm text-slate-200">5. Wait for Velez ignition candle trigger and FVG alignment.</span>
-                </label>
+                  <label className="flex items-center space-x-3 p-3 bg-slate-950 rounded-lg border border-slate-800 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={checklist.ignitionTrigger}
+                      onChange={(e) => setChecklist({...checklist, ignitionTrigger: e.target.checked})}
+                      className="w-4 h-4 text-indigo-600 rounded bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-sm text-slate-200">5. Wait for Velez ignition candle trigger and FVG alignment.</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-indigo-300">Rule-Based Journaling Database (Firebase)</h3>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Setup Type Category</label>
+                    <select 
+                      value={journalSetupType}
+                      onChange={(e) => setJournalSetupType(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="Asia Sweep + FVG">Asia Sweep + FVG Reversal</option>
+                      <option value="London Open 200 SMA Bounce">London Open 200 SMA Bounce</option>
+                      <option value="NY Killzone Turtle Soup">NY Killzone Turtle Soup</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Trade Notes & Observations</label>
+                    <textarea 
+                      rows={3}
+                      value={journalNote}
+                      onChange={(e) => setJournalNote(e.target.value)}
+                      placeholder="Record session conditions, risk parameters, and execution outcome..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleSaveJournal}
+                    disabled={savingJournal}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+                  >
+                    {savingJournal ? 'Saving to Firebase...' : 'Save & Track Journal Entry'}
+                  </button>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-800 max-h-40 overflow-y-auto space-y-2">
+                  <div className="text-xs font-semibold text-slate-400">Saved History ({savedJournals.length}):</div>
+                  {savedJournals.length === 0 ? (
+                    <div className="text-xs text-slate-600">No entries saved yet. Sign in and submit your first setup.</div>
+                  ) : (
+                    savedJournals.map((j) => (
+                      <div key={j.id} className="p-2 bg-slate-950 rounded border border-slate-800 text-xs">
+                        <span className="text-indigo-400 font-semibold">{j.setupType}:</span> {j.note}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 5: Spaced-Repetition Flashcards */}
+        {/* Tab 5: Spaced-Repetition Active Recall Flashcards */}
         {activeTab === 5 && (
           <div className="space-y-6 max-w-xl mx-auto">
             <h2 className="text-2xl font-bold flex items-center gap-2"><Layers className="text-indigo-400"/> Spaced-Repetition Flashcards</h2>
             <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 text-center space-y-6">
-              <span className="text-xs text-slate-500 uppercase font-semibold">Card {currentCardIndex + 1} of {flashcards.length}</span>
+              <div className="flex justify-between items-center text-xs text-slate-500 uppercase font-semibold">
+                <span>Card {cardIndex + 1} of {flashcardDeck.length}</span>
+                <span className="px-2 py-1 bg-indigo-600/20 text-indigo-400 rounded">Status: {flashcardDeck[cardIndex].status}</span>
+              </div>
               <div 
-                onClick={() => setIsCardFlipped(!isCardFlipped)}
-                className="min-h-[160px] bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center cursor-pointer transition hover:border-indigo-500"
+                onClick={() => setShowDefinition(!showDefinition)}
+                className="min-h-[180px] bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center cursor-pointer transition hover:border-indigo-500"
               >
-                {!isCardFlipped ? (
+                {!showDefinition ? (
                   <div>
-                    <h3 className="text-lg font-bold text-indigo-300 mb-2">{flashcards[currentCardIndex].term}</h3>
-                    <p className="text-xs text-slate-500">(Click card to reveal definition)</p>
+                    <h3 className="text-xl font-bold text-indigo-300 mb-2">{flashcardDeck[cardIndex].term}</h3>
+                    <p className="text-xs text-slate-500">(Click card to reveal active recall definition)</p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-sm text-slate-200">{flashcards[currentCardIndex].definition}</p>
-                    <p className="text-xs text-slate-500 mt-2">(Click to flip back)</p>
+                    <p className="text-sm text-slate-200">{flashcardDeck[cardIndex].definition}</p>
+                    <p className="text-xs text-slate-500 mt-3">(Click to flip back)</p>
                   </div>
                 )}
               </div>
-              <div className="flex justify-between">
+              <div className="flex gap-3">
                 <button 
                   onClick={() => {
-                    setIsCardFlipped(false);
-                    setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : flashcards.length - 1));
+                    const updated = [...flashcardDeck];
+                    updated[cardIndex].status = "Needs Practice";
+                    setFlashcardDeck(updated);
+                    setShowDefinition(false);
+                    setCardIndex((prev) => (prev < flashcardDeck.length - 1 ? prev + 1 : 0));
                   }}
-                  className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 py-2 rounded-lg text-xs font-semibold transition"
                 >
-                  Previous Card
+                  Still Learning (Hard)
                 </button>
                 <button 
                   onClick={() => {
-                    setIsCardFlipped(false);
-                    setCurrentCardIndex((prev) => (prev < flashcards.length - 1 ? prev + 1 : 0));
+                    const updated = [...flashcardDeck];
+                    updated[cardIndex].status = "Mastered";
+                    setFlashcardDeck(updated);
+                    setShowDefinition(false);
+                    setCardIndex((prev) => (prev < flashcardDeck.length - 1 ? prev + 1 : 0));
                   }}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  className="flex-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-lg text-xs font-semibold transition"
                 >
-                  Next Card
+                  Got It (Easy)
                 </button>
               </div>
             </div>
@@ -429,12 +620,29 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 7: AI Trade Auditor with Image/Text Support */}
+        {/* Tab 7: AI Trade Auditor with Screenshot Upload */}
         {activeTab === 7 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><FileText className="text-indigo-400"/> AI Trade Auditor</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><FileText className="text-indigo-400"/> AI Trade Auditor & Chart Analyzer</h2>
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
-              <p className="text-slate-400 text-sm">Paste your trade breakdown or journal entry detailing session context (Asia/London/NY), 200 SMA slope, and execution setup:</p>
+              <p className="text-slate-400 text-sm">Upload a screenshot of your NinjaTrader or Webull chart and enter your journal breakdown for instant AI multimodal auditing:</p>
+              
+              <div className="flex items-center gap-4">
+                <label className="flex items-center space-x-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 px-4 py-2.5 rounded-lg cursor-pointer text-xs font-medium text-slate-300 transition">
+                  <Upload className="w-4 h-4 text-indigo-400" />
+                  <span>{auditImageName ? `Attached: ${auditImageName}` : 'Upload Chart Screenshot'}</span>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                </label>
+                {auditImageName && (
+                  <button 
+                    onClick={() => { setAuditImage(null); setAuditImageName(''); }} 
+                    className="text-xs text-red-400 hover:underline"
+                  >
+                    Remove Image
+                  </button>
+                )}
+              </div>
+
               <textarea 
                 rows={4}
                 value={aiPrompt}
@@ -443,11 +651,12 @@ export default function App() {
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
               />
               <button 
-                onClick={() => callGemini("Audit this trade based on ICT multi-session models and Oliver Velez 200 SMA momentum rules: " + aiPrompt)}
+                onClick={() => callGemini("Audit this trade and chart screenshot based on ICT multi-session models and Oliver Velez 200 SMA momentum rules: " + aiPrompt)}
                 disabled={loadingAi}
-                className="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+                className="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 flex items-center gap-2"
               >
-                {loadingAi ? 'Auditing Setup...' : 'Run AI Trade Audit'}
+                <Sparkles className="w-4 h-4"/>
+                {loadingAi ? 'Analyzing Chart & Setup...' : 'Run AI Trade Audit'}
               </button>
               {aiResponse && (
                 <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 mt-4 text-sm text-slate-200 whitespace-pre-wrap">
