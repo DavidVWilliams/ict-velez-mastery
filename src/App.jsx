@@ -526,16 +526,47 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Oliver Velez & SMA Bridge */}
+        {/* Tab 2: Oliver Velez & SMA Bridge (Upgraded with Real-World Execution Examples) */}
         {activeTab === 2 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><Cpu className="text-indigo-400"/> Oliver Velez & 200 SMA Visual Momentum Bridge</h2>
+            
             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
-              <p className="text-slate-300">Integrating institutional ICT time/price frameworks across multiple trading sessions (Asia, London, New York) with the Oliver Velez **200 Simple Moving Average (SMA)** momentum rules.</p>
-              <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 font-mono text-sm text-indigo-300 space-y-2">
-                <div>Rule 1: Never fight the 200 SMA slope. Trade strictly in the direction of the medium/long-term SMA tilt.</div>
-                <div>Rule 2: Asia session boundaries establish the initial high/low box; look for London/NY sweeps of Asia extremes.</div>
-                <div>Rule 3: Align ICT Killzone timing with Velez Green/Red ignition candle pulses off the 200 SMA support/resistance.</div>
+              <h3 className="text-lg font-bold text-indigo-300">Platform Intent & Explanation</h3>
+              <p className="text-slate-300 text-sm">
+                ICT frameworks provide the <strong>institutional map</strong> (where algorithms target liquidity across Asia, London, and New York), while Oliver Velez momentum rules provide the <strong>visual trigger</strong> (using the 200 SMA slope and ignition candles to enter safely). Tab 2 bridges these two systems so you never enter a liquidity trap blindly.
+              </p>
+              
+              <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 font-mono text-xs text-indigo-300 space-y-2">
+                <div><strong>Rule 1 (The Macro Trend Filter):</strong> Never fight the 200 SMA slope. If it tilts down, look exclusively for shorts; if it tilts up, look for longs.</div>
+                <div><strong>Rule 2 (Session Framing):</strong> Asia establishes the overnight consolidation box. Watch for London or New York to run (sweep) those extremes.</div>
+                <div><strong>Rule 3 (The Trigger):</strong> Combine Killzone timing with Velez Green/Red ignition candles pulsing off the 200 SMA baseline.</div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+              <h3 className="text-lg font-bold text-emerald-400">Real-World Execution Example: London Session Short Setup</h3>
+              
+              <div className="space-y-3 text-sm text-slate-300">
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <strong className="text-indigo-300 block mb-1">Step 1: Macro Check (Oliver Velez)</strong>
+                  You open your NQ or ES chart during the London open. The 200 Simple Moving Average (SMA) is clearly sloping downward on the 15-minute timeframe, confirming a bearish institutional bias.
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <strong className="text-indigo-300 block mb-1">Step 2: Session Liquidity (ICT)</strong>
+                  Price pushes upward during the early London window and sweeps slightly above the overnight Asia Session High, taking out retail buy-side liquidity (a classic Turtle Soup setup).
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <strong className="text-indigo-300 block mb-1">Step 3: The Ignition Trigger (Hybrid)</strong>
+                  Right after sweeping the Asia high, price rejects back downward, creating a 15-minute Fair Value Gap (FVG) and printing a strong <strong>Red ignition candle</strong> closing near its low right beneath the falling 200 SMA line.
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <strong className="text-indigo-300 block mb-1">Step 4: Execution & Management</strong>
+                  You enter short inside the FVG with your stop loss above the sweep high, targeting the opposite session low or internal range liquidity.
+                </div>
               </div>
             </div>
           </div>
