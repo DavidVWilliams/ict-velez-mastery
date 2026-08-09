@@ -9,27 +9,35 @@ import { auth } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
+  const store = useCourseStore() || {};
   const { 
-    activeTab, setActiveTab, 
-    activeLessonId, setActiveLessonId, 
-    toggleModuleCompletion, completedModules 
-  } = useCourseStore();
+    activeTab = 'curriculum', 
+    setActiveTab = () => {}, 
+    activeLessonId = 'ep1', 
+    setActiveLessonId = () => {}, 
+    toggleModuleCompletion = () => {}, 
+    completedModules = [] 
+  } = store;
 
   const [user, setUser] = useState(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [teacherQuery, setTeacherQuery] = useState('');
   const [chatMessages, setChatMessages] = useState([
     { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Ask me anything about ICT or Velez methodologies.' }
   ]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+      });
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Firebase auth init error:", err);
+    }
   }, []);
 
-  const currentLesson = courseData.find(l => l.id === activeLessonId) || courseData[0];
+  // Safe fallback lookup supporting both string ("ep1") and numeric IDs
+  const currentLesson = courseData.find(l => l.id === activeLessonId || l.id === `ep${activeLessonId}`) || courseData[0];
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -59,9 +67,9 @@ export default function App() {
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-2">Curriculum Modules</div>
-          {courseData.map((lesson, idx) => {
-            const isSelected = lesson.id === activeLessonId;
-            const isCompleted = completedModules && completedModules.includes(lesson.id);
+          {courseData.map((lesson) => {
+            const isSelected = lesson.id === activeLessonId || lesson.id === `ep${activeLessonId}`;
+            const isCompleted = Array.isArray(completedModules) && completedModules.includes(lesson.id);
             return (
               <button
                 key={lesson.id}
@@ -83,10 +91,10 @@ export default function App() {
       {/* Column 2: Main Lesson Content Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
         <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-          <h2 className="text-xl font-bold text-white truncate">{currentLesson.title}</h2>
+          <h2 className="text-xl font-bold text-white truncate">{currentLesson?.title}</h2>
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => toggleModuleCompletion && toggleModuleCompletion(currentLesson.id)}
+              onClick={() => toggleModuleCompletion(currentLesson?.id)}
               className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
             >
               <CheckSquare className="w-4 h-4" />
@@ -108,7 +116,7 @@ export default function App() {
           <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-6">
             <h3 className="text-2xl font-bold text-white border-b border-slate-800 pb-4">Lesson Core Concepts</h3>
             <div className="text-slate-300 leading-relaxed space-y-4">
-              {currentLesson.content}
+              {currentLesson?.content}
             </div>
           </div>
 
@@ -118,7 +126,7 @@ export default function App() {
               Actionable Homework Assignment
             </h4>
             <p className="text-slate-300 text-base leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800">
-              {currentLesson.homework}
+              {currentLesson?.homework}
             </p>
           </div>
         </div>
