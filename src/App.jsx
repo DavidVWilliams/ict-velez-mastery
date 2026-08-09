@@ -46,7 +46,7 @@ const courseData = episodeTitles.map((title, index) => {
   
   if (epNum === 1) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
-    rawText: "Episode 1. Imagine playing a video game collecting coins. In the stock market, big banks are players, coins are Liquidity. The algorithm acts like a magnet, pulling price down to trigger stop losses.",
+    rawText: "Episode 1. Imagine playing a video game collecting coins. In the stock market, big banks are players, coins are Liquidity. The algorithm acts like a giant magnet, pulling price down to trigger stop losses.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Imagine playing a video game collecting coins. In the market, banks are players, coins are <strong>Liquidity</strong> (other people's money).</p>
@@ -208,7 +208,6 @@ const courseData = episodeTitles.map((title, index) => {
     )
   };
 
-  // Standardized dynamic return for episodes 8-41
   return {
     id: `ep${epNum}`,
     title,
@@ -362,20 +361,30 @@ export default function App() {
   };
   const stopSpeech = () => { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); setIsSpeaking(false); } };
 
-  // SECURE API ROUTING (No frontend API keys)
+  // STRICTLY SECURE BACKEND ROUTE (No frontend API keys)
   const callGemini = async (promptText) => {
-    setLoadingAi(true); setAiResponse('');
+    setLoadingAi(true); setAiResponse('Connecting to AI Server...');
     try {
       const res = await fetch('/api/gemini', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ promptText, imageBase64: auditImage || null })
       });
-      const data = await res.json();
+      
+      let data;
+      const rawText = await res.text();
+      try {
+        data = JSON.parse(rawText);
+      } catch(e) {
+        throw new Error(`Server route missing or down. Did not receive JSON. Raw error: ${rawText.substring(0, 60)}`);
+      }
+
+      if (!res.ok) throw new Error(data.error || `Server Status ${res.status}`);
       if (data.error) throw new Error(data.error);
+      
       setAiResponse(data.text);
     } catch (err) { 
-      setAiResponse("API Connection Error: Ensure /api/gemini.js is deployed on Vercel. " + err.message); 
+      setAiResponse(`Connection Failed: ${err.message}`); 
     } finally { 
       setLoadingAi(false); 
     }
@@ -383,7 +392,7 @@ export default function App() {
 
   const callLessonGemini = async (lessonTitle) => {
     if (!lessonAiPrompt.trim()) return;
-    setLoadingLessonAi(true); setLessonAiResponse('');
+    setLoadingLessonAi(true); setLessonAiResponse('Connecting to AI Server...');
     try {
       const contextPrompt = `You are a patient teacher. Student is studying: "${lessonTitle}". Explain simply, like they are 12: ${lessonAiPrompt}`;
       const res = await fetch('/api/gemini', {
@@ -391,11 +400,21 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ promptText: contextPrompt })
       });
-      const data = await res.json();
+      
+      let data;
+      const rawText = await res.text();
+      try {
+        data = JSON.parse(rawText);
+      } catch(e) {
+        throw new Error(`Server route missing or down. Did not receive JSON. Raw error: ${rawText.substring(0, 60)}`);
+      }
+
+      if (!res.ok) throw new Error(data.error || `Server Status ${res.status}`);
       if (data.error) throw new Error(data.error);
+
       setLessonAiResponse(data.text);
     } catch (err) { 
-      setLessonAiResponse("API Connection Error: Ensure /api/gemini.js is deployed on Vercel. " + err.message); 
+      setLessonAiResponse(`Connection Failed: ${err.message}`); 
     } finally { 
       setLoadingLessonAi(false); 
     }
