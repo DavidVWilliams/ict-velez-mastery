@@ -26,11 +26,11 @@ const Candle = ({ x, o, c, h, l }) => {
 const stripMarkdown = (text) => {
   if (!text) return '';
   return text
-    .replace(/#{1,6}\s?/g, '') // Removes header hashes (###)
-    .replace(/\*\*/g, '')      // Removes bold asterisks (**)
-    .replace(/\*/g, '')        // Removes bullet/italic asterisks (*)
-    .replace(/---/g, '')       // Removes horizontal rules (---)
-    .replace(/- /g, '• ');     // Converts markdown dashes to clean bullets
+    .replace(/#{1,6}\s?/g, '') 
+    .replace(/\*\*/g, '')      
+    .replace(/\*/g, '')        
+    .replace(/---/g, '')       
+    .replace(/- /g, '• ');     
 };
 
 // --- GLOBAL COURSE DATA ARCHITECTURE ---
@@ -58,6 +58,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 1) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
     rawText: "Liquidity acts as the ultimate fuel for institutional algorithms. Large banks cannot simply press a button to buy massive block orders without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers. Where do they find them? Right below established support levels, where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these stop-loss clusters to absorb that liquidity, pairing their massive buy orders with the triggered retail sell orders.",
+    homework: "Open a Daily or 4-Hour chart. Identify and draw horizontal lines across at least 5 major Swing Highs and 5 major Swing Lows. Label the highs as 'Buy-Side Liquidity' (BSL) and the lows as 'Sell-Side Liquidity' (SSL).",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Liquidity acts as the ultimate fuel for the Interbank Price Delivery Algorithm (IPDA). To understand market movement, you must first understand how large institutions execute block orders.</p>
@@ -91,6 +92,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 2) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s",
     rawText: "How do we confirm the algorithm has finished sweeping liquidity and is initiating a true reversal? We look for institutional displacement, categorized as a Market Structure Shift. This is characterized by highly energetic, large-range candles that decisively break through the nearest opposing swing high or swing low. It is the visible footprint of institutional money entering the market with urgency.",
+    homework: "Drop down to a 15-minute chart. Find 3 distinct examples where price swept liquidity, then immediately reversed to break a previous swing point. Highlight the energetic displacement candles that caused the break.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>A liquidity sweep alone is not a valid trade signal. The market can easily sweep a level and continue trending in that direction. We need confirmation of an institutional reversal.</p>
@@ -121,6 +123,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 3) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1400s",
     rawText: "When institutional displacement occurs, the speed of the price action frequently leaves behind a pricing inefficiency known as a Fair Value Gap. This is a three-candle sequence where the wicks of the first and third candles fail to overlap, creating a vacuum of unfulfilled orders. The algorithm seeks equilibrium, meaning price will naturally gravitate back to this inefficiency to properly offer both buy and sell liquidity at those price levels.",
+    homework: "Find 3 distinct Fair Value Gaps (FVGs) on a 15-minute or 5-minute chart. Draw a box extending from the high of Candle 1 to the low of Candle 3. Observe whether price eventually returned to fill this inefficiency.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>When heavy displacement occurs, the resulting price action is often so rapid that it causes a breakdown in the normal bid-ask delivery process.</p>
@@ -156,6 +159,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 4) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
     rawText: "To enhance the execution safety of the ICT model, we bridge it with Oliver Velez methodology by applying a 200 Simple Moving Average (SMA). The 200 SMA acts as a definitive macro trend baseline. We never initiate positions contrary to the slope of this average. Furthermore, execution requires an ignition candle—a solid continuation bar forming off the SMA within the bounds of our Fair Value Gap.",
+    homework: "Apply the 200 SMA to your chart. Find 3 examples where price retraced into an FVG while respecting the slope of the 200 SMA. Identify the specific Velez Ignition Candle that confirmed the entry.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Locating an inefficiency is only half the battle. We must implement rigid filters to prevent executing into adverse momentum.</p>
@@ -192,6 +196,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 5) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=kmVXVJE08eQ&t=600s",
     rawText: "Institutional volume is strictly bound to time. The foundational framework for daily algorithmic delivery is Accumulation, Manipulation, and Distribution (AMD). During illiquid hours, algorithms accumulate positions within a consolidation range. Approaching high-volume opens, they manipulate price counter to the true daily bias to capture stop liquidity. Following this sweep, they aggressively distribute positions toward the true target during predefined Killzones.",
+    homework: "Draw vertical lines on your chart marking Midnight EST, 08:30 EST, and 11:00 EST. Observe the price action. Can you spot the Accumulation (overnight), Manipulation (trick drop/pump), and Distribution (Killzone expansion)?",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Order flow is irrelevant if executed outside of proper timing parameters. Algorithmic volatility adheres to predictable daily cycles known as the <strong>Power of 3 (AMD)</strong>.</p>
@@ -209,6 +214,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 6) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=wXwG_uM4Q3k&t=300s",
     rawText: "Institutions operate entirely on wholesale pricing models; they fundamentally refuse to accumulate inventory at premium valuations. Using standard Fibonacci retracement parameters mapped across the displacement range, we bisect price into Premium and Discount territories. Executions are strictly limited to the Discount matrix for long positions, with the Optimal Trade Entry (OTE) calibrated between the 62% and 79% retracement levels.",
+    homework: "Pull a Fibonacci retracement from a recent institutional displacement wave (Swing Low to Swing High). Mark the 50% line (Equilibrium) and identify the Discount territory. Where did price retrace to before continuing?",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Retail participants frequently buy assets after an extended uptrend, purchasing at retail or "Premium" prices. Institutions operate on a strictly wholesale basis.</p>
@@ -254,6 +260,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 7) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=CnTXwAuDi9Y&t=120s",
     rawText: "The technical framework is irrelevant without stringent capital preservation protocols. Variance guarantees that flawless setups will routinely result in losses. Professional execution requires divorcing emotion from individual outcomes through strict mathematical limitations. Exposure is universally capped at a maximum of 1% total account equity per configuration, with invalidation stops rigidly placed beneath the structural origin of the displacement wave.",
+    homework: "Calculate exactly what 1% of your current (or simulated) account balance is. Write down your maximum dollar risk per trade and tape it to your monitor.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>The highest probability setup guarantees nothing on a trade-by-trade basis. Survival and profitability in algorithmic trading hinge entirely on rigid capital preservation.</p>
@@ -275,6 +282,7 @@ const courseData = episodeTitles.map((title, index) => {
     title,
     videoUrl: officialPlaylist,
     rawText: `${title}. In this episode, we build upon the foundation of liquidity, displacement, and the 200 SMA filter. Focus on how time and price align within the specific Killzones.`,
+    homework: "Review the concepts introduced in this episode on your live charts. Take a screenshot of an applicable setup and submit it to the AI Auditor for grading.",
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Welcome to <strong>{title}</strong>. As we advance through the curriculum, the concepts combine to form a complete, mechanical trading model.</p>
@@ -336,11 +344,9 @@ export default function App() {
   const [completedModules, setCompletedModules] = useState({});
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
-  // Lesson image upload states
   const [lessonImage, setLessonImage] = useState(null);
   const [lessonImageName, setLessonImageName] = useState('');
 
-  // Universal Paste Handler
   const handlePasteImage = (e, setImageState, setNameState) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -355,7 +361,7 @@ export default function App() {
           };
           reader.readAsDataURL(file);
         }
-        break; // Stop after finding the first image
+        break;
       }
     }
   };
@@ -492,7 +498,6 @@ export default function App() {
     if (!lessonAiPrompt.trim() && !lessonImage) return;
     setLoadingLessonAi(true); setLessonAiResponse('Connecting to AI Server...');
     try {
-      // Updated to request professional, structured, jargon-free explanations.
       const contextPrompt = `You are a professional trading mentor. The student is studying: "${lessonTitle}". Explain this comprehensively and thoroughly, step-by-step. Use highly readable, easy-to-understand language with practical examples, but strictly avoid childish analogies. Format with clear plain text paragraphs and bullet points without heavy markdown syntax: ${lessonAiPrompt || "Please review this chart for this lesson."}`;
       const res = await fetch('/api/gemini', {
         method: 'POST', 
@@ -618,7 +623,28 @@ export default function App() {
                         <p className="text-sm text-slate-400 mb-6 max-w-md">Click here to open the full lecture securely on The Inner Circle Trader's YouTube channel.</p>
                       </a>
                     </div>
+                    
                     {lesson.content}
+
+                    {/* NEW: Homework Assignment Block */}
+                    {lesson.homework && (
+                      <div className="mt-8 bg-slate-950 border-l-4 border-indigo-500 p-6 rounded-r-xl shadow-lg">
+                        <h4 className="text-lg font-bold text-indigo-400 mb-3 flex items-center gap-2">
+                          <CheckSquare size={18} /> Official Episode Homework
+                        </h4>
+                        <p className="text-slate-300 leading-relaxed mb-6">{lesson.homework}</p>
+                        <button 
+                          onClick={() => {
+                            setActiveTab(7);
+                            setAiPrompt(`Here is my homework for ${lesson.title}. Did I identify the concepts correctly?`);
+                          }}
+                          className="bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/50 text-indigo-300 px-5 py-2.5 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                        >
+                          <Sparkles size={16} /> Submit to AI Auditor
+                        </button>
+                      </div>
+                    )}
+
                     <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end">
                       <button onClick={() => toggleModuleCompletion(lesson.id)} className={`px-6 py-3 rounded-xl text-sm font-bold transition shadow-lg ${completedModules[lesson.id] ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}>
                         {completedModules[lesson.id] ? '✓ Lesson Completed' : 'Mark as Completed'}
@@ -665,7 +691,7 @@ export default function App() {
                   <button onClick={() => callLessonGemini(courseData.find(l => l.id === activeLessonId)?.title)} disabled={loadingLessonAi || (!lessonAiPrompt.trim() && !lessonImage)} className="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 flex justify-center items-center gap-2 shadow-md">
                     <MessageSquare size={16}/> {loadingLessonAi ? 'Thinking...' : 'Ask Question'}
                   </button>
-                  {lessonAiResponse && <div className="p-4 bg-slate-950 border border-indigo-500/30 rounded-lg text-sm text-slate-200 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">{lessonAiResponse}</div>}
+                  {lessonAiResponse && <div className="p-4 bg-slate-950 border border-indigo-500/30 rounded-lg text-sm text-slate-200 whitespace-pre-wrap leading-relaxed max-h-[400px] overflow-y-auto">{lessonAiResponse}</div>}
                 </div>
               </div>
             </div>
@@ -717,12 +743,8 @@ export default function App() {
                     <span className="text-slate-300">3. Visible hole (3-Candle FVG)?</span>
                   </label>
                   <label className="flex items-center space-x-4 p-4 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500">
-                    <input type="checkbox" checked={checklist.nyKillzone} onChange={(e) => setChecklist({...checklist, nyKillzone: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded bg-slate-900 border-slate-700"/>
-                    <span className="text-slate-300">4. Confirm time is between 08:30 - 11:00 EST.</span>
-                  </label>
-                  <label className="flex items-center space-x-4 p-4 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500">
                     <input type="checkbox" checked={checklist.sma200Check} onChange={(e) => setChecklist({...checklist, sma200Check: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded bg-slate-900 border-slate-700"/>
-                    <span className="text-slate-300">5. Safety Check: Is the 200 SMA river flowing in our direction?</span>
+                    <span className="text-slate-300">4. 200 SMA river flowing in our direction?</span>
                   </label>
                 </div>
               </div>
