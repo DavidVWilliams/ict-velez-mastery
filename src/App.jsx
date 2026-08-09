@@ -55,18 +55,33 @@ const courseData = episodeTitles.map((title, index) => {
   const epNum = index + 1;
   const officialPlaylist = "https://www.youtube.com/playlist?list=PLVgHx4Z63paYiFGQ56PjTF1PGePL3r69s";
   
+  // Dynamic Homework Injection based on NotebookLM Study Guide
+  let homework = "Review the concepts introduced in this episode on your live charts. Take a screenshot of an applicable setup and submit it to the AI Auditor for grading.";
+  if (epNum === 10) {
+    homework = "Assignment 1: Daily Bias and Power 3 Observation. \n• Open a Daily chart of the E-mini S&P or NASDAQ.\n• Identify the opening price (Midnight New York time).\n• Mark the High, Low, and Close of the day.\n• Annotate the 'Manipulation' (Judas Swing) above or below the open and the 'Distribution' (the expansion move).";
+  } else if (epNum === 11 || epNum === 12) {
+    homework = "Assignment 2: Market Structure Classification.\n• Select an Hourly chart and identify 'Long Term' Highs and Lows based on Daily chart resistance/support.\n• Find 'Intermediate Term' Highs (ITH) which are swing highs with lower highs on either side, OR highs that rebalance a Fair Value Gap.\n• Verify if subsequent 'Short Term' Highs (STH) respect the ITH by staying below them.";
+  } else if (epNum === 16) {
+    homework = "Assignment 3 & 5: Imbalance Mapping & Journaling.\n• Go back through 15-minute data and find every instance of an energetic displacement move. Highlight the resulting FVG.\n• Observe how price returns to the FVG and/or the 'Order Block' to re-accumulate positions.\n• Annotate your charts with 'Self-Talk' (e.g., 'I am expecting a run below this low because we are in a premium'). Log every trade with positive reinforcement.";
+  } else if (epNum === 13 || epNum === 41) {
+    homework = "Assignment 4: Risk and Trade Management Simulation.\n• In a demo account, place a trade using a 1% risk model.\n• Practice the '25% stop reduction at 50% target' and 'Break-even at 75% target' rules.\n• Document a 'Pyramid' scale-in: Enter your largest position first, followed by smaller increments (e.g., 3-2-1 micro contracts) as price moves in your favor.";
+  }
+
   if (epNum === 1) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=180s",
     rawText: "Liquidity acts as the ultimate fuel for institutional algorithms. Large banks cannot simply press a button to buy massive block orders without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers. Where do they find them? Right below established support levels, where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these stop-loss clusters to absorb that liquidity, pairing their massive buy orders with the triggered retail sell orders.",
-    homework: "Open a Daily or 4-Hour chart. Identify and draw horizontal lines across at least 5 major Swing Highs and 5 major Swing Lows. Label the highs as 'Buy-Side Liquidity' (BSL) and the lows as 'Sell-Side Liquidity' (SSL).",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Liquidity acts as the ultimate fuel for the Interbank Price Delivery Algorithm (IPDA). To understand market movement, you must first understand how large institutions execute block orders.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Counter-Party Requirement</h4>
+          <h4 className="text-xl font-bold text-white mb-2">The Counter-Party Requirement & Technical Science</h4>
           <p>Large banks cannot simply buy massive quantities of an asset without drastically shifting the price against themselves. They require a counter-party. To buy heavily, they need a vast pool of willing sellers.</p>
-          <p className="mt-3">Where do they find them? Right below established support levels (old lows), where retail traders place their protective sell-stop orders. The algorithm deliberately drives price into these clusters to absorb that liquidity, pairing their massive institutional buy orders with the triggered retail sell orders.</p>
+          <ul className="list-disc pl-8 mt-3 space-y-2 font-medium text-white">
+            <li><strong>Buy Side Liquidity (BSL):</strong> A pool of buy stop orders resting above old highs; used by smart money to exit long positions or enter short.</li>
+            <li><strong>Sell Side Liquidity (SSL):</strong> A pool of sell stop orders resting below old lows; used by smart money to exit short positions or enter long.</li>
+          </ul>
         </div>
 
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
@@ -92,14 +107,15 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 2) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=840s",
     rawText: "How do we confirm the algorithm has finished sweeping liquidity and is initiating a true reversal? We look for institutional displacement, categorized as a Market Structure Shift. This is characterized by highly energetic, large-range candles that decisively break through the nearest opposing swing high or swing low. It is the visible footprint of institutional money entering the market with urgency.",
-    homework: "Drop down to a 15-minute chart. Find 3 distinct examples where price swept liquidity, then immediately reversed to break a previous swing point. Highlight the energetic displacement candles that caused the break.",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>A liquidity sweep alone is not a valid trade signal. The market can easily sweep a level and continue trending in that direction. We need confirmation of an institutional reversal.</p>
+        <p>A liquidity sweep alone is not a valid trade signal. We must differentiate between a stop run that continues the trend and a genuine shift that indicates a reversal.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Institutional Displacement</h4>
-          <p>We look for a <strong>Market Structure Shift (MSS)</strong>. This occurs when price violently reverses away from the swept liquidity pool, printing large-bodied, highly energetic candles that decisively break the nearest opposing swing high (or low). This energetic break is called <strong>Displacement</strong>, and it represents the heavy, undeniable footprint of smart money stepping in.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Displacement & Market Structure</h4>
+          <p><strong>Displacement</strong> is a sudden, energetic move in price characterized by large candles, indicating institutional pressure and often leaving behind an imbalance.</p>
+          <p className="mt-3">To identify a valid shift, we look for energetic displacement breaking an <strong>Intermediate-Term High (ITH)</strong>. An ITH is defined as a swing high that has a lower short-term high to its immediate left and another lower short-term high to its immediate right. Alternatively, a swing high that forms specifically when an imbalance is rebalanced is also classified as an intermediate-term high.</p>
         </div>
 
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
@@ -107,7 +123,7 @@ const courseData = episodeTitles.map((title, index) => {
           <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
             <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
             <line x1="50" y1="120" x2="550" y2="120" stroke="#38bdf8" strokeWidth="2" strokeDasharray="5,5" />
-            <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">Recent Swing High (MSS Trigger)</text>
+            <text x="50" y="110" fill="#38bdf8" fontSize="12" fontWeight="bold">Intermediate-Term High (MSS Trigger)</text>
             <Candle x={180} o={160} c={120} h={110} l={170} />
             <Candle x={300} o={220} c={280} h={210} l={290} /> 
             <Candle x={340} o={280} c={180} h={170} l={290} /> 
@@ -123,15 +139,15 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 3) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1400s",
     rawText: "When institutional displacement occurs, the speed of the price action frequently leaves behind a pricing inefficiency known as a Fair Value Gap. This is a three-candle sequence where the wicks of the first and third candles fail to overlap, creating a vacuum of unfulfilled orders. The algorithm seeks equilibrium, meaning price will naturally gravitate back to this inefficiency to properly offer both buy and sell liquidity at those price levels.",
-    homework: "Find 3 distinct Fair Value Gaps (FVGs) on a 15-minute or 5-minute chart. Draw a box extending from the high of Candle 1 to the low of Candle 3. Observe whether price eventually returned to fill this inefficiency.",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>When heavy displacement occurs, the resulting price action is often so rapid that it causes a breakdown in the normal bid-ask delivery process.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Identifying the Inefficiency</h4>
-          <p>This rapid repricing leaves behind a <strong>Fair Value Gap (FVG)</strong>. Mechanically, it is a three-candle sequence where the wicks of Candle 1 and Candle 3 fail to overlap. This leaves an explicit gap—a vacuum of unfulfilled orders.</p>
-          <p className="mt-3">The market algorithm fundamentally seeks equilibrium. Therefore, price will naturally gravitate back toward this gap to efficiently offer both buy and sell liquidity at those previously skipped price levels. The FVG becomes our high-probability entry zone.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Rebalancing Inefficiencies & Order Blocks</h4>
+          <p><strong>Fair Value Gap (FVG):</strong> An imbalance in price delivery where a specific price range is only traded through by one candle, leaving a gap between the previous candle's wick and the following candle's wick.</p>
+          <p className="mt-3"><strong>High-Probability Order Blocks:</strong> A high-probability Bullish Order Block is not merely a down-closed candle; it must be accompanied by an FVG and a clear shift in market structure. Furthermore, the underlying market narrative must support higher prices, meaning the order block should form as the market reaches for buy-side liquidity.</p>
         </div>
 
         <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
@@ -159,7 +175,7 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 4) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2000s",
     rawText: "To enhance the execution safety of the ICT model, we bridge it with Oliver Velez methodology by applying a 200 Simple Moving Average (SMA). The 200 SMA acts as a definitive macro trend baseline. We never initiate positions contrary to the slope of this average. Furthermore, execution requires an ignition candle—a solid continuation bar forming off the SMA within the bounds of our Fair Value Gap.",
-    homework: "Apply the 200 SMA to your chart. Find 3 examples where price retraced into an FVG while respecting the slope of the 200 SMA. Identify the specific Velez Ignition Candle that confirmed the entry.",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Locating an inefficiency is only half the battle. We must implement rigid filters to prevent executing into adverse momentum.</p>
@@ -196,16 +212,16 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 5) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=kmVXVJE08eQ&t=600s",
     rawText: "Institutional volume is strictly bound to time. The foundational framework for daily algorithmic delivery is Accumulation, Manipulation, and Distribution (AMD). During illiquid hours, algorithms accumulate positions within a consolidation range. Approaching high-volume opens, they manipulate price counter to the true daily bias to capture stop liquidity. Following this sweep, they aggressively distribute positions toward the true target during predefined Killzones.",
-    homework: "Draw vertical lines on your chart marking Midnight EST, 08:30 EST, and 11:00 EST. Observe the price action. Can you spot the Accumulation (overnight), Manipulation (trick drop/pump), and Distribution (Killzone expansion)?",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Order flow is irrelevant if executed outside of proper timing parameters. Algorithmic volatility adheres to predictable daily cycles known as the <strong>Power of 3 (AMD)</strong>.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Accumulation, Manipulation, Distribution</h4>
+          <h4 className="text-xl font-bold text-white mb-2">Power of 3 & The Judas Swing</h4>
           <p><strong>Accumulation:</strong> Occurs during low-volume overnight sessions. Price consolidates tightly as algorithms passively establish baseline positioning.</p>
-          <p><strong>Manipulation:</strong> The false move. Typically occurring near the London Open or initial NY sequence, price breaks aggressively opposite to the true daily bias to trigger breakout traders and purge resting stops.</p>
-          <p><strong>Distribution:</strong> The true directional expansion. Having secured necessary liquidity, price displaces rapidly toward primary targets. This expansion defines our targeted execution window, specifically the <strong>New York AM Killzone (08:30 – 11:00 EST)</strong>.</p>
+          <p><strong>Manipulation (Judas Swing):</strong> A deceptive price move in the opposite direction of the actual daily bias, intended to trigger stops and lure retail traders onto the wrong side of the market. It typically manifests as a rally above the Midnight opening price on a bearish day or a drop below it on a bullish day.</p>
+          <p><strong>Distribution:</strong> The true directional expansion. Having secured necessary liquidity, price displaces rapidly toward primary targets. This expansion defines our targeted execution window, specifically aligning with the <strong>8:30 AM News Embargo</strong> lift, which acts as a catalyst for volatility.</p>
         </div>
       </div>
     )
@@ -214,17 +230,17 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 6) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=wXwG_uM4Q3k&t=300s",
     rawText: "Institutions operate entirely on wholesale pricing models; they fundamentally refuse to accumulate inventory at premium valuations. Using standard Fibonacci retracement parameters mapped across the displacement range, we bisect price into Premium and Discount territories. Executions are strictly limited to the Discount matrix for long positions, with the Optimal Trade Entry (OTE) calibrated between the 62% and 79% retracement levels.",
-    homework: "Pull a Fibonacci retracement from a recent institutional displacement wave (Swing Low to Swing High). Mark the 50% line (Equilibrium) and identify the Discount territory. Where did price retrace to before continuing?",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Retail participants frequently buy assets after an extended uptrend, purchasing at retail or "Premium" prices. Institutions operate on a strictly wholesale basis.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">Discount & Premium Arrays</h4>
-          <p>By mapping a Fibonacci tool from the origin of the displacement swing to its extreme, we can calculate equitable pricing zones. We mathematically bisect this range:</p>
+          <h4 className="text-xl font-bold text-white mb-2">Discount, Premium & Technical Science</h4>
+          <p>By mapping a Fibonacci tool from the highest and lowest bodies (open/close) within a specific swing, we can calculate equitable pricing zones. We mathematically bisect this range:</p>
           <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
-            <li><strong>Premium:</strong> The upper 50%. Institutional selling zone. Never initiate longs here.</li>
-            <li><strong>Discount:</strong> The lower 50%. Institutional accumulation zone.</li>
+            <li><strong>Premium:</strong> A market condition where price is above the 50% equilibrium of a recent range; the ideal zone for selling.</li>
+            <li><strong>Discount:</strong> A market condition where price is below the 50% equilibrium of a recent range; the ideal area for seeking long entries.</li>
           </ul>
         </div>
 
@@ -260,17 +276,18 @@ const courseData = episodeTitles.map((title, index) => {
   if (epNum === 7) return {
     id: `ep${epNum}`, title, videoUrl: "https://www.youtube.com/watch?v=CnTXwAuDi9Y&t=120s",
     rawText: "The technical framework is irrelevant without stringent capital preservation protocols. Variance guarantees that flawless setups will routinely result in losses. Professional execution requires divorcing emotion from individual outcomes through strict mathematical limitations. Exposure is universally capped at a maximum of 1% total account equity per configuration, with invalidation stops rigidly placed beneath the structural origin of the displacement wave.",
-    homework: "Calculate exactly what 1% of your current (or simulated) account balance is. Write down your maximum dollar risk per trade and tape it to your monitor.",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
-        <p>The highest probability setup guarantees nothing on a trade-by-trade basis. Survival and profitability in algorithmic trading hinge entirely on rigid capital preservation.</p>
+        <p>The highest probability setup guarantees nothing on a trade-by-trade basis. Survival and profitability in algorithmic trading hinge entirely on rigid capital preservation and viewing drawdown as a temporary loan to the market.</p>
         
         <div className="bg-slate-800 p-6 rounded-xl border border-red-500/50">
-          <h4 className="text-xl font-bold text-white mb-2">The Absolute Limit of Exposure</h4>
-          <p>Professional operators function on statistical edges across a broad sample size, anticipating failure in a percentage of executions. Consequently, maximum risk exposure per trade is aggressively restricted.</p>
+          <h4 className="text-xl font-bold text-white mb-2">Systematic Risk & Trade Management</h4>
+          <p>Professional operators function on statistical edges across a broad sample size, anticipating failure in a percentage of executions. Consequently, maximum risk exposure and stop management are aggressively restricted.</p>
           <ul className="list-disc pl-8 mt-2 space-y-2 text-white">
-            <li><strong>The 1% Rule:</strong> Under no circumstances does equity exposure exceed 1% of the total account balance per setup.</li>
-            <li><strong>Hard Invalidation:</strong> Protective stops are mechanically placed beyond the structural extreme of the displacement wave. If price violates this level, the foundational premise of the setup is invalidated, and the nominal loss is accepted without hesitation.</li>
+            <li><strong>Drawdown Mitigation:</strong> After a loss, a trader must reduce their risk by half (e.g., from 1% to 0.5%) for the next trade to manage psychological impact. Risk only returns to the full percentage once 50% of the previous loss is recovered.</li>
+            <li><strong>The 50/75 Stop Rule:</strong> Once price has moved 50% of the way to the target, the stop can be reduced by 25%. When price reaches 75% of the expected range from entry to target, the stop must be moved to the break-even point.</li>
+            <li><strong>Absolute Neutrality:</strong> If a trader cannot clearly define a lopsided probability, they must remain neutral. Staying on the sidelines protects capital from low-probability chop.</li>
           </ul>
         </div>
       </div>
@@ -282,7 +299,7 @@ const courseData = episodeTitles.map((title, index) => {
     title,
     videoUrl: officialPlaylist,
     rawText: `${title}. In this episode, we build upon the foundation of liquidity, displacement, and the 200 SMA filter. Focus on how time and price align within the specific Killzones.`,
-    homework: "Review the concepts introduced in this episode on your live charts. Take a screenshot of an applicable setup and submit it to the AI Auditor for grading.",
+    homework: homework,
     content: (
       <div className="space-y-6 text-slate-300 leading-relaxed text-lg">
         <p>Welcome to <strong>{title}</strong>. As we advance through the curriculum, the concepts combine to form a complete, mechanical trading model.</p>
@@ -344,9 +361,11 @@ export default function App() {
   const [completedModules, setCompletedModules] = useState({});
   const toggleModuleCompletion = (key) => setCompletedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
+  // Lesson image upload states
   const [lessonImage, setLessonImage] = useState(null);
   const [lessonImageName, setLessonImageName] = useState('');
 
+  // Universal Paste Handler
   const handlePasteImage = (e, setImageState, setNameState) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -361,7 +380,7 @@ export default function App() {
           };
           reader.readAsDataURL(file);
         }
-        break;
+        break; 
       }
     }
   };
@@ -626,13 +645,13 @@ export default function App() {
                     
                     {lesson.content}
 
-                    {/* NEW: Homework Assignment Block */}
+                    {/* Homework Assignment Block */}
                     {lesson.homework && (
                       <div className="mt-8 bg-slate-950 border-l-4 border-indigo-500 p-6 rounded-r-xl shadow-lg">
                         <h4 className="text-lg font-bold text-indigo-400 mb-3 flex items-center gap-2">
                           <CheckSquare size={18} /> Official Episode Homework
                         </h4>
-                        <p className="text-slate-300 leading-relaxed mb-6">{lesson.homework}</p>
+                        <div className="text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap">{lesson.homework}</div>
                         <button 
                           onClick={() => {
                             setActiveTab(7);
