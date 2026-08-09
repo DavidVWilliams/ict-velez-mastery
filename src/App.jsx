@@ -9,6 +9,23 @@ import {
   PlayCircle, Cpu, BarChart2, CheckSquare, Layers, HelpCircle, FileText, Book, Bot, Briefcase, User, Lock, Mail, LogOut, Upload, ExternalLink, Sparkles, ArrowRight, Volume2, StopCircle, MessageSquare
 } from 'lucide-react';
 
+// Custom Candlestick SVG Component
+const Candle = ({ x, o, c, h, l }) => {
+  const isGreen = c <= o; // SVG Y-axis is inverted (0 is top)
+  const color = isGreen ? '#10b981' : '#ef4444'; // Emerald for up, Red for down
+  const bodyY = Math.min(o, c);
+  const bodyH = Math.max(Math.abs(c - o), 2); // Minimum 2px for doji
+  
+  return (
+    <g>
+      {/* Wick */}
+      <line x1={x} y1={h} x2={x} y2={l} stroke={color} strokeWidth="1.5" />
+      {/* Body */}
+      <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={color} stroke={color} />
+    </g>
+  );
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState(1);
   const [user, setUser] = useState(null);
@@ -149,10 +166,10 @@ export default function App() {
     } catch (err) { console.error(err); }
   };
 
-  // Text-to-Speech (Reverted to standard implementation for reliability)
+  // Text-to-Speech (Reverted to original clean implementation)
   const speakText = (textToRead) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Stop any active speech
+      window.speechSynthesis.cancel(); 
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(textToRead);
       utterance.onend = () => setIsSpeaking(false);
@@ -170,53 +187,151 @@ export default function App() {
     }
   };
 
-  // --- COMPREHENSIVE TEXTBOOK WITH VISUAL SVGS ---
+  const callGemini = async (promptText) => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) { setAiResponse("Error: VITE_GEMINI_API_KEY is not configured."); return; }
+    setLoadingAi(true); setAiResponse('');
+    try {
+      const parts = [{ text: promptText }];
+      if (auditImage) parts.push({ inline_data: { mime_type: "image/jpeg", data: auditImage } });
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts }] })
+      });
+      const data = await res.json();
+      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.");
+    } catch (err) { setAiResponse("Error calling Gemini API: " + err.message); } finally { setLoadingAi(false); }
+  };
+
+  const callLessonGemini = async (lessonTitle) => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) { setLessonAiResponse("Error: VITE_GEMINI_API_KEY is not configured."); return; }
+    if (!lessonAiPrompt.trim()) return;
+    
+    setLoadingLessonAi(true); setLessonAiResponse('');
+    try {
+      const contextPrompt = `You are an expert trading mentor teaching the ICT 2022 Mentorship and Oliver Velez Simple Moving Average strategies. The student is studying the chapter: "${lessonTitle}". Answer their question directly. Question: ${lessonAiPrompt}`;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: contextPrompt }] }] })
+      });
+      const data = await res.json();
+      setLessonAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.");
+    } catch (err) { setLessonAiResponse("Error calling Gemini API: " + err.message); } finally { setLoadingLessonAi(false); }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => { setAuditImage(reader.result.split(',')[1]); setAuditImageName(file.name); };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleQuizAnswer = (selectedIndex) => {
+    if (selectedIndex === quizQuestions[currentQuestion].a) setScore(score + 1);
+    if (currentQuestion + 1 < quizQuestions.length) setCurrentQuestion(currentQuestion + 1);
+    else setShowResults(true);
+  };
+
+  const resetQuiz = () => {
+    setQuizStarted(false); setCurrentQuestion(0); setScore(0); setShowResults(false);
+  };
+
+  // --- COMPREHENSIVE TEXTBOOK WITH CANDLESTICK SVGS ---
   const courseData = [
     {
       id: "c1",
       title: "Part 1: The Core Elements (Episodes 1-5)",
       episodes: "Eps 1-5",
-      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift (MSS). Price runs above an old high to sweep liquidity, aggressively reverses downward, and breaks the nearest short-term swing low with energetic candles. Step 3: The Fair Value Gap (FVG). Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The algorithm will re-price back into this gap. This is your entry point.",
+      rawText: "Part 1: The Core Elements. Step 1: Identifying the Draw on Liquidity. Algorithms seek out Buy-Side Liquidity, which are resting buy stops above old highs, and Sell-Side Liquidity, below old lows. Step 2: Displacement and the Market Structure Shift. Once price reaches the liquidity pool, it must show institutional displacement to confirm a reversal. This is the Market Structure Shift. Price runs above an old high to sweep liquidity, aggressively reverses downward, and breaks the nearest short-term swing low with energetic candles. Step 3: The Fair Value Gap. Displacement leaves a 3-candle sequence where the high of candle 1 and the low of candle 3 do not overlap. The algorithm will re-price back into this gap. This is your entry point.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 1-5 lay the groundwork. Algorithms move price from an area of consolidation to an area of resting liquidity (stop losses). Once liquidity is taken, the algorithm reverses, leaving a <strong>Market Structure Shift (MSS)</strong> and a <strong>Fair Value Gap (FVG)</strong>.</p>
           
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Visual Concept: Liquidity Sweep, MSS, and FVG</h4>
-          <p>Below is the exact mechanical sequence of the ICT 2022 Bearish Setup:</p>
-
-          {/* SVG 1: The Core Setup */}
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 1: Liquidity Pools (BSL & SSL)</h4>
+          <p>Retail traders see support and resistance. Algorithms see stop-loss orders. You must identify where the largest clusters of stops reside (equal highs and lows).</p>
+          
+          {/* CANDLESTICK SVG 1: BSL / SSL */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
-            <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
-                </marker>
-              </defs>
-              
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 1: BSL / SSL (RELATIVE EQUAL HIGHS/LOWS)</div>
+            <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
               {/* BSL Line */}
-              <line x1="50" y1="80" x2="550" y2="80" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
-              <text x="50" y="70" fill="#10b981" fontSize="14" fontWeight="bold">Buy-Side Liquidity (BSL) - Old Highs</text>
+              <line x1="50" y1="60" x2="550" y2="60" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
+              <text x="50" y="50" fill="#10b981" fontSize="12" fontWeight="bold">Buy-Side Liquidity (BSL) - Resting Buy Stops</text>
               
-              {/* Swing Low / MSS Line */}
+              {/* SSL Line */}
               <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
-              <text x="50" y="215" fill="#ef4444" fontSize="14" fontWeight="bold">Market Structure Shift (MSS) Line</text>
+              <text x="50" y="215" fill="#ef4444" fontSize="12" fontWeight="bold">Sell-Side Liquidity (SSL) - Resting Sell Stops</text>
 
-              {/* Price Action Path */}
-              <path d="M 50 150 L 150 150 L 200 60 L 250 180 L 280 250 L 350 110 L 400 280" fill="none" stroke="#64748b" strokeWidth="3" markerMid="url(#arrow)" />
+              {/* Candles */}
+              <Candle x={100} o={150} c={120} h={100} l={160} />
+              <Candle x={130} o={120} c={90} h={70} l={130} />
+              <Candle x={160} o={90} c={70} h={60} l={100} /> {/* Hits BSL */}
+              <Candle x={190} o={70} c={110} h={65} l={120} />
+              <Candle x={220} o={110} c={150} h={100} l={160} />
+              <Candle x={250} o={150} c={180} h={140} l={190} />
+              <Candle x={280} o={180} c={195} h={170} l={200} /> {/* Hits SSL */}
+              <Candle x={310} o={195} c={160} h={150} l={200} />
+              <Candle x={340} o={160} c={110} h={100} l={170} />
+              <Candle x={370} o={110} c={80} h={60} l={120} /> {/* Hits BSL Again (Equal Highs) */}
+              <Candle x={400} o={80} c={130} h={70} l={140} />
+            </svg>
+          </div>
+
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 2: The Market Structure Shift (MSS)</h4>
+          <p>A sweep of liquidity is not enough. You must wait for the algorithm to show its hand through violent <strong>displacement</strong> breaking a recent swing low.</p>
+
+          {/* CANDLESTICK SVG 2: MSS & Displacement */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 2: MARKET STRUCTURE SHIFT (MSS)</div>
+            <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
+              <line x1="50" y1="80" x2="550" y2="80" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
+              <text x="50" y="70" fill="#10b981" fontSize="12" fontWeight="bold">Old High (BSL)</text>
               
-              {/* Annotations */}
-              <circle cx="200" cy="60" r="6" fill="#10b981" />
-              <text x="215" y="55" fill="#e2e8f0" fontSize="12">1. Sweep Liquidity (Turtle Soup)</text>
+              <line x1="50" y1="160" x2="550" y2="160" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
+              <text x="50" y="175" fill="#ef4444" fontSize="12" fontWeight="bold">Swing Low Broken = MSS</text>
 
-              <circle cx="270" cy="200" r="6" fill="#ef4444" />
-              <text x="285" y="200" fill="#e2e8f0" fontSize="12">2. Break Structure (Displacement)</text>
+              <Candle x={100} o={160} c={130} h={120} l={170} />
+              <Candle x={130} o={130} c={100} h={90} l={140} />
+              <Candle x={160} o={100} c={150} h={90} l={160} /> {/* The Swing Low */}
+              <Candle x={190} o={150} c={110} h={100} l={160} />
+              <Candle x={220} o={110} c={60} h={50} l={120} /> {/* Sweeps High */}
+              
+              {/* Displacement Candles */}
+              <Candle x={250} o={60} c={120} h={55} l={130} />
+              <Candle x={280} o={120} c={190} h={110} l={200} /> {/* Breaks MSS */}
+              <Candle x={310} o={190} c={230} h={180} l={240} />
+              
+              <text x="320" y="210" fill="#fca5a5" fontSize="12" fontWeight="bold">Violent Red Displacement</text>
+            </svg>
+          </div>
 
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 3: The Fair Value Gap (FVG)</h4>
+          <p>Displacement leaves an inefficiency. A 3-candle sequence where the high of Candle 1 and the low of Candle 3 do not overlap.</p>
+
+          {/* CANDLESTICK SVG 3: FVG */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 3: THE FAIR VALUE GAP (BEARISH)</div>
+            <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
               {/* FVG Box */}
-              <rect x="330" y="110" width="40" height="40" fill="#6366f1" fillOpacity="0.3" stroke="#6366f1" strokeWidth="1" />
-              <text x="380" y="125" fill="#a5b4fc" fontSize="12" fontWeight="bold">3. Fair Value Gap (FVG)</text>
-              <text x="380" y="140" fill="#e2e8f0" fontSize="11">Algorithm returns to gap. Execute Short.</text>
+              <rect x="230" y="110" width="140" height="40" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
+              <text x="380" y="135" fill="#a5b4fc" fontSize="12" fontWeight="bold">THE GAP (Inefficiency)</text>
 
-              <circle cx="350" cy="110" r="6" fill="#6366f1" />
+              {/* Candles */}
+              <Candle x={250} o={40} c={90} h={30} l={110} /> {/* C1 */}
+              <text x="240" y="25" fill="#94a3b8" fontSize="11">C1</text>
+              <line x1="250" y1="110" x2="380" y2="110" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2"/>
+              <text x="180" y="115" fill="#cbd5e1" fontSize="10">C1 Low</text>
+
+              <Candle x={300} o={95} c={180} h={90} l={190} /> {/* C2 (Displacement) */}
+              <text x="290" y="25" fill="#94a3b8" fontSize="11">C2</text>
+
+              <Candle x={350} o={182} c={220} h={150} l={230} /> {/* C3 */}
+              <text x="340" y="25" fill="#94a3b8" fontSize="11">C3</text>
+              <line x1="350" y1="150" x2="380" y2="150" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2"/>
+              <text x="180" y="155" fill="#cbd5e1" fontSize="10">C3 High</text>
             </svg>
           </div>
 
@@ -237,39 +352,65 @@ export default function App() {
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 6-12 introduce time macros. ICT teaches that price delivery is highly dependent on the time of day. The core concept is the <strong>Power of 3 (AMD)</strong> and the New York AM Killzone.</p>
 
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Visual Concept: AMD (Accumulation, Manipulation, Distribution)</h4>
-          <p>For a bullish day, the algorithm executes the following sequence:</p>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 4: AMD (Accumulation, Manipulation, Distribution)</h4>
+          <p>The algorithm groups price delivery into three distinct daily phases.</p>
           
-          {/* SVG 2: AMD Profile */}
+          {/* CANDLESTICK SVG 4: AMD Profile */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
-            <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-              {/* Grid/Time Zones */}
-              <rect x="50" y="20" width="150" height="260" fill="#1e293b" fillOpacity="0.5" />
-              <text x="125" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">Asia (Accumulation)</text>
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 4: THE POWER OF 3 (AMD)</div>
+            <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
+              <rect x="50" y="20" width="150" height="210" fill="#1e293b" fillOpacity="0.5" />
+              <text x="125" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">Accumulation</text>
               
-              <rect x="200" y="20" width="150" height="260" fill="#7f1d1d" fillOpacity="0.2" />
-              <text x="275" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">London (Manipulation)</text>
+              <rect x="200" y="20" width="150" height="210" fill="#7f1d1d" fillOpacity="0.2" />
+              <text x="275" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">Manipulation</text>
 
-              <rect x="350" y="20" width="150" height="260" fill="#14532d" fillOpacity="0.2" />
-              <text x="425" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">NY AM (Distribution)</text>
+              <rect x="350" y="20" width="150" height="210" fill="#14532d" fillOpacity="0.2" />
+              <text x="425" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">Distribution</text>
 
-              {/* Daily Open Line */}
-              <line x1="50" y1="150" x2="550" y2="150" stroke="#f8fafc" strokeWidth="1" strokeDasharray="3,3" />
-              <text x="50" y="145" fill="#f8fafc" fontSize="10">Midnight EST Open Price</text>
-
-              {/* Price Path */}
-              <path d="M 50 150 L 80 140 L 120 160 L 160 145 L 200 150 L 250 240 L 300 230 L 350 250 L 400 100 L 450 60 L 500 80" fill="none" stroke="#38bdf8" strokeWidth="3" />
+              <line x1="50" y1="120" x2="550" y2="120" stroke="#f8fafc" strokeWidth="1" strokeDasharray="3,3" />
               
-              {/* Annotations */}
-              <text x="250" y="260" fill="#ef4444" fontSize="12" fontWeight="bold">Judas Swing (Traps Sellers)</text>
-              <text x="400" y="80" fill="#10b981" fontSize="12" fontWeight="bold">Expansion Run</text>
+              {/* Asia (Accum) */}
+              <Candle x={70} o={120} c={110} h={100} l={130} />
+              <Candle x={100} o={110} c={130} h={105} l={140} />
+              <Candle x={130} o={130} c={115} h={100} l={140} />
+              <Candle x={160} o={115} c={125} h={110} l={130} />
+              
+              {/* London/NY Open (Manip) */}
+              <Candle x={210} o={125} c={160} h={120} l={170} />
+              <Candle x={240} o={160} c={190} h={150} l={200} />
+              <Candle x={270} o={190} c={220} h={180} l={230} />
+              <text x="220" y="240" fill="#ef4444" fontSize="11" fontWeight="bold">Judas Swing</text>
+              
+              {/* NY AM (Dist) */}
+              <Candle x={360} o={220} c={150} h={140} l={230} />
+              <Candle x={390} o={150} c={90} h={80} l={160} />
+              <Candle x={420} o={90} c={50} h={40} l={100} />
             </svg>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=1800s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 14 (30:00): AMD Logic <ExternalLink className="ml-2" size={14}/>
-            </a>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 5: The NY AM Killzone Window</h4>
+          <p>You do not trade 24/7. You stalk the setup specifically between 08:30 and 11:00 EST.</p>
+
+          {/* CANDLESTICK SVG 5: Killzone */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 5: THE NY AM KILLZONE</div>
+            <svg viewBox="0 0 600 150" className="w-full max-w-2xl h-auto font-sans">
+              <rect x="250" y="20" width="150" height="100" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="2" />
+              
+              <text x="50" y="140" fill="#94a3b8" fontSize="12">Midnight EST</text>
+              <text x="250" y="140" fill="#a5b4fc" fontSize="12" fontWeight="bold">08:30 EST</text>
+              <text x="400" y="140" fill="#a5b4fc" fontSize="12" fontWeight="bold">11:00 EST</text>
+              
+              {/* Candles entering and expanding in Killzone */}
+              <Candle x={100} o={80} c={90} h={70} l={100} />
+              <Candle x={150} o={90} c={85} h={70} l={100} />
+              <Candle x={200} o={85} c={110} h={80} l={120} />
+              
+              <Candle x={270} o={110} c={130} h={100} l={140} /> {/* Sweep */}
+              <Candle x={310} o={130} c={60} h={50} l={140} /> {/* MSS inside Killzone */}
+              <Candle x={350} o={60} c={30} h={20} l={70} /> 
+            </svg>
           </div>
         </div>
       )
@@ -281,44 +422,70 @@ export default function App() {
       rawText: "Part 3: PD Arrays and Breaker Blocks. A Breaker Block is a failed Order Block. Step-by-Step Bearish Breaker: 1. Price makes a High, drops down to make a Low (which is a Bullish Order Block), and then pushes up to make a Higher High, sweeping Liquidity. 2. Price immediately violently reverses downward, completely smashing through that previous Bullish Order Block Low with displacement. 3. Because that Bullish Order Block failed, it is now a Bearish Breaker Block. 4. When price retraces back up into that Breaker Block, you execute your short entry.",
       content: (
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
-          <p><strong>Overview:</strong> Episodes 13-17 expand your entry toolkit. The most powerful Premium/Discount array outside of the FVG is the <strong>Breaker Block</strong>.</p>
+          <p><strong>Overview:</strong> Episodes 13-17 expand your entry toolkit. The most powerful Premium/Discount arrays outside of the FVG are Order Blocks and Breaker Blocks.</p>
 
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Visual Concept: The Bearish Breaker Block</h4>
-          <p>A Breaker is simply an Order Block that failed. When price smashes through a support block, that block becomes heavy algorithmic resistance.</p>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 6: The Institutional Order Block (OB)</h4>
+          <p>The last down-candle before a violent up-move is a Bullish Order Block. Algorithms return here to mitigate.</p>
 
-          {/* SVG 3: Breaker Block */}
+          {/* CANDLESTICK SVG 6: Order Block */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
-            <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-              {/* Liquidity Line */}
-              <line x1="50" y1="100" x2="550" y2="100" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
-              <text x="50" y="90" fill="#10b981" fontSize="12" fontWeight="bold">Old High (BSL)</text>
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 6: BULLISH ORDER BLOCK (OB)</div>
+            <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
+              {/* OB Zone */}
+              <rect x="185" y="120" width="200" height="50" fill="#10b981" fillOpacity="0.2" stroke="#10b981" strokeDasharray="3,3" />
+              <text x="400" y="150" fill="#34d399" fontSize="12" fontWeight="bold">Mitigation Return (Entry)</text>
+
+              {/* Candles */}
+              <Candle x={100} o={80} c={110} h={70} l={120} />
+              <Candle x={150} o={110} c={130} h={100} l={140} />
+              <Candle x={200} o={130} c={170} h={120} l={180} /> {/* The OB (Last down candle) */}
               
-              {/* Breaker Zone */}
-              <rect x="50" y="180" width="500" height="30" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
-              <text x="50" y="175" fill="#a5b4fc" fontSize="12" fontWeight="bold">Bullish Order Block --> Fails --> Becomes Bearish Breaker</text>
-
-              {/* Price Path */}
-              <path d="M 50 250 L 150 100 L 250 180 L 320 60 L 380 280 L 450 180 L 520 290" fill="none" stroke="#f43f5e" strokeWidth="3" />
+              <Candle x={250} o={170} c={90} h={80} l={180} /> {/* Displacement Up */}
+              <Candle x={300} o={90} c={40} h={30} l={100} />
               
-              {/* Annotations */}
-              <text x="250" y="225" fill="#cbd5e1" fontSize="11" textAnchor="middle">Last down-candle</text>
-              <text x="250" y="240" fill="#cbd5e1" fontSize="11" textAnchor="middle">(Bullish OB)</text>
-
-              <circle cx="320" cy="60" r="5" fill="#10b981" />
-              <text x="335" y="55" fill="#e2e8f0" fontSize="11">Sweeps BSL</text>
-
-              <circle cx="380" cy="200" r="5" fill="#f43f5e" />
-              <text x="395" y="210" fill="#e2e8f0" fontSize="11">Violent Break (MSS)</text>
-
-              <circle cx="450" cy="180" r="7" fill="#6366f1" />
-              <text x="440" y="160" fill="#a5b4fc" fontSize="12" fontWeight="bold">Entry</text>
+              <Candle x={350} o={40} c={120} h={30} l={130} /> {/* Return */}
+              <Candle x={400} o={120} c={150} h={110} l={160} /> {/* Hits OB */}
+              <Candle x={450} o={150} c={80} h={70} l={160} /> {/* Bounce */}
+              
+              <text x="180" y="195" fill="#cbd5e1" fontSize="11">Last Down Candle = Bullish OB</text>
             </svg>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=bx89qkJ_LR4&t=2700s" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 16 for Breaker Examples <ExternalLink className="ml-2" size={14}/>
-            </a>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 7: The Breaker Block</h4>
+          <p>A Breaker is simply an Order Block that failed. When price smashes through a support block, that block becomes heavy algorithmic resistance.</p>
+
+          {/* CANDLESTICK SVG 7: Breaker Block */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 7: THE BEARISH BREAKER BLOCK</div>
+            <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
+              <line x1="50" y1="80" x2="550" y2="80" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" />
+              <text x="50" y="70" fill="#10b981" fontSize="12" fontWeight="bold">Old High (BSL)</text>
+              
+              <rect x="50" y="160" width="500" height="30" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
+              <text x="50" y="155" fill="#a5b4fc" fontSize="12" fontWeight="bold">Failed Bullish OB = Bearish Breaker</text>
+
+              {/* High */}
+              <Candle x={100} o={140} c={100} h={90} l={150} />
+              
+              {/* Drop to OB */}
+              <Candle x={150} o={100} c={160} h={90} l={170} />
+              <Candle x={200} o={160} c={190} h={150} l={200} /> {/* The Bullish OB */}
+              
+              {/* Higher High (Sweep) */}
+              <Candle x={250} o={190} c={120} h={110} l={200} />
+              <Candle x={300} o={120} c={60} h={50} l={130} /> {/* Sweeps BSL */}
+              
+              {/* Violent Break */}
+              <Candle x={350} o={60} c={140} h={50} l={150} />
+              <Candle x={400} o={140} c={220} h={130} l={230} /> {/* Smashes OB */}
+              
+              {/* Return to Breaker */}
+              <Candle x={450} o={220} c={170} h={160} l={230} /> {/* Hits Breaker */}
+              <text x="460" y="175" fill="#a5b4fc" fontSize="12" fontWeight="bold">Entry</text>
+
+              {/* Drop */}
+              <Candle x={500} o={170} c={240} h={160} l={250} />
+            </svg>
           </div>
         </div>
       )
@@ -332,53 +499,66 @@ export default function App() {
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 18-24 introduce the dealing range. You cannot blindly enter every FVG. You must know if you are buying at a Discount or selling at a Premium.</p>
 
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Visual Concept: Optimal Trade Entry (OTE)</h4>
-          <p>The algorithmic "sweet spot" is the 62% to 79% Fibonacci retracement of a displacement leg.</p>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 8: Premium vs. Discount</h4>
+          <p>Algorithms buy in discount and sell in premium. Measure the dealing range and split it at 50%.</p>
 
-          {/* SVG 4: OTE / Premium & Discount */}
+          {/* CANDLESTICK SVG 8: Dealing Range */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
-            <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
-              {/* Premium/Discount Backgrounds */}
-              <rect x="150" y="20" width="300" height="150" fill="#ef4444" fillOpacity="0.1" />
-              <rect x="150" y="170" width="300" height="150" fill="#10b981" fillOpacity="0.1" />
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 8: DEALING RANGE</div>
+            <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
+              <rect x="150" y="20" width="300" height="80" fill="#ef4444" fillOpacity="0.2" />
+              <rect x="150" y="100" width="300" height="80" fill="#10b981" fillOpacity="0.2" />
               
-              {/* Fib Levels */}
-              <line x1="100" y1="20" x2="500" y2="20" stroke="#cbd5e1" strokeWidth="1" />
-              <text x="100" y="15" fill="#cbd5e1" fontSize="10">100% (High)</text>
+              <line x1="100" y1="100" x2="500" y2="100" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4,4" />
+              <text x="100" y="95" fill="#cbd5e1" fontSize="12" fontWeight="bold">50% Equilibrium</text>
 
-              <line x1="100" y1="320" x2="500" y2="320" stroke="#cbd5e1" strokeWidth="1" />
-              <text x="100" y="315" fill="#cbd5e1" fontSize="10">0% (Low)</text>
+              <text x="460" y="60" fill="#ef4444" fontSize="14" fontWeight="bold">PREMIUM (SELL)</text>
+              <text x="460" y="150" fill="#10b981" fontSize="14" fontWeight="bold">DISCOUNT (BUY)</text>
 
-              <line x1="100" y1="170" x2="500" y2="170" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4,4" />
-              <text x="100" y="165" fill="#cbd5e1" fontSize="10" fontWeight="bold">50% (Equilibrium)</text>
-
-              {/* OTE Zone */}
-              <rect x="150" y="210" width="300" height="50" fill="#3b82f6" fillOpacity="0.2" stroke="#3b82f6" strokeWidth="1" />
-              <line x1="100" y1="210" x2="500" y2="210" stroke="#60a5fa" strokeWidth="1" />
-              <text x="100" y="205" fill="#60a5fa" fontSize="10">62%</text>
-
-              <line x1="100" y1="235" x2="500" y2="235" stroke="#3b82f6" strokeWidth="1" />
-              <text x="100" y="230" fill="#3b82f6" fontSize="10" fontWeight="bold">70.5% (OTE Sweet Spot)</text>
-
-              <line x1="100" y1="260" x2="500" y2="260" stroke="#60a5fa" strokeWidth="1" />
-              <text x="100" y="255" fill="#60a5fa" fontSize="10">79%</text>
-
-              {/* Labels */}
-              <text x="460" y="90" fill="#ef4444" fontSize="14" fontWeight="bold">PREMIUM</text>
-              <text x="460" y="250" fill="#10b981" fontSize="14" fontWeight="bold">DISCOUNT</text>
-
-              {/* Price Path */}
-              <path d="M 150 20 L 200 320 L 280 235 L 350 50" fill="none" stroke="#f8fafc" strokeWidth="3" />
+              {/* Candles making the range */}
+              <Candle x={200} o={180} c={140} h={130} l={190} />
+              <Candle x={230} o={140} c={90} h={80} l={150} />
+              <Candle x={260} o={90} c={40} h={30} l={100} /> {/* High */}
               
-              <circle cx="280" cy="235" r="7" fill="#3b82f6" />
-              <text x="295" y="235" fill="#bfdbfe" fontSize="12" fontWeight="bold">Buy inside FVG + OTE</text>
+              {/* Retracement */}
+              <Candle x={290} o={40} c={70} h={30} l={80} />
+              <Candle x={320} o={70} c={110} h={60} l={120} />
+              <Candle x={350} o={110} c={140} h={100} l={150} /> {/* Enters Discount */}
             </svg>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=kmVXVJE08eQ" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 21 for Dealing Ranges <ExternalLink className="ml-2" size={14}/>
-            </a>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 9: Optimal Trade Entry (OTE)</h4>
+          <p>The algorithmic "sweet spot" is the 62% to 79% Fibonacci retracement of a displacement leg.</p>
+
+          {/* CANDLESTICK SVG 9: OTE */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 9: OPTIMAL TRADE ENTRY (OTE)</div>
+            <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
+              <line x1="100" y1="20" x2="500" y2="20" stroke="#cbd5e1" strokeWidth="1" />
+              <text x="100" y="15" fill="#cbd5e1" fontSize="10">100%</text>
+              <line x1="100" y1="280" x2="500" y2="280" stroke="#cbd5e1" strokeWidth="1" />
+              <text x="100" y="275" fill="#cbd5e1" fontSize="10">0%</text>
+
+              <rect x="150" y="200" width="300" height="40" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="1" />
+              <line x1="100" y1="200" x2="500" y2="200" stroke="#60a5fa" strokeWidth="1" />
+              <text x="100" y="195" fill="#60a5fa" fontSize="10">62%</text>
+              <line x1="100" y1="220" x2="500" y2="220" stroke="#3b82f6" strokeWidth="2" />
+              <text x="100" y="215" fill="#3b82f6" fontSize="10" fontWeight="bold">70.5% (OTE Sweet Spot)</text>
+              <line x1="100" y1="240" x2="500" y2="240" stroke="#60a5fa" strokeWidth="1" />
+              <text x="100" y="235" fill="#60a5fa" fontSize="10">79%</text>
+
+              {/* Candles */}
+              <Candle x={180} o={280} c={180} h={170} l={290} />
+              <Candle x={210} o={180} c={80} h={70} l={190} />
+              <Candle x={240} o={80} c={30} h={20} l={90} /> {/* High */}
+              
+              <Candle x={270} o={30} c={100} h={20} l={110} />
+              <Candle x={300} o={100} c={170} h={90} l={180} />
+              <Candle x={330} o={170} c={220} h={160} l={230} /> {/* Hits OTE */}
+              <Candle x={360} o={220} c={140} h={130} l={230} /> {/* Bounces */}
+              
+              <text x="375" y="225" fill="#bfdbfe" fontSize="12" fontWeight="bold">Buy inside FVG + OTE</text>
+            </svg>
           </div>
         </div>
       )
@@ -392,41 +572,41 @@ export default function App() {
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> Episodes 25-30 expand your view to the weekly chart. You cannot trade the daily Killzones effectively if you do not understand what the weekly algorithmic profile is doing.</p>
 
-          <h4 className="text-lg font-bold text-emerald-400 mt-6">Visual Concept: The Bullish Weekly Profile</h4>
-          <p>Statistically, the High or Low of the week forms on Tuesday or Wednesday.</p>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 10: The Bullish Weekly Profile</h4>
+          <p>Statistically, the High or Low of the week forms on Tuesday or Wednesday. This is macro AMD.</p>
 
-          {/* SVG 5: Weekly Profile */}
+          {/* CANDLESTICK SVG 10: Weekly Profile */}
           <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 10: THE WEEKLY PROFILE (DAILY CANDLES)</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-              {/* Days Background */}
               <rect x="50" y="20" width="100" height="260" fill="#1e293b" fillOpacity="0.3" />
-              <text x="100" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">MON</text>
+              <text x="100" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">MON (Accum)</text>
 
               <rect x="150" y="20" width="100" height="260" fill="#ef4444" fillOpacity="0.1" />
-              <text x="200" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">TUE</text>
+              <text x="200" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">TUE (Manip)</text>
 
               <rect x="250" y="20" width="100" height="260" fill="#10b981" fillOpacity="0.1" />
-              <text x="300" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">WED</text>
+              <text x="300" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">WED (Dist)</text>
 
               <rect x="350" y="20" width="100" height="260" fill="#10b981" fillOpacity="0.2" />
-              <text x="400" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">THU</text>
+              <text x="400" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">THU (Dist)</text>
 
               <rect x="450" y="20" width="100" height="260" fill="#1e293b" fillOpacity="0.3" />
               <text x="500" y="40" fill="#94a3b8" fontSize="12" textAnchor="middle">FRI</text>
 
-              {/* Price Path */}
-              <path d="M 50 150 L 100 140 L 150 160 L 180 250 L 250 200 L 300 180 L 380 80 L 450 60 L 520 90" fill="none" stroke="#38bdf8" strokeWidth="3" />
-              
-              <circle cx="180" cy="250" r="6" fill="#10b981" />
-              <text x="190" y="265" fill="#34d399" fontSize="11" fontWeight="bold">Low of the Week</text>
-              <text x="190" y="280" fill="#94a3b8" fontSize="10">Formed in Tuesday NY Killzone</text>
+              {/* 5 Daily Candles */}
+              {/* Mon */}
+              <Candle x={100} o={140} c={160} h={130} l={170} />
+              {/* Tue */}
+              <Candle x={200} o={160} c={240} h={150} l={260} />
+              <text x="215" y="250" fill="#34d399" fontSize="11" fontWeight="bold">Low of the Week</text>
+              {/* Wed */}
+              <Candle x={300} o={240} c={120} h={110} l={250} />
+              {/* Thu */}
+              <Candle x={400} o={120} c={60} h={50} l={130} />
+              {/* Fri */}
+              <Candle x={500} o={60} c={70} h={40} l={90} />
             </svg>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=wXwG_uM4Q3k" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 25 for Weekly Profiles <ExternalLink className="ml-2" size={14}/>
-            </a>
           </div>
         </div>
       )
@@ -440,8 +620,32 @@ export default function App() {
         <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
           <p><strong>Overview:</strong> The final 11 episodes tie everything together using the Interbank Price Delivery Algorithm (IPDA) lookback periods and establish strict professional risk parameters.</p>
 
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 11: IPDA Data Ranges</h4>
+          <p>The algorithm references past data in chunks: 20, 40, and 60 days. This gives you your macro Draw on Liquidity.</p>
+
+          {/* SVG 11: IPDA */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 11: IPDA LOOKBACK CYCLES</div>
+            <svg viewBox="0 0 600 200" className="w-full max-w-2xl h-auto font-sans">
+              <line x1="50" y1="150" x2="550" y2="150" stroke="#64748b" strokeWidth="2" />
+              <text x="500" y="170" fill="#f8fafc" fontSize="12" fontWeight="bold">Today</text>
+              
+              <line x1="350" y1="140" x2="350" y2="160" stroke="#f8fafc" strokeWidth="2" />
+              <text x="330" y="170" fill="#94a3b8" fontSize="12">-20 Days</text>
+
+              <line x1="200" y1="140" x2="200" y2="160" stroke="#f8fafc" strokeWidth="2" />
+              <text x="180" y="170" fill="#94a3b8" fontSize="12">-40 Days</text>
+
+              <line x1="50" y1="140" x2="50" y2="160" stroke="#f8fafc" strokeWidth="2" />
+              <text x="30" y="170" fill="#94a3b8" fontSize="12">-60 Days</text>
+
+              <rect x="180" y="50" width="40" height="20" fill="#10b981" fillOpacity="0.3" stroke="#10b981" />
+              <path d="M 200 70 L 200 130 L 490 130 L 490 140" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="4,4" />
+              <text x="170" y="40" fill="#34d399" fontSize="11" fontWeight="bold">40-Day Unmitigated FVG</text>
+            </svg>
+          </div>
+
           <h4 className="text-lg font-bold text-emerald-400 mt-6">Professional Risk Management</h4>
-          <p>ICT explicitly states that model mechanics mean nothing without risk control. The rule is absolute:</p>
           <div className="bg-slate-950 p-4 border border-slate-800 rounded-lg space-y-2">
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Never risk more than 1% to 2% of equity per setup.</strong> Ideally 0.5% when learning.</li>
@@ -449,11 +653,45 @@ export default function App() {
               <li><strong>Stop Loss Placement:</strong> Must be placed behind the candle that created the MSS. Do not tighten the stop prematurely.</li>
             </ul>
           </div>
+        </div>
+      )
+    },
+    {
+      id: "c7",
+      title: "Bonus: The Velez SMA Hybrid Filter",
+      episodes: "Silver Bullet Focus",
+      rawText: "This hybrid model bridges the exact precision of ICT algorithmic timing with the visual momentum triggers of the Oliver Velez system. By focusing your execution on the NY Killzone, you are trading when the algorithm is guaranteed to seek liquidity. The Hybrid Execution Rule: We wait for the standard ICT sequence during the NY Killzone. However, we DO NOT enter blindly on the FVG touch. We filter the entry using the Oliver Velez 200 Simple Moving Average. If the 200 SMA is sloping downward, we only take short FVGs. Furthermore, we wait for a crisp Red Ignition Candle to print inside the FVG before pulling the trigger.",
+      content: (
+        <div className="space-y-6 text-slate-300 leading-relaxed text-sm">
+          <p><strong>Overview:</strong> Bridging the institutional map (ICT) with the visual execution trigger (Velez).</p>
 
-          <div className="pt-4 border-t border-slate-800 mt-6 flex flex-col sm:flex-row gap-4">
-            <a href="https://www.youtube.com/watch?v=CnTXwAuDi9Y" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold bg-indigo-900/30 px-4 py-2 rounded-lg">
-              <PlayCircle className="mr-2" size={18}/> Watch Ep 31 for IPDA Logic <ExternalLink className="ml-2" size={14}/>
-            </a>
+          <h4 className="text-lg font-bold text-emerald-400 mt-6">Concept 12: Velez 200 SMA + Ignition Filter</h4>
+          <p>Do not enter the FVG blindly. Ensure the 200 SMA slope agrees, and wait for an ignition candle.</p>
+
+          {/* CANDLESTICK SVG 12: Velez Bridge */}
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
+            <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">FIGURE 12: VELEZ 200 SMA HYBRID ENTRY</div>
+            <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
+              {/* FVG Box */}
+              <rect x="230" y="110" width="100" height="40" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
+              <text x="340" y="135" fill="#a5b4fc" fontSize="12" fontWeight="bold">ICT Bearish FVG</text>
+
+              {/* 200 SMA Line */}
+              <path d="M 50 50 Q 200 60 550 160" fill="none" stroke="#eab308" strokeWidth="3" />
+              <text x="50" y="40" fill="#eab308" fontSize="12" fontWeight="bold">Velez 200 SMA (Sloping Down)</text>
+
+              {/* Candles */}
+              <Candle x={100} o={250} c={190} h={180} l={260} />
+              <Candle x={140} o={190} c={140} h={130} l={200} />
+              <Candle x={180} o={140} c={100} h={90} l={150} /> {/* Pushes toward FVG/SMA */}
+              <Candle x={220} o={100} c={120} h={90} l={130} /> 
+              
+              {/* The Velez Ignition Candle inside FVG */}
+              <Candle x={260} o={120} c={190} h={115} l={200} />
+              
+              <text x="280" y="180" fill="#ef4444" fontSize="12" fontWeight="bold">Velez Red Ignition Candle</text>
+              <text x="280" y="195" fill="#cbd5e1" fontSize="11">Execution confirmed inside FVG</text>
+            </svg>
           </div>
         </div>
       )
@@ -592,29 +830,6 @@ export default function App() {
                 ICT frameworks tell you <strong>WHERE</strong> to look (Liquidity Pools) and <strong>WHEN</strong> to look (NY Killzone). Oliver Velez momentum rules tell you <strong>HOW</strong> to pull the trigger safely.
               </p>
               
-              {/* SVG 6: The Velez FVG Bridge */}
-              <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center justify-center my-6 shadow-inner">
-                <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
-                  {/* FVG Box */}
-                  <rect x="250" y="80" width="100" height="60" fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="1" strokeDasharray="2,2" />
-                  <text x="360" y="100" fill="#a5b4fc" fontSize="12" fontWeight="bold">ICT Bearish FVG</text>
-
-                  {/* 200 SMA Line */}
-                  <path d="M 50 20 Q 200 40 550 150" fill="none" stroke="#eab308" strokeWidth="3" />
-                  <text x="50" y="15" fill="#eab308" fontSize="12" fontWeight="bold">Velez 200 SMA (Sloping Down)</text>
-
-                  {/* Price Path into FVG */}
-                  <path d="M 100 250 L 150 150 L 200 180 L 250 120" fill="none" stroke="#94a3b8" strokeWidth="2" />
-                  
-                  {/* The Velez Ignition Candle */}
-                  <rect x="280" y="100" width="10" height="80" fill="#ef4444" />
-                  <line x1="285" y1="90" x2="285" y2="190" stroke="#ef4444" strokeWidth="2" />
-                  
-                  <text x="310" y="150" fill="#ef4444" fontSize="12" fontWeight="bold">Velez Red Ignition Candle</text>
-                  <text x="310" y="165" fill="#cbd5e1" fontSize="11">Perfect Entry: Inside FVG + Below 200 SMA</text>
-                </svg>
-              </div>
-
               <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 space-y-4 text-sm text-slate-300">
                 <p><strong className="text-indigo-400 block mb-1">Rule 1 (The Macro Trend Filter):</strong> Never fight the 200 SMA slope. If it tilts down, look exclusively for shorts; if it tilts up, look for longs.</p>
                 <p><strong className="text-indigo-400 block mb-1">Rule 2 (The Trigger):</strong> Do not enter the FVG blindly. Wait for a Velez Green/Red ignition candle to print inside the ICT FVG to confirm the algorithm is pushing price away from the gap.</p>
