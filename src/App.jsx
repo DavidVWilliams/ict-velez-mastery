@@ -179,11 +179,15 @@ export default function App() {
       window.speechSynthesis.cancel();
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(textToRead);
+      
+      const voices = window.speechSynthesis.getVoices();
+      const bestVoice = voices.find(v => v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Google US English'));
+      if (bestVoice) utterance.voice = bestVoice;
+      
+      utterance.rate = 0.95; 
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
-    } else {
-      alert("Text-to-speech is not supported in your browser.");
     }
   };
 
@@ -196,6 +200,7 @@ export default function App() {
     setLoadingAi(true); 
     setAiResponse('');
     try {
+      // Calling your secure Vercel backend /api/gemini
       const res = await fetch('/api/gemini', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
@@ -221,6 +226,7 @@ export default function App() {
     try {
       const contextPrompt = `You are a patient trading teacher. The student is studying: "${lessonTitle}". Explain this simply, as if they were 12 years old: ${lessonAiPrompt}`;
       
+      // Calling your secure Vercel backend /api/gemini
       const res = await fetch('/api/gemini', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
@@ -256,7 +262,6 @@ export default function App() {
   };
 
   // --- THE FULL 41-EPISODE ARCHITECTURE ---
-  // Fully fleshed out 1-7. Dynamically mapped 8-41 to prevent code truncation.
   const courseData = [
     {
       id: "ep1",
@@ -275,7 +280,7 @@ export default function App() {
 
           <p><strong>The algorithm knows this!</strong> It acts like a giant magnet. It pulls the price down <em>just enough</em> to trigger all those stop losses, scoops up their money, and then shoots the price back up.</p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE LIQUIDITY SWEEP</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
               <line x1="50" y1="200" x2="550" y2="200" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
@@ -317,7 +322,7 @@ export default function App() {
           
           <p>When those giant candles break past the last little "hill" on the chart, we call it a <strong>Market Structure Shift (MSS)</strong>. It is absolute proof the big banks are stepping in.</p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE STOMP (MSS)</div>
             <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
               <line x1="50" y1="250" x2="550" y2="250" stroke="#ef4444" strokeWidth="2" strokeDasharray="5,5" />
@@ -361,7 +366,7 @@ export default function App() {
           
           <p>The market hates empty space. Like a rubber band stretching and snapping back, the price will almost always come back to fill that empty space to make things neat and tidy again. <strong>That hole is exactly where you want to enter your trade.</strong></p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE HOLE (FVG)</div>
             <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
               <Candle x={150} o={250} c={200} h={180} l={260} />
@@ -402,7 +407,7 @@ export default function App() {
 
           <p>If you want to buy, is the 200 SMA pointing up? Good. But wait! Let the price hit the gap, touch the river, and print a solid <strong>Ignition Candle</strong> (a big green or red candle) to prove the river is pushing it away safely.</p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE VELEZ 200 SMA FILTER</div>
             <svg viewBox="0 0 600 350" className="w-full max-w-2xl h-auto font-sans">
               <path d="M 50 250 Q 300 200 550 50" fill="none" stroke="#eab308" strokeWidth="4" />
@@ -442,7 +447,7 @@ export default function App() {
 
           <p>Because of this schedule, you are only allowed to trade during the <strong>New York AM Killzone (08:30 AM to 11:00 AM EST)</strong>.</p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: THE DAILY SCHEDULE (AMD)</div>
             <svg viewBox="0 0 600 250" className="w-full max-w-2xl h-auto font-sans">
               <rect x="50" y="20" width="150" height="210" fill="#1e293b" fillOpacity="0.5" />
@@ -492,7 +497,7 @@ export default function App() {
 
           <p>We specifically want to buy when the price drops to <strong>62% or 79% off</strong>. We call this the <strong>Optimal Trade Entry (OTE)</strong>.</p>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6">
+          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 w-full flex flex-col items-center my-6 shadow-inner">
             <div className="text-xs text-indigo-400 font-bold font-mono tracking-widest mb-4">VISUAL: OPTIMAL TRADE ENTRY (BUYING ON SALE)</div>
             <svg viewBox="0 0 600 300" className="w-full max-w-2xl h-auto font-sans">
               <rect x="150" y="200" width="300" height="40" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="1" />
@@ -668,19 +673,16 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="w-full bg-slate-950 rounded-xl border border-slate-800 p-8 mb-8 flex flex-col items-center justify-center text-center shadow-inner">
-                      <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/50">
-                        <PlayCircle size={32} className="text-white ml-1" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Watch the Source Lecture</h3>
-                      <p className="text-sm text-slate-400 mb-6 max-w-md">YouTube restrictions prevent embedding this video directly. Click below to safely open the official lecture exactly at the referenced timestamp.</p>
-                      <a 
-                        href={lesson.videoUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl transition flex items-center gap-2"
-                      >
-                        Watch on YouTube <ExternalLink size={16} />
+                    <div className="w-full aspect-video bg-gradient-to-br from-slate-900 to-black rounded-xl border border-slate-700 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden group shadow-2xl mb-8">
+                      <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="relative z-10 flex flex-col items-center hover:scale-105 transition-transform duration-300">
+                        <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-red-900/50">
+                          <PlayCircle size={40} className="text-white ml-2" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-3">Watch the Source Lecture</h3>
+                        <p className="text-sm text-slate-400 mb-6 max-w-md">YouTube restrictions prevent embedding this video directly. Click below to safely open the official lecture exactly at the referenced timestamp.</p>
+                        <div className="bg-white text-slate-900 px-8 py-3 rounded-full font-bold flex items-center gap-2">
+                          Open YouTube Player <ExternalLink size={18}/>
+                        </div>
                       </a>
                     </div>
 
