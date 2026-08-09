@@ -1,125 +1,169 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
-  PlayCircle, Book, Bot, CheckSquare, Layers, HelpCircle, FileText, BarChart2, Briefcase, User, Volume2, StopCircle, ArrowRight, Upload, Sparkles, MessageSquare
+  PlayCircle, Book, Bot, CheckSquare, Layers, HelpCircle, FileText, 
+  CheckCircle, Menu, X, Send, Search, Sparkles, Shield, Lock 
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
 import { auth } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-// refresh
+
 export default function App() {
   const { 
-    activeTab, setActiveTab, activeLessonId, setActiveLessonId, 
+    activeTab, setActiveTab, 
+    activeLessonId, setActiveLessonId, 
     toggleModuleCompletion, completedModules 
   } = useCourseStore();
 
-  const [user, setUser] = React.useState(null);
-  const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const [user, setUser] = useState(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [teacherQuery, setTeacherQuery] = useState('');
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Ask me anything about ICT or Velez methodologies.' }
+  ]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
-    return () => {
-      unsubscribe();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    };
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
-      setIsSpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
+  const currentLesson = courseData.find(l => l.id === activeLessonId) || courseData[0];
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!teacherQuery.trim()) return;
+    const newMsg = { sender: 'user', text: teacherQuery };
+    setChatMessages(prev => [...prev, newMsg]);
+    const queryText = teacherQuery;
+    setTeacherQuery('');
+    
+    setTimeout(() => {
+      setChatMessages(prev => [
+        ...prev, 
+        { sender: 'teacher', text: `Regarding "${queryText}": Keep your risk locked at 1% and ensure your execution aligns strictly with the higher timeframe draw on liquidity and the 200 SMA slope.` }
+      ]);
+    }, 600);
   };
 
-  const tabs = [
-    { id: 1, name: '1. Masterclass' }, { id: 2, name: '2. Velez Bridge' }, { id: 3, name: '3. Practice Chart' },
-    { id: 4, name: '4. NY Playbook' }, { id: 5, name: '5. Flashcards' }, { id: 6, name: '6. Mastery Quiz' },
-    { id: 7, name: '7. AI Auditor' }, { id: 8, name: '8. Terms' }, { id: 9, name: '9. Mentor Hub' },
-    { id: 10, name: '10. Progress' }, { id: 11, name: '11. Trading Desk' },
-    ...(user ? [{ id: 12, name: '12. Account' }] : [{ id: 12, name: 'Sign In' }])
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-indigo-600 rounded-lg text-white font-bold">ICT</div>
-          <h1 className="text-xl font-extrabold tracking-tight text-white">ICT & Velez Masterclass</h1>
+    <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      {/* Column 1: Navigation / Sidebar */}
+      <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col z-10">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-indigo-500" />
+            <h1 className="font-bold text-lg tracking-wide text-white">ICT & Velez Mastery</h1>
+          </div>
         </div>
-        <button onClick={() => setActiveTab(12)} className="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-bold border border-slate-700 transition">
-          {user ? "Account" : "Sign In"}
-        </button>
-      </header>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-2">Curriculum Modules</div>
+          {courseData.map((lesson, idx) => {
+            const isSelected = lesson.id === activeLessonId;
+            const isCompleted = completedModules && completedModules.includes(lesson.id);
+            return (
+              <button
+                key={lesson.id}
+                onClick={() => setActiveLessonId(lesson.id)}
+                className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between text-sm transition-all ${
+                  isSelected 
+                    ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 font-medium' 
+                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                }`}
+              >
+                <span className="truncate pr-2">{lesson.title}</span>
+                {isCompleted && <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      </aside>
 
-      <nav className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex space-x-2 overflow-x-auto sticky top-0 z-50">
-        {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} 
-            className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-            {tab.name}
-          </button>
-        ))}
-      </nav>
+      {/* Column 2: Main Lesson Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
+        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+          <h2 className="text-xl font-bold text-white truncate">{currentLesson.title}</h2>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => toggleModuleCompletion && toggleModuleCompletion(currentLesson.id)}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              <CheckSquare className="w-4 h-4" />
+              Mark Complete
+            </button>
+          </div>
+        </header>
 
-      <main className="flex-1 p-6 w-full mx-auto max-w-[1600px]">
-        {activeTab === 1 && (
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            {/* Outline Col */}
-            <div className="w-full lg:w-1/4 flex flex-col space-y-3 sticky top-24 max-h-[85vh] overflow-y-auto pr-2">
-              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-xl">
-                <h2 className="text-lg font-bold text-white mb-4 flex items-center"><Book className="mr-2" size={18}/> Course Outline</h2>
-                <div className="space-y-2">
-                  {courseData.map((lesson) => (
-                    <button key={lesson.id} onClick={() => setActiveLessonId(lesson.id)}
-                      className={`w-full text-left p-4 rounded-xl border transition ${activeLessonId === lesson.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}`}>
-                      <div className="font-semibold text-sm truncate">{lesson.title}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Content Col */}
-            <div className="w-full lg:w-2/4">
-              {courseData.map((lesson) => {
-                if (lesson.id !== activeLessonId) return null;
-                return (
-                  <div key={lesson.id} className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-xl">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-6 mb-6">
-                      <h2 className="text-3xl font-extrabold text-white">{lesson.title}</h2>
-                    </div>
-                    {lesson.content}
-                    {lesson.homework && (
-                      <div className="mt-8 bg-slate-950 border-l-4 border-indigo-500 p-6 rounded-r-xl">
-                        <h4 className="text-lg font-bold text-indigo-400 mb-3 flex items-center gap-2"><CheckSquare size={18} /> Official Episode Homework</h4>
-                        <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{lesson.homework}</p>
-                      </div>
-                    )}
-                    <button onClick={() => toggleModuleCompletion(lesson.id)} className={`mt-8 px-6 py-3 rounded-xl font-bold transition ${completedModules[lesson.id] ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white'}`}>
-                      {completedModules[lesson.id] ? '✓ Lesson Completed' : 'Mark as Completed'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* AI Teacher Col */}
-            <div className="w-full lg:w-1/4 flex flex-col space-y-6 sticky top-24">
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
-                <h3 className="text-lg font-bold text-indigo-300 flex items-center mb-4"><Bot className="mr-2" size={20}/> Ask The Teacher</h3>
-                <p className="text-xs text-slate-400 mb-4">Upload or paste chart setup for AI grading.</p>
-                {/* AI logic components here */}
-                <div className="text-sm text-slate-500 p-4 border border-slate-800 rounded-lg">AI Interface Initialized</div>
+        <div className="max-w-4xl w-full mx-auto p-8 space-y-8">
+          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden relative">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-900/40">
+                <PlayCircle className="w-16 h-16 text-indigo-500 animate-pulse cursor-pointer hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium text-slate-300">Watch Masterclass Breakdown</span>
               </div>
             </div>
           </div>
-        )}
-        
-        {/* Placeholder for other tabs logic... */}
-        {activeTab !== 1 && <div className="text-center p-20 text-slate-500">Feature for Tab {activeTab} loading...</div>}
+
+          <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-6">
+            <h3 className="text-2xl font-bold text-white border-b border-slate-800 pb-4">Lesson Core Concepts</h3>
+            <div className="text-slate-300 leading-relaxed space-y-4">
+              {currentLesson.content}
+            </div>
+          </div>
+
+          <div className="bg-slate-900 p-6 rounded-2xl border border-emerald-500/30 space-y-4">
+            <h4 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Actionable Homework Assignment
+            </h4>
+            <p className="text-slate-300 text-base leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800">
+              {currentLesson.homework}
+            </p>
+          </div>
+        </div>
       </main>
+
+      {/* Column 3: Ask the Teacher / AI Assistant Panel */}
+      <aside className="w-96 bg-slate-900 border-l border-slate-800 flex flex-col z-10">
+        <div className="p-4 border-b border-slate-800 flex items-center gap-2 bg-slate-900/90">
+          <Bot className="w-5 h-5 text-indigo-400" />
+          <h3 className="font-bold text-white text-sm">Ask the Teacher</h3>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chatMessages.map((msg, index) => (
+            <div 
+              key={index} 
+              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+            >
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                msg.sender === 'user' 
+                  ? 'bg-indigo-600 text-white rounded-br-none' 
+                  : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
+              }`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+          <input 
+            type="text" 
+            value={teacherQuery}
+            onChange={(e) => setTeacherQuery(e.target.value)}
+            placeholder="Ask the teacher anything about this lesson..." 
+            className="flex-1 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
+          />
+          <button 
+            type="submit"
+            className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors flex items-center justify-center shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </form>
+      </aside>
     </div>
   );
 }
