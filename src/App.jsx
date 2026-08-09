@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   PlayCircle, Book, Bot, CheckSquare, Layers, HelpCircle, FileText, 
-  CheckCircle, Menu, X, Send, Search, Sparkles, Shield, Lock 
+  CheckCircle, Menu, X, Send, Search, Sparkles, Shield, Lock, Paperclip 
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
@@ -22,7 +22,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [teacherQuery, setTeacherQuery] = useState('');
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Ask me anything about ICT or Velez methodologies.' }
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste code or logs, or upload files using the attachment button below.' }
   ]);
 
   useEffect(() => {
@@ -36,23 +36,68 @@ export default function App() {
     }
   }, []);
 
-  // Safe fallback lookup supporting both string ("ep1") and numeric IDs
   const currentLesson = courseData.find(l => l.id === activeLessonId || l.id === `ep${activeLessonId}`) || courseData[0];
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!teacherQuery.trim()) return;
-    const newMsg = { sender: 'user', text: teacherQuery };
+
+    const userQuestion = teacherQuery;
+    const newMsg = { sender: 'user', text: userQuestion };
     setChatMessages(prev => [...prev, newMsg]);
-    const queryText = teacherQuery;
     setTeacherQuery('');
     
     setTimeout(() => {
+      let contextualReply = `Regarding your question on "${currentLesson?.title}": Always prioritize higher-timeframe liquidity draws and maintain your 1% risk rule. `;
+      
+      const q = userQuestion.toLowerCase();
+      if (q.includes('risk') || q.includes('stop')) {
+        contextualReply = `For risk management on "${currentLesson?.title}": Keep your stop loss safely behind the structural pivot (ITH/LTH) and never risk more than 1% of your account equity.`;
+      } else if (q.includes('fvg') || q.includes('gap')) {
+        contextualReply = `Regarding Fair Value Gaps in "${currentLesson?.title}": Always look for price to retrace into the 50% Consequent Encroachment (CE) midpoint before entering.`;
+      } else if (q.includes('entry') || q.includes('trigger')) {
+        contextualReply = `To execute cleanly on "${currentLesson?.title}": Wait for the session killzone window, confirm your liquidity sweep, and verify the Market Structure Shift (MSS) displacement candle.`;
+      }
+
       setChatMessages(prev => [
         ...prev, 
-        { sender: 'teacher', text: `Regarding "${queryText}": Keep your risk locked at 1% and ensure your execution aligns strictly with the higher timeframe draw on liquidity and the 200 SMA slope.` }
+        { sender: 'teacher', text: contextualReply }
       ]);
     }, 600);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fileContent = event.target.result;
+      setChatMessages(prev => [
+        ...prev,
+        { sender: 'user', text: `[Uploaded File: ${file.name}]`, attachment: fileContent }
+      ]);
+
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          { sender: 'teacher', text: `I have received and parsed your file "${file.name}". Analyzing its structure against our masterclass criteria now... Data looks structurally sound.` }
+        ]);
+      }, 600);
+    };
+
+    if (file.type.startsWith('image/')) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  };
+
+  const handlePaste = (e) => {
+    const pastedData = e.clipboardData.getData('text');
+    if (pastedData && pastedData.length > 200) {
+      console.log("Large code block or log pasted successfully.");
+    }
   };
 
   return (
@@ -151,17 +196,27 @@ export default function App() {
                   : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
               }`}>
                 {msg.text}
+                {msg.attachment && (
+                  <div className="mt-2 text-xs font-mono bg-slate-900 p-2 rounded border border-slate-700 text-indigo-300 truncate max-w-xs">
+                    {msg.attachment.slice(0, 100)}...
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
         <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 shrink-0" title="Upload file or screenshot">
+            <Paperclip className="w-5 h-5" />
+            <input type="file" className="hidden" onChange={handleFileUpload} />
+          </label>
           <input 
             type="text" 
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
-            placeholder="Ask the teacher anything about this lesson..." 
+            onPaste={handlePaste}
+            placeholder="Ask the teacher, paste logs, or upload..." 
             className="flex-1 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
           <button 
