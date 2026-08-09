@@ -35,7 +35,7 @@ import {
   LogOut,
   Upload,
   CheckCircle,
-  RotateCcw,
+  ExternalLink,
   Sparkles
 } from 'lucide-react';
 
@@ -47,7 +47,7 @@ export default function App() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // Fixed Progress Tracking state (Prevents button spamming bug)
+  // Fixed Progress Tracking state
   const [completedModules, setCompletedModules] = useState({
     m1: false,
     m2: false,
@@ -112,7 +112,6 @@ export default function App() {
     }
   }, []);
 
-  // Fetch saved journals from Firebase Firestore
   const fetchUserJournals = async (uid) => {
     try {
       const db = getFirestore();
@@ -128,7 +127,6 @@ export default function App() {
     }
   };
 
-  // Save journal entry to Firebase Firestore
   const handleSaveJournal = async () => {
     if (!user) {
       alert("Please sign in to save your journal entries to Firebase.");
@@ -157,7 +155,6 @@ export default function App() {
     }
   };
 
-  // Embed TradingView Widget script dynamically in Tab 3
   useEffect(() => {
     if (activeTab === 3) {
       const script = document.createElement('script');
@@ -225,7 +222,6 @@ export default function App() {
     }
   };
 
-  // Multimodal Gemini API call
   const callGemini = async (promptText) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
@@ -340,7 +336,7 @@ export default function App() {
       </nav>
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {/* Tab 1: Curriculum & Embedded Video Players with Full Content */}
+        {/* Tab 1: Curriculum & Direct YouTube Links */}
         {activeTab === 1 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-2"><PlayCircle className="text-indigo-400"/> Mentorship Modules & Core Curriculum</h2>
@@ -357,15 +353,25 @@ export default function App() {
                   <div>• Marking Tokyo Asia session boundaries.</div>
                   <div>• Understanding market structure shifts (MSS).</div>
                 </div>
-                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
-                  <iframe 
-                    className="w-full h-full"
-                    src="https://www.youtube.com/embed/bx89qkJ_LR4?start=840&end=1500" 
-                    title="ICT 2022 Mentorship Ep 3"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
+                
+                <a 
+                  href="https://www.youtube.com/watch?v=bx89qkJ_LR4" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 bg-slate-950 rounded-lg border border-slate-800 hover:border-indigo-500 transition group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-600/20 text-red-400 rounded-lg group-hover:bg-red-600/30">
+                      <PlayCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Watch Module 1 Lecture on YouTube</div>
+                      <div className="text-xs text-slate-400">ICT 2022 Mentorship Series</div>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-indigo-400" />
+                </a>
+
                 <button 
                   onClick={() => toggleModuleCompletion('m1')}
                   className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
@@ -387,15 +393,25 @@ export default function App() {
                   <div>• Timing London open sweeps of Asia extremes.</div>
                   <div>• Executing off 15-minute Fair Value Gaps.</div>
                 </div>
-                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
-                  <iframe 
-                    className="w-full h-full"
-                    src="https://www.youtube.com/embed/bx89qkJ_LR4?start=1800&end=2400" 
-                    title="ICT 2022 Mentorship Ep 14"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
+
+                <a 
+                  href="https://www.youtube.com/watch?v=bx89qkJ_LR4" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 bg-slate-950 rounded-lg border border-slate-800 hover:border-indigo-500 transition group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-600/20 text-red-400 rounded-lg group-hover:bg-red-600/30">
+                      <PlayCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Watch Module 2 Lecture on YouTube</div>
+                      <div className="text-xs text-slate-400">ICT 2022 Mentorship Series</div>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-indigo-400" />
+                </a>
+
                 <button 
                   onClick={() => toggleModuleCompletion('m2')}
                   className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
@@ -417,9 +433,25 @@ export default function App() {
                   <div>• Managing afternoon PM session liquidity windows.</div>
                   <div>• Avoiding low-probability midday chop zones.</div>
                 </div>
-                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
-                  Curated Tape Reading Stream Linked
-                </div>
+
+                <a 
+                  href="https://www.youtube.com/watch?v=kmVXVJE08eQ" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 bg-slate-950 rounded-lg border border-slate-800 hover:border-indigo-500 transition group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-600/20 text-red-400 rounded-lg group-hover:bg-red-600/30">
+                      <PlayCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Watch Module 3 Lecture on YouTube</div>
+                      <div className="text-xs text-slate-400">ICT 2022 Mentorship Series</div>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-indigo-400" />
+                </a>
+
                 <button 
                   onClick={() => toggleModuleCompletion('m3')}
                   className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
@@ -441,9 +473,25 @@ export default function App() {
                   <div>• Managing fixed fractional risk per setup.</div>
                   <div>• Psychological discipline during drawdown streaks.</div>
                 </div>
-                <div className="w-full h-44 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
-                  Curated IPDA Algorithm Module Linked
-                </div>
+
+                <a 
+                  href="https://www.youtube.com/watch?v=CnTXwAuDi9Y" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 bg-slate-950 rounded-lg border border-slate-800 hover:border-indigo-500 transition group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-600/20 text-red-400 rounded-lg group-hover:bg-red-600/30">
+                      <PlayCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Watch Module 4 Lecture on YouTube</div>
+                      <div className="text-xs text-slate-400">ICT 2022 Mentorship Series</div>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-indigo-400" />
+                </a>
+
                 <button 
                   onClick={() => toggleModuleCompletion('m4')}
                   className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
