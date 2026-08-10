@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, Image as ImageIcon 
+  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, X as XIcon 
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
@@ -17,8 +17,9 @@ export default function App() {
   } = store;
 
   const [teacherQuery, setTeacherQuery] = useState('');
+  const [pendingAttachment, setPendingAttachment] = useState(null); // Added for combined sends
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste screenshots or logs, or upload files using the attachment button.' }
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Paste or attach a screenshot, type your question, and send them together.' }
   ]);
 
   useEffect(() => {
@@ -29,22 +30,27 @@ export default function App() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!teacherQuery.trim()) return;
+    if (!teacherQuery.trim() && !pendingAttachment) return;
 
-    const userQuestion = teacherQuery;
-    setChatMessages(prev => [...prev, { sender: 'user', text: userQuestion }]);
+    // Send the message including the pending attachment
+    const newMsg = { 
+      sender: 'user', 
+      text: teacherQuery, 
+      image: pendingAttachment?.data 
+    };
+    
+    setChatMessages(prev => [...prev, newMsg]);
     setTeacherQuery('');
+    setPendingAttachment(null); // Clear after sending
     
     setTimeout(() => {
-      let contextualReply = `Regarding your question on "${currentLesson?.title}": Always prioritize higher-timeframe liquidity draws and maintain your 1% risk rule.`;
+      let contextualReply = `Regarding your input on "${currentLesson?.title}": Always prioritize higher-timeframe liquidity draws and maintain your 1% risk rule.`;
       
-      const q = userQuestion.toLowerCase();
+      const q = teacherQuery.toLowerCase();
       if (q.includes('risk') || q.includes('stop')) {
-        contextualReply = `For risk management on "${currentLesson?.title}": Keep your stop loss safely behind the structural pivot (ITH/LTH) and never risk more than 1% of your account equity.`;
+        contextualReply = `For risk management: Keep your stop loss safely behind the structural pivot (ITH/LTH) and never risk more than 1% of your account equity.`;
       } else if (q.includes('fvg') || q.includes('gap')) {
-        contextualReply = `Regarding Fair Value Gaps in "${currentLesson?.title}": Always look for price to retrace into the 50% Consequent Encroachment (CE) midpoint before entering.`;
-      } else if (q.includes('entry') || q.includes('trigger')) {
-        contextualReply = `To execute cleanly on "${currentLesson?.title}": Wait for the session killzone window, confirm your liquidity sweep, and verify the Market Structure Shift (MSS) displacement candle.`;
+        contextualReply = `Regarding Fair Value Gaps: Always look for price to retrace into the 50% Consequent Encroachment (CE) midpoint before entering.`;
       }
 
       setChatMessages(prev => [...prev, { sender: 'teacher', text: contextualReply }]);
@@ -56,29 +62,11 @@ export default function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const isImage = file.type.startsWith('image/');
-      setChatMessages(prev => [
-        ...prev, 
-        { 
-          sender: 'user', 
-          text: `[Uploaded File: ${file.name}]`, 
-          image: isImage ? event.target.result : null,
-          attachment: !isImage ? 'Data loaded successfully.' : null 
-        }
-      ]);
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, { sender: 'teacher', text: `I have received and parsed your file "${file.name}". Analyzing it now against our masterclass criteria...` }]);
-      }, 600);
+      setPendingAttachment({ name: file.name, data: event.target.result });
     };
-
-    if (file.type.startsWith('image/')) {
-      reader.readAsDataURL(file);
-    } else {
-      reader.readAsText(file);
-    }
+    reader.readAsDataURL(file);
   };
 
-  // Enhanced Paste Handler supporting both screenshots/images and text logs
   const handlePaste = (e) => {
     const items = e.clipboardData?.items;
     if (items) {
@@ -88,34 +76,17 @@ export default function App() {
           const blob = items[i].getAsFile();
           const reader = new FileReader();
           reader.onload = (event) => {
-            const base64Image = event.target.result;
-            setChatMessages(prev => [
-              ...prev, 
-              { sender: 'user', text: '[Pasted Screenshot]', image: base64Image }
-            ]);
-            setTimeout(() => {
-              setChatMessages(prev => [
-                ...prev, 
-                { sender: 'teacher', text: `I see your screenshot regarding "${currentLesson?.title}". Analyzing the visual structure, liquidity pools, and price action now... The setup aligns with our execution model.` }
-              ]);
-            }, 600);
+            setPendingAttachment({ name: 'pasted-screenshot.png', data: event.target.result });
           };
           reader.readAsDataURL(blob);
           return;
         }
       }
     }
-
-    // Fallback for regular text paste
-    const pastedText = e.clipboardData.getData('text');
-    if (pastedText) {
-      setTeacherQuery(pastedText);
-    }
   };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
-      {/* Column 1: Sidebar (Fixed width, non-shrinking) */}
       <aside className="w-80 flex-shrink-0 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-10">
         <div className="p-5 border-b border-slate-800 flex items-center gap-2 flex-shrink-0">
           <Shield className="w-6 h-6 text-indigo-500" />
@@ -129,7 +100,7 @@ export default function App() {
               className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
                 (lesson.id === activeLessonId || lesson.id === `ep${activeLessonId}`) 
                   ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 font-medium' 
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  : 'text-slate-300 hover:bg-slate-800'
               }`}
             >
               <span className="truncate block">{lesson.title}</span>
@@ -138,22 +109,15 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Column 2: Main Content Area (Flexible width, handles text wrapping & scrolling) */}
       <main className="flex-1 min-w-0 h-full flex flex-col bg-slate-950 overflow-y-auto">
-        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
+        <header className="bg-slate-900/80 border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
           <h2 className="text-xl font-bold text-white truncate pr-4">{currentLesson?.title}</h2>
-          <button 
-            onClick={() => toggleModuleCompletion(currentLesson?.id)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-          >
-            Mark Complete
-          </button>
+          <button onClick={() => toggleModuleCompletion(currentLesson?.id)} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0">Mark Complete</button>
         </header>
-
         <div className="max-w-4xl w-full mx-auto p-8 space-y-8 box-border">
           <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div className="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
-              <PlayCircle className="w-16 h-16 text-indigo-500 animate-pulse cursor-pointer hover:scale-110 transition-transform" />
+              <PlayCircle className="w-16 h-16 text-indigo-500" />
             </div>
           </div>
           <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-6">
@@ -162,7 +126,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* Column 3: Ask the Teacher Panel (Fixed width, non-shrinking) */}
       <aside className="w-96 flex-shrink-0 h-full bg-slate-900 border-l border-slate-800 flex flex-col z-10">
         <div className="p-4 border-b border-slate-800 flex items-center gap-2 bg-slate-900/90 flex-shrink-0">
           <Bot className="w-5 h-5 text-indigo-400" />
@@ -173,30 +136,37 @@ export default function App() {
             <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm break-words ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>
                 {msg.text}
-                {msg.image && (
-                  <div className="mt-2 rounded-lg overflow-hidden border border-slate-700 bg-slate-950">
-                    <img src={msg.image} alt="Uploaded Screenshot" className="w-full h-auto max-h-48 object-cover" />
-                  </div>
-                )}
-                {msg.attachment && <div className="mt-2 text-xs font-mono bg-slate-950 p-2 rounded truncate">{msg.attachment}</div>}
+                {msg.image && <div className="mt-2 rounded-lg overflow-hidden border border-slate-700"><img src={msg.image} alt="Ref" className="w-full h-auto" /></div>}
               </div>
             </div>
           ))}
         </div>
+        
+        {/* Attachment Preview */}
+        {pendingAttachment && (
+          <div className="px-4 pb-2">
+            <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2">
+              <img src={pendingAttachment.data} alt="Preview" className="w-10 h-10 object-cover rounded" />
+              <span className="text-xs text-slate-300 truncate flex-1">{pendingAttachment.name}</span>
+              <button onClick={() => setPendingAttachment(null)} className="text-slate-400 hover:text-white"><XIcon className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2 flex-shrink-0">
-          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 flex-shrink-0" title="Attach file or image">
+          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 shrink-0">
             <Paperclip className="w-5 h-5" />
-            <input type="file" accept="image/*,.txt,.js,.jsx" className="hidden" onChange={handleFileUpload} />
+            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
           </label>
           <input 
             type="text" 
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Paste screenshot, logs, questions..." 
+            placeholder="Type question + paste image..." 
             className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
-          <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors flex-shrink-0">
+          <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors shrink-0">
             <Send className="w-4 h-4" />
           </button>
         </form>
