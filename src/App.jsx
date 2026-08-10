@@ -64,6 +64,14 @@ export default function App() {
     reader.readAsText(file);
   };
 
+  // Restored Paste Logic
+  const handlePaste = (e) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText) {
+      setTeacherQuery(pastedText);
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Sidebar */}
@@ -138,6 +146,7 @@ export default function App() {
             type="text" 
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
+            onPaste={handlePaste}
             placeholder="Paste logs, ask questions..." 
             className="flex-1 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 text-sm"
           />
