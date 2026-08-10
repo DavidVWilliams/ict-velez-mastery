@@ -17,9 +17,9 @@ export default function App() {
   } = store;
 
   const [teacherQuery, setTeacherQuery] = useState('');
-  const [pendingAttachment, setPendingAttachment] = useState(null); // Added for combined sends
+  const [pendingAttachment, setPendingAttachment] = useState(null);
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Paste or attach a screenshot, type your question, and send them together.' }
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. Paste or attach a screenshot, ask your technical question, and I will give you a rigorous ICT & Velez structural breakdown.' }
   ]);
 
   useEffect(() => {
@@ -32,28 +32,36 @@ export default function App() {
     e.preventDefault();
     if (!teacherQuery.trim() && !pendingAttachment) return;
 
-    // Send the message including the pending attachment
+    const userQuestion = teacherQuery;
+    const hasImage = !!pendingAttachment;
     const newMsg = { 
       sender: 'user', 
-      text: teacherQuery, 
+      text: userQuestion || '[Attached Screenshot]', 
       image: pendingAttachment?.data 
     };
     
     setChatMessages(prev => [...prev, newMsg]);
     setTeacherQuery('');
-    setPendingAttachment(null); // Clear after sending
+    setPendingAttachment(null);
     
     setTimeout(() => {
-      let contextualReply = `Regarding your input on "${currentLesson?.title}": Always prioritize higher-timeframe liquidity draws and maintain your 1% risk rule.`;
-      
-      const q = teacherQuery.toLowerCase();
-      if (q.includes('risk') || q.includes('stop')) {
-        contextualReply = `For risk management: Keep your stop loss safely behind the structural pivot (ITH/LTH) and never risk more than 1% of your account equity.`;
-      } else if (q.includes('fvg') || q.includes('gap')) {
-        contextualReply = `Regarding Fair Value Gaps: Always look for price to retrace into the 50% Consequent Encroachment (CE) midpoint before entering.`;
+      let expertReply = "";
+      const q = userQuestion.toLowerCase();
+      const prefix = hasImage ? "Analyzing your chart screenshot in the context of " : "Regarding ";
+
+      if (q.includes('fvg') || q.includes('gap') || q.includes('imbalance') || q.includes('fair value')) {
+        expertReply = `${prefix}**${currentLesson?.title}**: To validate this Fair Value Gap (FVG), check the 3-candle sequence. Candle 1 and 3 wicks must not overlap. Look specifically at the 50% Consequent Encroachment (CE) midpoint. If price has retraced directly to that 50% level and shown a high-momentum displacement rejection, it confirms institutional re-delivery before trend expansion.`;
+      } else if (q.includes('mss') || q.includes('shift') || q.includes('structure') || q.includes('break')) {
+        expertReply = `${prefix}**${currentLesson?.title}**: For a valid Market Structure Shift (MSS), confirm that the structural pivot was broken with a decisive candle body close rather than a micro-wick. True institutional displacement always expands significantly past the dealing range high/low.`;
+      } else if (q.includes('liquidity') || q.includes('sweep') || q.includes('stop') || q.includes('high') || q.includes('low')) {
+        expertReply = `${prefix}**${currentLesson?.title}**: When evaluating liquidity pools (BSL/SSL), ensure you are tracking clean Equal Highs (EQH) or Lows (EQL). If price has swept this external pool, do not chase it—wait for the subsequent MSS displacement candle to confirm institutional trapping before entry.`;
+      } else if (q.includes('risk') || q.includes('sizing') || q.includes('loss')) {
+        expertReply = `For risk management in **${currentLesson?.title}**: Never risk more than 1% of your account equity. Ensure your stop loss is tucked safely behind the structural pivot (ITH/LTH) and apply the 50/75 protocol for partial profit-taking.`;
+      } else {
+        expertReply = `${prefix}**${currentLesson?.title}**: ${currentLesson?.heading}. To master this setup, review the core execution steps: map your higher-timeframe draw on liquidity, wait for the killzone session window, and enforce strict 200 SMA slope alignment before executing.`;
       }
 
-      setChatMessages(prev => [...prev, { sender: 'teacher', text: contextualReply }]);
+      setChatMessages(prev => [...prev, { sender: 'teacher', text: expertReply }]);
     }, 600);
   };
 
@@ -76,7 +84,7 @@ export default function App() {
           const blob = items[i].getAsFile();
           const reader = new FileReader();
           reader.onload = (event) => {
-            setPendingAttachment({ name: 'pasted-screenshot.png', data: event.target.result });
+            setPendingAttachment({ name: 'chart-screenshot.png', data: event.target.result });
           };
           reader.readAsDataURL(blob);
           return;
@@ -142,7 +150,6 @@ export default function App() {
           ))}
         </div>
         
-        {/* Attachment Preview */}
         {pendingAttachment && (
           <div className="px-4 pb-2">
             <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2">
@@ -163,7 +170,7 @@ export default function App() {
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Type question + paste image..." 
+            placeholder="Ask question about screenshot/lesson..." 
             className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
           <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors shrink-0">
