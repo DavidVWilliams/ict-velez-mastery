@@ -18,7 +18,7 @@ export default function App() {
 
   const [teacherQuery, setTeacherQuery] = useState('');
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste code or logs, or upload files using the attachment button below.' }
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste logs, or upload files using the attachment button.' }
   ]);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      setChatMessages(prev => [...prev, { sender: 'user', text: `[Uploaded File: ${file.name}]`, attachment: event.target.result.slice(0, 100) + '...' }]);
+      setChatMessages(prev => [...prev, { sender: 'user', text: `[Uploaded File: ${file.name}]`, attachment: 'Data loaded successfully.' }]);
       setTimeout(() => {
         setChatMessages(prev => [...prev, { sender: 'teacher', text: `I have received and parsed your file "${file.name}". Analyzing it now against our masterclass criteria...` }]);
       }, 600);
@@ -64,7 +64,6 @@ export default function App() {
     reader.readAsText(file);
   };
 
-  // Restored Paste Logic
   const handlePaste = (e) => {
     const pastedText = e.clipboardData.getData('text');
     if (pastedText) {
@@ -73,72 +72,72 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col z-10">
-        <div className="p-5 border-b border-slate-800 flex items-center gap-2">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
+      {/* Column 1: Sidebar (Fixed width, non-shrinking) */}
+      <aside className="w-80 flex-shrink-0 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-10">
+        <div className="p-5 border-b border-slate-800 flex items-center gap-2 flex-shrink-0">
           <Shield className="w-6 h-6 text-indigo-500" />
-          <h1 className="font-bold text-lg text-white">ICT & Velez Mastery</h1>
+          <h1 className="font-bold text-lg text-white truncate">ICT & Velez Mastery</h1>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
           {courseData.map((lesson) => (
             <button
               key={lesson.id}
               onClick={() => setActiveLessonId(lesson.id)}
-              className={`w-full text-left px-3 py-2.5 rounded-lg text-sm ${
+              className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
                 (lesson.id === activeLessonId || lesson.id === `ep${activeLessonId}`) 
-                  ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40' 
-                  : 'text-slate-300 hover:bg-slate-800'
+                  ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 font-medium' 
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              {lesson.title}
+              <span className="truncate block">{lesson.title}</span>
             </button>
           ))}
         </div>
       </aside>
 
-      {/* Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
-        <header className="bg-slate-900/80 border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0">
-          <h2 className="text-xl font-bold text-white truncate">{currentLesson?.title}</h2>
+      {/* Column 2: Main Content Area (Flexible width, handles text wrapping & scrolling) */}
+      <main className="flex-1 min-w-0 h-full flex flex-col bg-slate-950 overflow-y-auto">
+        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
+          <h2 className="text-xl font-bold text-white truncate pr-4">{currentLesson?.title}</h2>
           <button 
             onClick={() => toggleModuleCompletion(currentLesson?.id)}
-            className="bg-emerald-600 px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
           >
             Mark Complete
           </button>
         </header>
 
-        <div className="max-w-4xl w-full mx-auto p-8 space-y-8">
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-            <div className="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center">
-              <PlayCircle className="w-16 h-16 text-indigo-500" />
+        <div className="max-w-4xl w-full mx-auto p-8 space-y-8 box-border">
+          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
+              <PlayCircle className="w-16 h-16 text-indigo-500 animate-pulse cursor-pointer hover:scale-110 transition-transform" />
             </div>
           </div>
           <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-6">
-            <div className="text-slate-300 leading-relaxed space-y-4">{currentLesson?.content}</div>
+            <div className="text-slate-300 leading-relaxed space-y-4 break-words">{currentLesson?.content}</div>
           </div>
         </div>
       </main>
 
-      {/* Ask the Teacher Panel */}
-      <aside className="w-96 bg-slate-900 border-l border-slate-800 flex flex-col z-10">
-        <div className="p-4 border-b border-slate-800 flex items-center gap-2">
+      {/* Column 3: Ask the Teacher Panel (Fixed width, non-shrinking) */}
+      <aside className="w-96 flex-shrink-0 h-full bg-slate-900 border-l border-slate-800 flex flex-col z-10">
+        <div className="p-4 border-b border-slate-800 flex items-center gap-2 bg-slate-900/90 flex-shrink-0">
           <Bot className="w-5 h-5 text-indigo-400" />
           <h3 className="font-bold text-white text-sm">Ask the Teacher</h3>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {chatMessages.map((msg, index) => (
             <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.sender === 'user' ? 'bg-indigo-600' : 'bg-slate-800 border border-slate-700'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm break-words ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>
                 {msg.text}
                 {msg.attachment && <div className="mt-2 text-xs font-mono bg-slate-950 p-2 rounded truncate">{msg.attachment}</div>}
               </div>
             </div>
           ))}
         </div>
-        <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 p-2">
+        <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2 flex-shrink-0">
+          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 flex-shrink-0" title="Attach file">
             <Paperclip className="w-5 h-5" />
             <input type="file" className="hidden" onChange={handleFileUpload} />
           </label>
@@ -148,9 +147,11 @@ export default function App() {
             onChange={(e) => setTeacherQuery(e.target.value)}
             onPaste={handlePaste}
             placeholder="Paste logs, ask questions..." 
-            className="flex-1 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 text-sm"
+            className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
-          <button type="submit" className="bg-indigo-600 p-2.5 rounded-xl text-white"><Send className="w-4 h-4" /></button>
+          <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors flex-shrink-0">
+            <Send className="w-4 h-4" />
+          </button>
         </form>
       </aside>
     </div>
