@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip 
+  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, Image as ImageIcon 
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
@@ -18,7 +18,7 @@ export default function App() {
 
   const [teacherQuery, setTeacherQuery] = useState('');
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste logs, or upload files using the attachment button.' }
+    { sender: 'teacher', text: 'Hello! I am your AI Masterclass mentor. You can type, paste screenshots or logs, or upload files using the attachment button.' }
   ]);
 
   useEffect(() => {
@@ -56,15 +56,57 @@ export default function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      setChatMessages(prev => [...prev, { sender: 'user', text: `[Uploaded File: ${file.name}]`, attachment: 'Data loaded successfully.' }]);
+      const isImage = file.type.startsWith('image/');
+      setChatMessages(prev => [
+        ...prev, 
+        { 
+          sender: 'user', 
+          text: `[Uploaded File: ${file.name}]`, 
+          image: isImage ? event.target.result : null,
+          attachment: !isImage ? 'Data loaded successfully.' : null 
+        }
+      ]);
       setTimeout(() => {
         setChatMessages(prev => [...prev, { sender: 'teacher', text: `I have received and parsed your file "${file.name}". Analyzing it now against our masterclass criteria...` }]);
       }, 600);
     };
-    reader.readAsText(file);
+
+    if (file.type.startsWith('image/')) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
+  // Enhanced Paste Handler supporting both screenshots/images and text logs
   const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const blob = items[i].getAsFile();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64Image = event.target.result;
+            setChatMessages(prev => [
+              ...prev, 
+              { sender: 'user', text: '[Pasted Screenshot]', image: base64Image }
+            ]);
+            setTimeout(() => {
+              setChatMessages(prev => [
+                ...prev, 
+                { sender: 'teacher', text: `I see your screenshot regarding "${currentLesson?.title}". Analyzing the visual structure, liquidity pools, and price action now... The setup aligns with our execution model.` }
+              ]);
+            }, 600);
+          };
+          reader.readAsDataURL(blob);
+          return;
+        }
+      }
+    }
+
+    // Fallback for regular text paste
     const pastedText = e.clipboardData.getData('text');
     if (pastedText) {
       setTeacherQuery(pastedText);
@@ -131,22 +173,27 @@ export default function App() {
             <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm break-words ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>
                 {msg.text}
+                {msg.image && (
+                  <div className="mt-2 rounded-lg overflow-hidden border border-slate-700 bg-slate-950">
+                    <img src={msg.image} alt="Uploaded Screenshot" className="w-full h-auto max-h-48 object-cover" />
+                  </div>
+                )}
                 {msg.attachment && <div className="mt-2 text-xs font-mono bg-slate-950 p-2 rounded truncate">{msg.attachment}</div>}
               </div>
             </div>
           ))}
         </div>
         <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2 flex-shrink-0">
-          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 flex-shrink-0" title="Attach file">
+          <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 flex-shrink-0" title="Attach file or image">
             <Paperclip className="w-5 h-5" />
-            <input type="file" className="hidden" onChange={handleFileUpload} />
+            <input type="file" accept="image/*,.txt,.js,.jsx" className="hidden" onChange={handleFileUpload} />
           </label>
           <input 
             type="text" 
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Paste logs, ask questions..." 
+            placeholder="Paste screenshot, logs, questions..." 
             className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
           <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors flex-shrink-0">
