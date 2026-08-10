@@ -18,8 +18,9 @@ export default function App() {
 
   const [teacherQuery, setTeacherQuery] = useState('');
   const [pendingAttachment, setPendingAttachment] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'teacher', text: 'Hello! Ask me any technical trading question, or paste/attach a chart screenshot for structural analysis.' }
+    { sender: 'teacher', text: 'Hello! I am your AI assistant. Ask me anything, or paste/attach a screenshot for analysis.' }
   ]);
 
   useEffect(() => {
@@ -28,71 +29,64 @@ export default function App() {
 
   const currentLesson = courseData.find(l => l.id === activeLessonId || l.id === `ep${activeLessonId}`) || courseData[0];
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!teacherQuery.trim() && !pendingAttachment) return;
+    if ((!teacherQuery.trim() && !pendingAttachment) || isLoading) return;
 
     const userQuestion = teacherQuery;
-    const hasImage = !!pendingAttachment;
+    const attachment = pendingAttachment;
+    
+    // 1. Immediately render user message with preview if available
     const newMsg = { 
       sender: 'user', 
-      text: userQuestion || '[Attached Screenshot]', 
-      image: pendingAttachment?.data 
+      text: userQuestion || '[Attached File/Screenshot]', 
+      image: attachment?.data 
     };
     
     setChatMessages(prev => [...prev, newMsg]);
     setTeacherQuery('');
     setPendingAttachment(null);
-    
-    setTimeout(() => {
-      let expertReply = "";
-      const q = userQuestion.toLowerCase().trim();
+    setIsLoading(true);
 
-      // Identity & General Greetings
-      if (q.includes('who are you') || q.includes('who is this') || q.includes('what are you')) {
-        expertReply = "I am your AI Masterclass Mentor, specialized in Inner Circle Trader (ICT) institutional concepts and Oliver Velez price action methodologies. Ask me anything about market structure, liquidity, or trade execution.";
-      } else if (q === 'hello' || q === 'hi' || q === 'hey') {
-        expertReply = "Hello! Ask me any question about technical setups, price action mechanics, or attach a chart screenshot to review.";
-      } 
-      // Consequent Encroachment (CE)
-      else if (q === 'ce' || q.includes('explain ce') || q.includes('consequent encroachment') || q.includes('midpoint')) {
-        expertReply = "**Consequent Encroachment (CE)** is the exact 50% midpoint of a Fair Value Gap (FVG) or Volume Imbalance. Interbank algorithms view CE as the true equilibrium of the gap. A sharp reaction or rejection at the 50% CE level confirms institutional defense and structural re-delivery.";
-      }
-      // Fair Value Gap (FVG) / Imbalance
-      else if (q.includes('fvg') || q.includes('gap') || q.includes('imbalance') || q.includes('fair value')) {
-        expertReply = "A **Fair Value Gap (FVG)** is a 3-candle displacement pattern where Candle 1's high and Candle 3's low do not overlap (or vice-versa for bearish gaps). It reflects market inefficiency. Look for entries when price retraces to the gap open or the **50% Consequent Encroachment (CE)** midpoint.";
-      } 
-      // Order Block (OB)
-      else if (q.includes('ob') || q.includes('order block') || q.includes('orderblock')) {
-        expertReply = "An **Order Block (OB)** is the last down-close candle before a bullish displacement (or last up-close candle before a bearish displacement) that sweeps liquidity or breaks structure. High-probability entries target the OB open or its 50% Mean Threshold.";
-      }
-      // Market Structure Shift (MSS)
-      else if (q.includes('mss') || q.includes('shift') || q.includes('structure') || q.includes('break')) {
-        expertReply = "A **Market Structure Shift (MSS)** occurs when price breaks a key structural swing high or low with strong displacement (decisive candle body close + FVG), signaling a shift in institutional order flow direction.";
-      } 
-      // Liquidity Pools & Sweeps
-      else if (q.includes('liquidity') || q.includes('sweep') || q.includes('bsl') || q.includes('ssl') || q.includes('high') || q.includes('low')) {
-        expertReply = "**Buy-Side Liquidity (BSL)** rests above swing highs, and **Sell-Side Liquidity (SSL)** rests below swing lows. When institutions sweep these pools, do not chase the breakout—wait for the sweep to complete and look for a reversal MSS in the opposite direction.";
-      } 
-      // Risk Management
-      else if (q.includes('risk') || q.includes('sizing') || q.includes('stop loss') || q.includes('stop')) {
-        expertReply = "Never risk more than 1% of total account equity per execution. Set stop losses strictly beyond the key invalidation swing high/low (ITH/LTH) or structural pivot.";
-      }
-      // 200 SMA / Trend Alignment
-      else if (q.includes('200 sma') || q.includes('sma') || q.includes('moving average') || q.includes('velez')) {
-        expertReply = "The **200 SMA** serves as the macro baseline filter. When the 200 SMA slope is angled upward, focus exclusively on long setups; when angled downward, focus exclusively on short setups.";
-      }
-      // Standalone Screenshot / Image Analysis
-      else if (hasImage && !userQuestion) {
-        expertReply = "Analyzing your attached chart: Check for (1) higher timeframe draw on liquidity, (2) recent BSL/SSL sweeps, (3) MSS displacement candle body closes, and (4) an FVG or OB retracement zone for entry.";
-      }
-      // Direct General Query Fallback
-      else {
-        expertReply = `To evaluate "${userQuestion}": Ensure alignment across your higher-timeframe liquidity draw, wait for the session killzone window (London/NY AM), confirm structural displacement, and strictly manage position risk to 1%.`;
-      }
+    try {
+      // 2. Attempt to call your backend LLM API endpoint (e.g. Vercel Serverless Function or Express server)
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userQuestion,
+          image: attachment?.data || null,
+          lessonContext: currentLesson?.title || ''
+        })
+      });
 
-      setChatMessages(prev => [...prev, { sender: 'teacher', text: expertReply }]);
-    }, 600);
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages(prev => [...prev, { sender: 'teacher', text: data.reply }]);
+      } else {
+        // Fallback if no backend route is deployed yet
+        throw new Error('API route not connected');
+      }
+    } catch (err) {
+      // 3. Dynamic Unconstrained Local Fallback (No forced framing or rigid keyword matching)
+      setTimeout(() => {
+        let responseText = "";
+        
+        if (attachment) {
+          responseText = userQuestion 
+            ? `I've received your image along with your question: "${userQuestion}". (To get live multi-modal AI vision responses, connect your API key to /api/chat).` 
+            : `I've received your attached image. What specific details would you like me to analyze on this chart?`;
+        } else if (userQuestion) {
+          responseText = `You asked: "${userQuestion}". I am ready to help with this or any other topic you want to discuss.`;
+        } else {
+          responseText = "How can I help you today?";
+        }
+
+        setChatMessages(prev => [...prev, { sender: 'teacher', text: responseText }]);
+      }, 500);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -114,7 +108,7 @@ export default function App() {
           const blob = items[i].getAsFile();
           const reader = new FileReader();
           reader.onload = (event) => {
-            setPendingAttachment({ name: 'chart-screenshot.png', data: event.target.result });
+            setPendingAttachment({ name: 'pasted-screenshot.png', data: event.target.result });
           };
           reader.readAsDataURL(blob);
           return;
@@ -148,7 +142,7 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Column 2: Main Lesson Area */}
+      {/* Column 2: Main Content Area */}
       <main className="flex-1 min-w-0 h-full flex flex-col bg-slate-950 overflow-y-auto">
         <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
           <h2 className="text-xl font-bold text-white truncate pr-4">{currentLesson?.title}</h2>
@@ -181,6 +175,13 @@ export default function App() {
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex items-start">
+              <div className="bg-slate-800 text-slate-400 border border-slate-700 rounded-2xl px-4 py-3 text-sm animate-pulse">
+                Thinking...
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Attachment Preview Box */}
@@ -207,7 +208,7 @@ export default function App() {
             placeholder="Ask any question or paste screenshot..." 
             className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
-          <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors shrink-0">
+          <button type="submit" disabled={isLoading} className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors shrink-0 disabled:opacity-50">
             <Send className="w-4 h-4" />
           </button>
         </form>
