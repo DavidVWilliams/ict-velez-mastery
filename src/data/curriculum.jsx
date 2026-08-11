@@ -6,27 +6,59 @@ export const courseData = [
     title: 'Episode 1: Liquidity & Order Pairing Mechanics',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Algorithmic Delivery & Stop-Loss Harvest</h3>
-          <p className="text-slate-300">Interbank algorithms (IPDA) do not search for retail chart patterns. They are programmed to seek massive pools of resting liquidity to execute block orders without slippage. Institutional sponsors require retail traders to act as involuntary counterparties by clustering stop-losses at predictable boundaries.</p>
+          <p className="text-slate-300 leading-relaxed">Interbank algorithms (IPDA) do not search for retail chart patterns. They are programmed to seek massive pools of resting liquidity to execute block orders without slippage. Institutional sponsors require retail traders to act as involuntary counterparties by clustering stop-losses at predictable boundaries.</p>
         </div>
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700">
+        
+        <svg viewBox="0 0 800 400" className="w-full h-auto rounded-xl bg-slate-900 border border-slate-700 shadow-lg my-8">
+          <rect width="800" height="400" fill="#0f172a" rx="12"/>
+          <text x="600" y="40" fill="#64748b" fontSize="14" fontWeight="bold">ICT Liquidity Model</text>
+          <rect x="580" y="20" width="160" height="30" fill="none" stroke="#334155" strokeWidth="1" rx="4"/>
+          
+          <line x1="100" y1="120" x2="700" y2="120" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,6"/>
+          <text x="100" y="110" fill="#ef4444" fontSize="14" fontWeight="bold">Buy Side Liquidity (BSL) - Equal Highs</text>
+          <circle cx="350" cy="120" r="6" fill="#ef4444"/>
+          <text x="365" y="115" fill="#ef4444" fontSize="12">BSL Sweep</text>
+          
+          <line x1="100" y1="280" x2="700" y2="280" stroke="#10b981" strokeWidth="2" strokeDasharray="6,6"/>
+          <text x="100" y="295" fill="#10b981" fontSize="14" fontWeight="bold">Sell Side Liquidity (SSL) - Equal Lows</text>
+
+          <g transform="translate(150, 160)">
+            <line x1="15" y1="10" x2="15" y2="90" stroke="#10b981" strokeWidth="2"/>
+            <rect x="5" y="30" width="20" height="40" fill="#10b981"/>
+          </g>
+          <g transform="translate(200, 140)">
+            <line x1="15" y1="10" x2="15" y2="100" stroke="#ef4444" strokeWidth="2"/>
+            <rect x="5" y="50" width="20" height="30" fill="#ef4444"/>
+          </g>
+          <g transform="translate(250, 100)">
+            <line x1="15" y1="0" x2="15" y2="120" stroke="#ef4444" strokeWidth="2"/>
+            <rect x="5" y="40" width="20" height="60" fill="#ef4444"/>
+          </g>
+          <g transform="translate(300, 70)">
+            <line x1="15" y1="0" x2="15" y2="130" stroke="#10b981" strokeWidth="2"/>
+            <rect x="5" y="20" width="20" height="90" fill="#10b981"/>
+          </g>
+          <g transform="translate(350, 60)">
+            <line x1="15" y1="20" x2="15" y2="150" stroke="#ef4444" strokeWidth="2"/>
+            <rect x="5" y="40" width="20" height="80" fill="#ef4444"/>
+          </g>
+        </svg>
+
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
           <h4 className="text-lg font-bold text-indigo-400 mb-4">Institutional Mapping Protocol</h4>
           <ul className="space-y-4 text-slate-300">
-            <li><strong className="text-white">Buy Side Liquidity (BSL):</strong> Clustered buy-stop orders sitting above Equal Highs (EQH), session highs, and structural peaks. Used by smart money to offload long positions or accumulate shorts.</li>
-            <li><strong className="text-white">Sell Side Liquidity (SSL):</strong> Clustered sell-stop orders sitting below Equal Lows (EQL), session lows, and structural floors. Used to offload shorts or accumulate longs.</li>
+            <li><strong className="text-white">Buy Side Liquidity (BSL):</strong> Clustered buy-stop orders sitting above Equal Highs (EQH) and structural peaks. Used by smart money to offload long positions or accumulate shorts.</li>
+            <li><strong className="text-white">Sell Side Liquidity (SSL):</strong> Clustered sell-stop orders sitting below Equal Lows (EQL) and structural floors. Used to offload shorts or accumulate longs.</li>
           </ul>
-        </div>
-        <div>
-          <h4 className="text-xl font-bold text-white mb-3">The Retail Trap</h4>
-          <p className="text-slate-300">When price aggressively taps BSL, retail assumes a breakout. IPDA leverages this momentum to absorb those buy orders with institutional shorts, immediately triggering a reversal.</p>
         </div>
       </div>
     ),
     homework: [
-      "Open a Daily chart and manually box 5 instances of untouched Equal Highs (BSL) and Equal Lows (SSL).",
-      "Drop to the 15M timeframe. Locate 3 historical sweeps of liquidity that resulted in an immediate reversal.",
+      "Open a Daily timeframe chart and manually box 5 instances of untouched Equal Highs (BSL) and Equal Lows (SSL).",
+      "Drop to the 15M timeframe. Locate 3 historical sweeps of liquidity that resulted in an immediate, aggressive reversal.",
       "Log these examples in your journal, noting the exact Killzone time."
     ]
   },
@@ -35,12 +67,32 @@ export const courseData = [
     title: 'Episode 2: Institutional Displacement & MSS',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">True Displacement vs. False Breaks</h3>
-          <p className="text-slate-300">A Market Structure Shift (MSS) is only valid if backed by institutional displacement. A wick breaking a structural pivot is a liquidity sweep, not a shift. True displacement requires high-momentum, large-bodied candles that close definitively past the pivot, leaving a Fair Value Gap.</p>
+          <p className="text-slate-300 leading-relaxed">A Market Structure Shift (MSS) is only valid if backed by institutional displacement. A wick breaking a structural pivot is a liquidity sweep, not a shift. True displacement requires high-momentum, large-bodied candles that close definitively past the pivot.</p>
         </div>
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700">
+
+        <svg viewBox="0 0 800 400" className="w-full h-auto rounded-xl bg-slate-900 border border-slate-700 shadow-lg my-8">
+          <rect width="800" height="400" fill="#0f172a" rx="12"/>
+          <text x="590" y="40" fill="#64748b" fontSize="14" fontWeight="bold">Market Structure Shift (MSS)</text>
+          
+          <path d="M 100 250 L 200 150 L 300 300 L 400 100 L 500 200 L 600 50" fill="none" stroke="#334155" strokeWidth="2" strokeDasharray="4,4"/>
+          <line x1="250" y1="300" x2="650" y2="300" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,6"/>
+          <text x="660" y="305" fill="#ef4444" fontSize="12" fontWeight="bold">SSL Sweep</text>
+
+          <line x1="350" y1="100" x2="700" y2="100" stroke="#818cf8" strokeWidth="2" strokeDasharray="6,6"/>
+          <text x="710" y="105" fill="#818cf8" fontSize="12" fontWeight="bold">Swing High Pivot</text>
+          
+          <g transform="translate(550, 40)">
+            <line x1="15" y1="0" x2="15" y2="180" stroke="#10b981" strokeWidth="3"/>
+            <rect x="0" y="20" width="30" height="140" fill="#10b981"/>
+          </g>
+          <text x="400" y="50" fill="#10b981" fontSize="14" fontWeight="bold">Displacement Body Close</text>
+          <path d="M 540 45 L 500 45" stroke="#10b981" strokeWidth="2"/>
+        </svg>
+
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
           <h4 className="text-lg font-bold text-indigo-400 mb-4">The MSS Execution Checklist</h4>
           <ul className="space-y-4 text-slate-300">
             <li><strong className="text-white">Prerequisite:</strong> Price must have just swept a major BSL or SSL pool.</li>
@@ -53,7 +105,7 @@ export const courseData = [
     homework: [
       "Identify 5 clean Market Structure Shifts on a 5-minute chart that left a valid FVG.",
       "Identify 3 false breaks (wicks only) that trapped retail breakout traders.",
-      "Overlay the Velez 200 SMA and confirm if the true MSS aligned with the slope."
+      "Overlay the Velez 200 SMA and confirm if the true MSS aligned with the trend slope."
     ]
   },
   {
@@ -61,12 +113,43 @@ export const courseData = [
     title: 'Episode 3: Fair Value Gaps (FVG) & Imbalance Re-delivery',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Anatomy of an Imbalance</h3>
-          <p className="text-slate-300">An FVG is a 3-candle sequence where rapid algorithmic pricing leaves a gap between the wick of Candle 1 and the wick of Candle 3. This represents a vacuum of liquidity that the algorithm must eventually revisit to balance the books.</p>
+          <p className="text-slate-300 leading-relaxed">An FVG is a 3-candle sequence where rapid algorithmic pricing leaves a gap between the wick of Candle 1 and the wick of Candle 3. This represents a vacuum of liquidity that the algorithm must eventually revisit to balance the books.</p>
         </div>
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700">
+
+        <svg viewBox="0 0 800 400" className="w-full h-auto rounded-xl bg-slate-900 border border-slate-700 shadow-lg my-8">
+          <rect width="800" height="400" fill="#0f172a" rx="12"/>
+          <text x="630" y="40" fill="#64748b" fontSize="14" fontWeight="bold">Fair Value Gap & CE</text>
+          
+          <g transform="translate(200, 200)">
+            <line x1="20" y1="0" x2="20" y2="150" stroke="#10b981" strokeWidth="2"/>
+            <rect x="5" y="50" width="30" height="100" fill="#10b981"/>
+            <text x="-40" y="-10" fill="#94a3b8" fontSize="12">Candle 1 High</text>
+            <line x1="20" y1="0" x2="400" y2="0" stroke="#94a3b8" strokeDasharray="4,4"/>
+          </g>
+          
+          <g transform="translate(300, 50)">
+            <line x1="20" y1="0" x2="20" y2="250" stroke="#10b981" strokeWidth="2"/>
+            <rect x="5" y="20" width="30" height="200" fill="#10b981"/>
+          </g>
+
+          <g transform="translate(400, 30)">
+            <line x1="20" y1="0" x2="20" y2="100" stroke="#10b981" strokeWidth="2"/>
+            <rect x="5" y="0" width="30" height="60" fill="#10b981"/>
+            <text x="60" y="105" fill="#94a3b8" fontSize="12">Candle 3 Low</text>
+            <line x1="-200" y1="100" x2="20" y2="100" stroke="#94a3b8" strokeDasharray="4,4"/>
+          </g>
+
+          <rect x="180" y="130" width="300" height="70" fill="#818cf8" fillOpacity="0.2" stroke="#818cf8" strokeDasharray="4,4"/>
+          <text x="500" y="150" fill="#818cf8" fontSize="14" fontWeight="bold">Fair Value Gap (FVG)</text>
+
+          <line x1="180" y1="165" x2="480" y2="165" stroke="#f59e0b" strokeWidth="2"/>
+          <text x="500" y="170" fill="#f59e0b" fontSize="14" fontWeight="bold">50% Consequent Encroachment (CE)</text>
+        </svg>
+
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
           <h4 className="text-lg font-bold text-indigo-400 mb-4">Consequent Encroachment (CE)</h4>
           <p className="text-slate-300">CE is the exact 50% midpoint of the FVG. While aggressive entries can be taken at the gap's open, the highest probability entry for institutional re-delivery is exactly at the 50% CE level.</p>
         </div>
@@ -83,12 +166,12 @@ export const courseData = [
     title: 'Episode 4: The Oliver Velez Macro Baseline (200 SMA Filter)',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The Line of Truth</h3>
-          <p className="text-slate-300">While ICT concepts provide surgical entries, the Oliver Velez 200 SMA provides the macro directional bias. The 200 SMA is the ultimate filter against trading in chop or fighting institutional macro trends.</p>
+          <p className="text-slate-300 leading-relaxed">While ICT concepts provide surgical entries, the Oliver Velez 200 SMA provides the macro directional bias. The 200 SMA is the ultimate filter against trading in chop or fighting institutional macro trends.</p>
         </div>
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700">
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
           <h4 className="text-lg font-bold text-indigo-400 mb-4">The Binary Rule of 200</h4>
           <ul className="space-y-4 text-slate-300">
             <li><strong className="text-white">Uptrend (Price above rising 200):</strong> Execute ONLY long FVGs and bullish MSS setups. Ignore all short setups.</li>
@@ -108,10 +191,10 @@ export const courseData = [
     title: 'Episode 5: Time Cycles (AMD & Killzones)',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Accumulation, Manipulation, Distribution</h3>
-          <p className="text-slate-300">Price is fractal, and every session follows the AMD cycle. Asian session accumulates orders in a tight range. London manipulates price to sweep Asian liquidity (the Judas Swing). New York distributes price in the true daily direction.</p>
+          <p className="text-slate-300 leading-relaxed">Price is fractal, and every session follows the AMD cycle. Asian session accumulates orders in a tight range. London manipulates price to sweep Asian liquidity (the Judas Swing). New York distributes price in the true daily direction.</p>
         </div>
       </div>
     ),
@@ -126,10 +209,10 @@ export const courseData = [
     title: 'Episode 6: Wholesale vs. Retail (Premium & Discount Matrix)',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The Dealing Range</h3>
-          <p className="text-slate-300">Institutions only buy at wholesale (Discount) and sell at retail (Premium). By measuring the dealing range from the most recent structural high to low, you map the institutional matrix.</p>
+          <p className="text-slate-300 leading-relaxed">Institutions only buy at wholesale (Discount) and sell at retail (Premium). By measuring the dealing range from the most recent structural high to low, you map the institutional matrix.</p>
         </div>
       </div>
     ),
@@ -144,12 +227,12 @@ export const courseData = [
     title: 'Episode 7: Capital Preservation & Risk Parameters',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The 1% Mandate</h3>
-          <p className="text-slate-300">Mastery is not about making money; it is about keeping it. Your system is void if your risk profile allows for emotional drawdowns.</p>
+          <p className="text-slate-300 leading-relaxed">Mastery is not about making money; it is about keeping it. Your system is void if your risk profile allows for emotional drawdowns.</p>
         </div>
-        <div className="bg-slate-900/80 p-6 rounded-xl border border-slate-700">
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
           <h4 className="text-lg font-bold text-indigo-400 mb-4">Hard Rules</h4>
           <ul className="space-y-4 text-slate-300">
             <li>Never risk more than 1% of total account equity per trade.</li>
@@ -169,10 +252,10 @@ export const courseData = [
     title: 'Episode 8: Institutional Sponsorship & HTF Draw on Liquidity',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The HTF Magnet</h3>
-          <p className="text-slate-300">Lower timeframe patterns are noise unless they are magnetically pulled toward a Higher Timeframe (4H or Daily) Draw on Liquidity (DOL). You must know where the weekly algorithm is reaching before you take a 5M trade.</p>
+          <p className="text-slate-300 leading-relaxed">Lower timeframe patterns are noise unless they are magnetically pulled toward a Higher Timeframe (4H or Daily) Draw on Liquidity (DOL). You must know where the weekly algorithm is reaching before you take a 5M trade.</p>
         </div>
       </div>
     ),
@@ -186,10 +269,10 @@ export const courseData = [
     title: 'Episode 9: Power of 3 Deep Dive & Opening Range Math',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">O-H-L-C Dynamics</h3>
-          <p className="text-slate-300">The Power of 3 defines the Open, High, Low, and Close of the daily candle. On a bullish day, the algorithm opens, manipulates down to create the Low of Day (LOD) in a Discount array, expands up to the High of Day (HOD), and closes near the highs.</p>
+          <p className="text-slate-300 leading-relaxed">The Power of 3 defines the Open, High, Low, and Close of the daily candle. On a bullish day, the algorithm opens, manipulates down to create the Low of Day (LOD) in a Discount array, expands up to the High of Day (HOD), and closes near the highs.</p>
         </div>
       </div>
     ),
@@ -203,10 +286,10 @@ export const courseData = [
     title: 'Episode 10: New York AM Killzone Execution',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The 07:00 to 10:00 Window</h3>
-          <p className="text-slate-300">The NY AM Killzone provides the highest volume institutional injections. This window typically creates the true continuation of the London trend, or a violent reversal if London met a HTF POI.</p>
+          <p className="text-slate-300 leading-relaxed">The NY AM Killzone provides the highest volume institutional injections. This window typically creates the true continuation of the London trend, or a violent reversal if London met a HTF POI.</p>
         </div>
       </div>
     ),
@@ -220,10 +303,10 @@ export const courseData = [
     title: 'Episode 11: PM Session Killzone Continuation & Reversals',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The 13:30 Algorithmic Reset</h3>
-          <p className="text-slate-300">Following the NY lunch lull, algorithms reset at 13:30 EST. The PM session will either provide a late-day continuation of the AM trend, or a brutal reversal if the AM session achieved the Daily Draw on Liquidity.</p>
+          <p className="text-slate-300 leading-relaxed">Following the NY lunch lull, algorithms reset at 13:30 EST. The PM session will either provide a late-day continuation of the AM trend, or a brutal reversal if the AM session achieved the Daily Draw on Liquidity.</p>
         </div>
       </div>
     ),
@@ -237,10 +320,10 @@ export const courseData = [
     title: 'Episode 12: Advanced Market Structure & Swing Points',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Intermediate Term Highs/Lows</h3>
-          <p className="text-slate-300">Not all swing highs are created equal. An Intermediate Term High (ITH) is a swing high that has a lower short-term high to its left and right. These are the true structural bastions protected by smart money.</p>
+          <p className="text-slate-300 leading-relaxed">Not all swing highs are created equal. An Intermediate Term High (ITH) is a swing high that has a lower short-term high to its left and right. These are the true structural bastions protected by smart money.</p>
         </div>
       </div>
     ),
@@ -254,10 +337,10 @@ export const courseData = [
     title: 'Episode 13: IPDA Lookbacks & Internal vs External Liquidity',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The Liquidity Pendulum</h3>
-          <p className="text-slate-300">The IPDA algorithm strictly bounces between two objectives: External Liquidity (sweeping old highs/lows) and Internal Liquidity (returning to FVGs). Once external is taken, the draw becomes internal. Once internal is balanced, the draw becomes external.</p>
+          <p className="text-slate-300 leading-relaxed">The IPDA algorithm strictly bounces between two objectives: External Liquidity (sweeping old highs/lows) and Internal Liquidity (returning to FVGs). Once external is taken, the draw becomes internal. Once internal is balanced, the draw becomes external.</p>
         </div>
       </div>
     ),
@@ -270,10 +353,10 @@ export const courseData = [
     title: 'Episode 14: Macro Timeframes & Parent/Child Trend Alignment',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Timeframe Fractalization</h3>
-          <p className="text-slate-300">The 4H chart dictates the structure (Parent), the 15M chart dictates the narrative, and the 1M chart dictates the execution (Child). You cannot trade the 1M effectively if you are ignorant to the 4H Order Block.</p>
+          <p className="text-slate-300 leading-relaxed">The 4H chart dictates the structure (Parent), the 15M chart dictates the narrative, and the 1M chart dictates the execution (Child). You cannot trade the 1M effectively if you are ignorant to the 4H Order Block.</p>
         </div>
       </div>
     ),
@@ -287,10 +370,10 @@ export const courseData = [
     title: 'Episode 15: Interest Rate Yields & Intermarket Analysis (SMT)',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Smart Money Technique (SMT)</h3>
-          <p className="text-slate-300">Correlated assets (like ES and NQ, or EURUSD and GBPUSD) should move in tandem. When one asset makes a lower low, but the correlated asset fails to make a lower low, you have an SMT Divergence. This reveals heavy institutional accumulation.</p>
+          <p className="text-slate-300 leading-relaxed">Correlated assets (like ES and NQ) should move in tandem. When one asset makes a lower low, but the correlated asset fails to make a lower low, you have an SMT Divergence. This reveals heavy institutional accumulation.</p>
         </div>
       </div>
     ),
@@ -304,10 +387,10 @@ export const courseData = [
     title: 'Episode 16: Intermarket Analysis & SMT Divergence Execution',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Weaponizing SMT</h3>
-          <p className="text-slate-300">SMT is not an entry trigger on its own; it is an institutional footprint. Combine SMT Divergence with a Discount FVG during the NY Killzone for the highest probability setup in the curriculum.</p>
+          <p className="text-slate-300 leading-relaxed">SMT is not an entry trigger on its own; it is an institutional footprint. Combine SMT Divergence with a Discount FVG during the NY Killzone for the highest probability setup in the curriculum.</p>
         </div>
       </div>
     ),
@@ -320,10 +403,10 @@ export const courseData = [
     title: 'Episode 17: Top Down Analysis Pipeline',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">Putting It All Together</h3>
-          <p className="text-slate-300">The daily routine: 1. Identify Daily DOL. 2. Confirm 200 SMA slope on 15M. 3. Wait for Killzone. 4. Wait for AMD manipulation sweep. 5. Enter on 1M or 5M MSS + FVG.</p>
+          <p className="text-slate-300 leading-relaxed">The daily routine: 1. Identify Daily DOL. 2. Confirm 200 SMA slope on 15M. 3. Wait for Killzone. 4. Wait for AMD manipulation sweep. 5. Enter on 1M or 5M MSS + FVG.</p>
         </div>
       </div>
     ),
@@ -336,10 +419,10 @@ export const courseData = [
     title: 'Episode 18: Weekly Profile & Friday Close Math',
     youtubeUrl: 'https://youtube.com',
     content: (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-bold text-white mb-4">The Weekly Range</h3>
-          <p className="text-slate-300">In a classic Tuesday Low of Week profile, Monday consolidates, Tuesday sweeps lower to form the true low, Wednesday expands, Thursday continues, and Friday consolidates into the close. Understanding the day of the week dictates your profit targets.</p>
+          <p className="text-slate-300 leading-relaxed">In a classic Tuesday Low of Week profile, Monday consolidates, Tuesday sweeps lower to form the true low, Wednesday expands, Thursday continues, and Friday consolidates into the close. Understanding the day of the week dictates your profit targets.</p>
         </div>
       </div>
     ),
