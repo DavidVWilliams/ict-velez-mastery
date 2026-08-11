@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, X as XIcon 
+  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, X as XIcon, Menu, MessageSquare 
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
@@ -15,6 +15,10 @@ export default function App() {
     toggleModuleCompletion = () => {}, 
     completedModules = [] 
   } = store;
+
+  // Responsive state handlers
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const [teacherQuery, setTeacherQuery] = useState('');
   const [pendingAttachment, setPendingAttachment] = useState(null);
@@ -40,7 +44,6 @@ export default function App() {
     const userText = teacherQuery.trim();
     const attachment = pendingAttachment;
 
-    // Add user message with combined text + image in a single bubble
     const userMessage = { 
       sender: 'user', 
       text: userText || '[Attached Screenshot]', 
@@ -51,7 +54,6 @@ export default function App() {
     setTeacherQuery('');
     setPendingAttachment(null);
 
-    // Generate intelligent direct response locally without rigid prefaces
     setTimeout(() => {
       const reply = generateResponse(userText, !!attachment);
       setChatMessages(prev => [...prev, { sender: 'teacher', text: reply }]);
@@ -60,23 +62,22 @@ export default function App() {
 
   const generateResponse = (queryText, hasImage) => {
     const q = queryText.toLowerCase();
+    const cleanQ = q.replace(/[^\w\s]/gi, '').trim(); 
 
-    // 1. Casual / General Greetings & Meta questions
-    if (q.includes("what's up") || q.includes("whats up") || q === 'sup' || q.includes('how are you')) {
+    if (cleanQ === 'whats up' || cleanQ === 'sup' || q.includes('how are you')) {
       return "Not much, ready to work. What charts or concepts are you looking at right now?";
     }
-    if (q === 'hello' || q === 'hi' || q === 'hey') {
+    if (cleanQ === 'hello' || cleanQ === 'hi' || cleanQ === 'hey') {
       return "Hey there! Ready when you are—ask away or paste a screenshot.";
     }
     if (q.includes('who are you') || q.includes('who is this') || q.includes('what are you')) {
       return "I am your ICT & Oliver Velez Masterclass mentor. I'm here to analyze setups, evaluate market structure, break down liquidity mechanics, and answer any technical or general questions.";
     }
-    if (q.includes('thank') || q === 'thanks' || q === 'cool' || q === 'got it' || q === 'ok') {
+    if (q.includes('thank') || cleanQ === 'cool' || cleanQ === 'got it' || cleanQ === 'ok') {
       return "You got it! Let me know what else you want to break down.";
     }
 
-    // 2. Technical Trading / ICT / Velez Mechanics
-    if (q === 'ce' || q.includes('explain ce') || q.includes('consequent encroachment') || q.includes('midpoint')) {
+    if (cleanQ === 'ce' || q.includes('what is ce') || q.includes('explain ce') || q.includes('consequent encroachment') || q.includes('midpoint')) {
       return "**Consequent Encroachment (CE)** is the exact 50% midpoint of a Fair Value Gap (FVG) or Volume Imbalance. Algorithms treat CE as true equilibrium. Look for price to retrace directly to CE; a high-momentum rejection at the 50% level confirms institutional re-delivery.";
     }
     if (q.includes('fvg') || q.includes('fair value') || q.includes('gap') || q.includes('imbalance')) {
@@ -98,7 +99,6 @@ export default function App() {
       return "The **200 SMA** acts as your macro baseline. When its slope is angled upward, take long setups only; when angled downward, focus exclusively on short setups.";
     }
 
-    // 3. Screenshot Analysis Mode
     if (hasImage) {
       if (!queryText) {
         return "I've received your chart screenshot. Check for: (1) Higher Timeframe Draw on Liquidity, (2) Clean BSL/SSL Sweep, (3) MSS displacement candle, and (4) Retracement into an FVG or Order Block.";
@@ -106,7 +106,6 @@ export default function App() {
       return `Analyzing your chart regarding "${queryText}": Evaluate the 3-candle displacement, confirm if the body closes past structural pivots, and ensure your entry aligns with the 50% CE level or key Order Block threshold.`;
     }
 
-    // 4. Unconstrained General Query Fallback
     return `To evaluate "${queryText}": Ensure alignment with higher-timeframe liquidity draws, execute strictly during session killzones (London/NY AM), confirm structural displacement, and keep risk capped at 1%.`;
   };
 
@@ -139,18 +138,35 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
-      {/* Column 1: Navigation Sidebar (Fixed width) */}
-      <aside className="w-80 flex-shrink-0 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-10">
-        <div className="p-5 border-b border-slate-800 flex items-center gap-2 flex-shrink-0">
-          <Shield className="w-6 h-6 text-indigo-500" />
-          <h1 className="font-bold text-lg text-white truncate">ICT & Velez Mastery</h1>
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans relative">
+      
+      {/* Mobile Overlays */}
+      {(isSidebarOpen || isChatOpen) && (
+        <div 
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 lg:hidden" 
+          onClick={() => { setIsSidebarOpen(false); setIsChatOpen(false); }} 
+        />
+      )}
+
+      {/* Column 1: Navigation Sidebar (Drawer on mobile, fixed on desktop) */}
+      <aside className={`absolute lg:relative z-40 h-full w-80 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-indigo-500" />
+            <h1 className="font-bold text-lg text-white truncate">ICT & Velez Mastery</h1>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
+            <XIcon className="w-6 h-6" />
+          </button>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
           {courseData.map((lesson) => (
             <button
               key={lesson.id}
-              onClick={() => setActiveLessonId(lesson.id)}
+              onClick={() => {
+                setActiveLessonId(lesson.id);
+                setIsSidebarOpen(false); // Auto-close drawer on mobile selection
+              }}
               className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
                 (lesson.id === activeLessonId || lesson.id === `ep${activeLessonId}`) 
                   ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 font-medium' 
@@ -163,37 +179,55 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Column 2: Main Lesson Area (Flexible, auto-wrap) */}
-      <main className="flex-1 min-w-0 h-full flex flex-col bg-slate-950 overflow-y-auto">
-        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
-          <h2 className="text-xl font-bold text-white truncate pr-4">{currentLesson?.title}</h2>
-          <button 
-            onClick={() => toggleModuleCompletion(currentLesson?.id)} 
-            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-          >
-            Mark Complete
-          </button>
+      {/* Column 2: Main Lesson Area */}
+      <main className="flex-1 min-w-0 h-full flex flex-col bg-slate-950 overflow-y-auto relative z-10 w-full">
+        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-20 shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-slate-400 hover:text-white shrink-0">
+              <Menu className="w-6 h-6" />
+            </button>
+            <h2 className="text-lg lg:text-xl font-bold text-white truncate pr-4">{currentLesson?.title}</h2>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button 
+              onClick={() => toggleModuleCompletion(currentLesson?.id)} 
+              className="hidden sm:block bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              Mark Complete
+            </button>
+            <button 
+              onClick={() => setIsChatOpen(true)} 
+              className="lg:hidden bg-indigo-600 hover:bg-indigo-500 p-2 rounded-lg text-white transition-colors flex items-center gap-2"
+            >
+              <MessageSquare className="w-5 h-5" />
+            </button>
+          </div>
         </header>
-        <div className="max-w-4xl w-full mx-auto p-8 space-y-8 box-border">
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+        
+        <div className="max-w-4xl w-full mx-auto p-4 lg:p-8 space-y-6 lg:space-y-8 box-border">
+          <div className="bg-slate-900 p-4 lg:p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div className="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
-              <PlayCircle className="w-16 h-16 text-indigo-500 hover:scale-110 transition-transform cursor-pointer" />
+              <PlayCircle className="w-12 h-12 lg:w-16 lg:h-16 text-indigo-500 hover:scale-110 transition-transform cursor-pointer" />
             </div>
           </div>
-          <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-6">
-            <div className="text-slate-300 leading-relaxed space-y-4 break-words">{currentLesson?.content}</div>
+          <div className="bg-slate-900/60 p-6 lg:p-8 rounded-2xl border border-slate-800 space-y-6">
+            <div className="text-slate-300 leading-relaxed space-y-4 break-words text-sm lg:text-base">{currentLesson?.content}</div>
           </div>
         </div>
       </main>
 
-      {/* Column 3: Ask the Teacher Panel (Fixed width, independent scroll) */}
-      <aside className="w-96 flex-shrink-0 h-full bg-slate-900 border-l border-slate-800 flex flex-col z-10">
-        <div className="p-4 border-b border-slate-800 flex items-center gap-2 bg-slate-900/90 flex-shrink-0">
-          <Bot className="w-5 h-5 text-indigo-400" />
-          <h3 className="font-bold text-white text-sm">Ask the Teacher</h3>
+      {/* Column 3: Ask the Teacher Panel (Drawer on mobile, fixed right on desktop) */}
+      <aside className={`absolute right-0 lg:relative z-40 h-full w-full sm:w-96 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${isChatOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-indigo-400" />
+            <h3 className="font-bold text-white text-sm">Ask the Teacher</h3>
+          </div>
+          <button onClick={() => setIsChatOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
+            <XIcon className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Chat Messages Log */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {chatMessages.map((msg, index) => (
             <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
@@ -211,9 +245,8 @@ export default function App() {
           ))}
         </div>
         
-        {/* Attachment Preview Box above Input */}
         {pendingAttachment && (
-          <div className="px-4 pb-2 flex-shrink-0">
+          <div className="px-4 pb-2 shrink-0">
             <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2">
               <img src={pendingAttachment.data} alt="Preview" className="w-10 h-10 object-cover rounded shrink-0" />
               <span className="text-xs text-slate-300 truncate flex-1">{pendingAttachment.name}</span>
@@ -224,8 +257,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Form Controls */}
-        <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2 flex-shrink-0">
+        <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800 flex items-center gap-2 shrink-0 pb-safe">
           <label className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors p-2 shrink-0" title="Attach file or screenshot">
             <Paperclip className="w-5 h-5" />
             <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
@@ -235,7 +267,7 @@ export default function App() {
             value={teacherQuery}
             onChange={(e) => setTeacherQuery(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Type question or paste screenshot..." 
+            placeholder="Type question or paste image..." 
             className="flex-1 min-w-0 bg-slate-800 text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm"
           />
           <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-colors shrink-0">
