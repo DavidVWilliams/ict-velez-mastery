@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, X as XIcon, Activity, Layers, PenTool
+  PlayCircle, Bot, CheckSquare, Shield, Send, Paperclip, X as XIcon, Activity, Layers, PenTool, ChevronRight, ChevronLeft, RotateCw
 } from 'lucide-react';
 import { useCourseStore } from './store/useCourseStore';
 import { courseData } from './data/curriculum';
@@ -30,6 +30,26 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState([
     { sender: 'teacher', text: 'Hello! I am your Masterclass mentor. Type any question, paste a screenshot, or upload a chart for a structural breakdown.' }
   ]);
+
+  // Flash Card State
+  const flashcards = [
+    { term: 'Liquidity Pools (BSL/SSL)', definition: 'Resting stop-loss orders targeted by IPDA for block order execution without slippage. BSL sits above highs, SSL sits below lows.' },
+    { term: 'MSS (Market Structure Shift)', definition: 'Price aggressively breaks a key structural swing pivot with a strong displacement candle body close, signaling an institutional trend reversal.' },
+    { term: 'FVG (Fair Value Gap)', definition: 'A 3-candle displacement sequence where Candle 1 and 3 wicks do not overlap. The 50% Consequent Encroachment (CE) is the prime entry.' },
+    { term: '200 SMA Filter', definition: 'The Oliver Velez macro baseline. Only long when price is above a rising 200 SMA; only short when below a falling 200 SMA.' }
+  ];
+  const [currentCard, setCurrentCard] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  // Trade Journal State
+  const [journalEntries, setJournalEntries] = useState([
+    { id: 2, date: '2026-08-11', setup: 'MSS + FVG', notes: 'Swept BSL during NY AM Killzone. Entered at 50% CE. 200 SMA aligned.' },
+    { id: 1, date: '2026-08-10', setup: '200 SMA Bounce', notes: 'Price rejected firmly off the 200 SMA on the 15m chart. Took 50% partials at 2R.' }
+  ]);
+  const [newEntry, setNewEntry] = useState({ date: '', setup: '', notes: '' });
+
+  // Apply reverse calendar order sorting for the journal
+  const sortedJournalEntries = [...journalEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   useEffect(() => {
     try {
@@ -63,6 +83,13 @@ export default function App() {
       const reply = generateResponse(userText, !!attachment);
       setChatMessages(prev => [...prev, { sender: 'teacher', text: reply }]);
     }, 500);
+  };
+
+  const handleAddJournalEntry = (e) => {
+    e.preventDefault();
+    if (!newEntry.date || !newEntry.setup) return;
+    setJournalEntries(prev => [...prev, { id: Date.now(), ...newEntry }]);
+    setNewEntry({ date: '', setup: '', notes: '' });
   };
 
   const generateResponse = (queryText, hasImage) => {
@@ -124,7 +151,10 @@ export default function App() {
           {courseData.map((lesson) => (
             <button
               key={lesson.id}
-              onClick={() => setActiveLessonId(lesson.id)}
+              onClick={() => {
+                setActiveLessonId(lesson.id);
+                setActiveModuleTab('Curriculum');
+              }}
               className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
                 lesson.id === activeLessonId
                   ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 font-medium' 
@@ -184,17 +214,13 @@ export default function App() {
         
         {/* Scrollable Main Content Space */}
         <div className="flex-1 overflow-y-auto p-8 box-border">
-          <div className="max-w-4xl w-full mx-auto">
+          <div className="max-w-5xl w-full mx-auto">
             
-            {/* Conditional Rendering based on Top Tabs */}
             {activeModuleTab === 'Curriculum' && (
               <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 space-y-8 shadow-xl">
-                {/* Text and SVGs */}
                 <div className="text-slate-300 leading-relaxed break-words text-base">
                   {currentLesson?.content}
                 </div>
-
-                {/* Homework Stacked Directly Below */}
                 {currentLesson?.homework && currentLesson.homework.length > 0 && (
                   <div className="mt-10 pt-8 border-t border-slate-800/80">
                     <div className="flex items-center gap-2 mb-6">
@@ -216,31 +242,115 @@ export default function App() {
               </div>
             )}
 
-            {/* Placeholders for other modules */}
             {activeModuleTab === 'Practice Simulator' && (
-              <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 shadow-xl flex flex-col items-center justify-center min-h-[400px]">
-                <Activity className="w-16 h-16 text-slate-700 mb-4" />
-                <h3 className="text-xl font-bold text-slate-400">Trading Simulator Engine</h3>
-                <p className="text-slate-500 mt-2">Historical chart playback components will load here.</p>
+              <div className="bg-slate-900 p-2 rounded-2xl border border-slate-800 shadow-xl h-[700px] w-full flex flex-col">
+                <div className="p-4 border-b border-slate-800 flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-bold text-white">TradingView Advanced Chart Sandbox</h3>
+                  <span className="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">Dark Theme | 15m Interval</span>
+                </div>
+                <div className="flex-1 w-full rounded-xl overflow-hidden">
+                  <iframe 
+                    title="TradingView Simulator"
+                    src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_123&symbol=NASDAQ%3ANQ1!&interval=15&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget&utm_campaign=chart&utm_term=NASDAQ%3ANQ1!" 
+                    className="w-full h-full"
+                    frameBorder="0" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
               </div>
             )}
 
             {activeModuleTab === 'Flash Cards' && (
-              <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 shadow-xl flex flex-col items-center justify-center min-h-[400px]">
-                <CheckSquare className="w-16 h-16 text-slate-700 mb-4" />
-                <h3 className="text-xl font-bold text-slate-400">Concept Flash Cards</h3>
-                <p className="text-slate-500 mt-2">Spaced repetition study deck will load here.</p>
+              <div className="flex flex-col items-center justify-center min-h-[500px] w-full max-w-2xl mx-auto">
+                <div className="w-full mb-4 flex justify-between items-center text-slate-400">
+                  <span className="text-sm font-medium">Concept Mastery Deck</span>
+                  <span className="text-sm font-medium">{currentCard + 1} / {flashcards.length}</span>
+                </div>
+                
+                <div 
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="bg-slate-900 w-full aspect-video rounded-3xl border border-slate-700 shadow-2xl cursor-pointer relative transition-all duration-500 hover:border-indigo-500/50 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="absolute top-6 right-6 text-slate-500">
+                    <RotateCw className="w-5 h-5" />
+                  </div>
+                  {!isFlipped ? (
+                    <h2 className="text-4xl font-bold text-white tracking-tight">{flashcards[currentCard].term}</h2>
+                  ) : (
+                    <p className="text-xl text-slate-300 leading-relaxed">{flashcards[currentCard].definition}</p>
+                  )}
+                </div>
+
+                <div className="flex gap-4 mt-8">
+                  <button 
+                    onClick={() => {
+                      setIsFlipped(false);
+                      setCurrentCard(prev => prev === 0 ? flashcards.length - 1 : prev - 1);
+                    }}
+                    className="bg-slate-800 hover:bg-slate-700 p-4 rounded-xl text-white transition-colors border border-slate-700"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsFlipped(false);
+                      setCurrentCard(prev => prev === flashcards.length - 1 ? 0 : prev + 1);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-500 p-4 rounded-xl text-white transition-colors shadow-lg shadow-indigo-900/20"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             )}
 
             {activeModuleTab === 'Trade Journal' && (
-              <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 shadow-xl flex flex-col items-center justify-center min-h-[400px]">
-                <PenTool className="w-16 h-16 text-slate-700 mb-4" />
-                <h3 className="text-xl font-bold text-slate-400">Execution Log</h3>
-                <p className="text-slate-500 mt-2">Trade logging and metric tracking will load here.</p>
+              <div className="space-y-8">
+                <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+                  <h3 className="text-lg font-bold text-white mb-4">Log New Setup</h3>
+                  <form onSubmit={handleAddJournalEntry} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input 
+                      type="date" 
+                      value={newEntry.date} 
+                      onChange={e => setNewEntry({...newEntry, date: e.target.value})}
+                      className="bg-slate-800 text-white px-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500"
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Setup Type (e.g., MSS + FVG)" 
+                      value={newEntry.setup}
+                      onChange={e => setNewEntry({...newEntry, setup: e.target.value})}
+                      className="bg-slate-800 text-white px-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500"
+                    />
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Execution Notes..." 
+                        value={newEntry.notes}
+                        onChange={e => setNewEntry({...newEntry, notes: e.target.value})}
+                        className="flex-1 bg-slate-800 text-white px-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500"
+                      />
+                      <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium transition-colors">
+                        Save
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-white mb-4">Execution History</h3>
+                  {sortedJournalEntries.map(entry => (
+                    <div key={entry.id} className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 hover:border-slate-700 transition-colors">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="text-indigo-400 font-bold">{entry.setup}</h4>
+                        <span className="text-slate-400 text-sm font-mono bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">{entry.date}</span>
+                      </div>
+                      <p className="text-slate-300 leading-relaxed">{entry.notes}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-
           </div>
         </div>
       </main>
